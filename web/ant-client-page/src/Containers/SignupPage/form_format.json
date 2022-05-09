@@ -1,0 +1,29 @@
+{
+    "title": "Sign Up",
+    "entries": [
+        {
+            "name": "Email",
+            "state": "",
+            "changeState": "",
+            "isPassword": false
+        },
+        {
+            "name": "Password",
+            "state": "",
+            "changeState": "",
+            "isPassword": true
+        },
+        {
+            "name": "Confirm You Password",
+            "state": "",
+            "changeState": "",
+            "isPassword": true
+        }
+    ],
+    "buttons": [
+        {
+            "name": "Sign Up",
+            "callback": ""
+        }
+    ]
+}

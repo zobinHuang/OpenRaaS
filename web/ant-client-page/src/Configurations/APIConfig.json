@@ -1,0 +1,29 @@
+{
+    "AuthHostAddr": "127.0.0.1",
+    "AuthPort": "80",
+    "AuthBaseURL": "/api/auth",
+    "AuthProtocol": "http",
+    "AuthAPI": {
+        "SignIn": "signin",
+        "SignUp": "signup",
+        "SignOut": "signout"
+    },
+    
+    "ScheduleHostAddr": "127.0.0.1",
+    "SchedulePort": "80",
+    "ScheduleBaseURL": "/api/scheduler",
+    "ScheduleProtocol": "http",
+    "ScheduleAPI": {
+        "ApplicationList": "application_list",
+        "ApplicationAmount": "application_amount",
+        "ApplicationDetails": "application_details"
+    },
+
+    "WSHostAddr": "127.0.0.1",
+    "WSPort": "80",
+    "WSBaseURL": "/api/scheduler",
+    "WSProtocol": "ws",
+    "WSAPI": {
+        "WebSocketConnect": "wsconnect"
+    }
+}

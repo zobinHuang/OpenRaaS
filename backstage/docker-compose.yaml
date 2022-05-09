@@ -1,0 +1,112 @@
+# Docker Version
+# version: "3.8"
+
+services:
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.2     
+    command:
+      # Enable web UI
+      - "--api.insecure=true"
+      # Listen to other Docker containers
+      - "--providers.docker"
+      # Don't expose every Docker containers by default
+      - "--providers.docker.exposedByDefault=false"
+    ports:
+      # The HTTP port
+      - "80:80"
+      # Web UI
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker event
+      - /var/run/docker.sock:/var/run/docker.sock
+  
+  postgres-auth:
+    image: "postgres:alpine"
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    #   Set a volume for data and initial sql script
+    #   May configure initial db for future demo
+    volumes:
+      - "pgdata_auth:/var/lib/postgresql/data"
+      # - ./init:/docker-entrypoint-initdb.d/
+    command: ["postgres", "-c", "log_statement=ddl"]
+
+  redis-auth:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redisdata:/data"
+
+  auth:
+    build:
+      context: ./auth
+      target: builder
+    image: auth
+    env_file: ./auth/.env.dev
+    expose:
+      - "8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`127.0.0.1`) && PathPrefix(`/api/auth`)"
+      - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST"
+      - "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
+      - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.testheader.headers.addvaryheader=true" 
+    environment:
+      - ENV=dev
+    depends_on:
+      - postgres-auth
+      - redis-auth
+    volumes:
+      - ./auth:/go/src/app
+    # have to use $$ (double-dollar) so docker doesn't try to substitute a variable
+    command: reflex -r "\.go$$" -s -- sh -c "go run ./"
+  
+  postgres-scheduler:
+    image: "postgres:alpine"
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5433:5432"
+    #   Set a volume for data and initial sql script
+    #   May configure initial db for future demo
+    volumes:
+      - "pgdata_scheduler:/var/lib/postgresql/data"
+      # - ./init:/docker-entrypoint-initdb.d/
+    command: ["postgres", "-c", "log_statement=ddl"]
+
+  scheduler:
+    build:
+      context: ./scheduler
+      target: builder
+    image: scheduler
+    env_file: ./scheduler/.env.dev
+    expose:
+      - "8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.scheduler.rule=Host(`127.0.0.1`) && PathPrefix(`/api/scheduler`)"
+      - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST"
+      - "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
+      - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.testheader.headers.addvaryheader=true" 
+    environment:
+      - ENV=dev
+    depends_on:
+      - postgres-scheduler
+      - postgres-auth
+      - redis-auth
+      - auth
+    volumes:
+      - ./scheduler:/go/src/app
+    # have to use $$ (double-dollar) so docker doesn't try to substitute a variable
+    command: reflex -r "\.go$$" -s -- sh -c "go run ./"
+
+volumes:
+  pgdata_auth:
+  pgdata_scheduler:
+  redisdata:

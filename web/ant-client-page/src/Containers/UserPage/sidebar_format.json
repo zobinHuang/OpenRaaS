@@ -1,0 +1,17 @@
+{
+    "current_selected": "my_cloud",
+    "buttons": [
+        {
+            "id": "my_cloud",
+            "name": "My Cloud"
+        },
+        {
+            "id": "terminals",
+            "name": "Terminals"
+        },
+        {
+            "id": "perference",
+            "name": "Perference"
+        }
+    ]
+}

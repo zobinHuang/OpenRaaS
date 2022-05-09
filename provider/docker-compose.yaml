@@ -1,0 +1,44 @@
+# Docker Version
+# version: "3.8"
+
+services:
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.2     
+    command:
+      # Enable web UI
+      - "--api.insecure=true"
+      # Listen to other Docker containers
+      - "--providers.docker"
+      # Don't expose every Docker containers by default
+      - "--providers.docker.exposedByDefault=false"
+    ports:
+      # The HTTP port
+      - "81:80"
+      # Web UI
+      - "8081:8080"
+    volumes:
+      # So that Traefik can listen to the Docker event
+      - /var/run/docker.sock:/var/run/docker.sock
+  
+  streamer:
+    build:
+      context: ./streamer
+      target: builder
+    image: streamer
+    env_file: ./streamer/.env.dev
+    expose:
+      - "8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.streamer.rule=Host(`127.0.0.1`) && PathPrefix(`/api/streamer`)"
+      - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST"
+      - "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
+      - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.testheader.headers.addvaryheader=true" 
+    environment:
+      - ENV=dev
+    volumes:
+      - ./streamer:/go/src/app
+    # have to use $$ (double-dollar) so docker doesn't try to substitute a variable
+    command: reflex -r "\.go$$" -s -- sh -c "go run ./"

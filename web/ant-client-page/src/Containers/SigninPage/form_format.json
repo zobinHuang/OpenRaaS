@@ -1,0 +1,23 @@
+{
+    "title": "Sign In",
+    "entries": [
+        {
+            "name": "Email",
+            "state": "",
+            "changeState": "",
+            "isPassword": false
+        },
+        {
+            "name": "Password",
+            "state": "",
+            "changeState": "",
+            "isPassword": true
+        }
+    ],
+    "buttons": [
+        {
+            "name": "Sign In",
+            "callback": ""
+        }
+    ]
+}

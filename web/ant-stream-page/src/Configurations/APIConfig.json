@@ -1,0 +1,9 @@
+{
+    "AuthHostAddr": "127.0.0.1",
+    "WSPort": "80",
+    "WSBaseURL": "/api/scheduler",
+    "WSProtocol": "ws",
+    "WSAPI": {
+        "WebSocketConnect": "wsconnect"
+    }
+}

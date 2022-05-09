@@ -1,0 +1,19 @@
+{
+    "steps": [
+        {
+            "name": "Creating Instance",
+            "id": "creating",
+            "failedMessage": "Incorrect Configuration Parameters"
+        },
+        {
+            "name": "Scheduling Instance",
+            "id": "scheduling",
+            "failedMessage": "Failed to Scheduling on Platform"
+        },
+        {
+            "name": "Runing Instance",
+            "id": "running",
+            "failedMessage": "Failed to Open Instance on Remote Machine"
+        }
+    ]
+}
