@@ -75,6 +75,13 @@ const EmptyTerminalPrompt = styled.h2`
     color: #c4c4c4;
 `
 
+export const TERMINAL_STEP_CONFIG_INSTANCE = 0
+export const TERMINAL_STEP_CONNECT_TO_SCHEDULER = 1
+export const TERMINAL_STEP_SCHEDULE_COMPUTE_NODE = 2
+export const TERMINAL_STEP_SCHEDULE_STORAGE_NODE = 3
+export const TERMINAL_STEP_PREPARE_INSTANCE = 4
+export const TERMINAL_STEP_RUN_INSTANCE = 5
+
 const TerminalsPage = (props) => {    
 
     const dispatch = useDispatch()

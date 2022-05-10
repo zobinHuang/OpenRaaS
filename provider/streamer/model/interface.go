@@ -50,6 +50,7 @@ type WebsocketCommunicator interface {
 	description: interface of data access layer for instance
 */
 type InstanceDAL interface {
+	AddNewStreamInstance(streamInstanceDaemonModel *StreamInstanceDaemonModel)
 }
 
 /*

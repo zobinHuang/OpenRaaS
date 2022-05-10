@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"strconv"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/websocket"
@@ -191,7 +192,10 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 	consumer.Receive("select_stream_application", func(req model.WSPacket) (resp model.WSPacket) {
 		// define request format
 		var reqPacketData struct {
-			ApplicationID string `json:"application_id"`
+			ApplicationID  string `json:"application_id"`
+			ScreenHeight   string `json:"screen_height"`
+			ScreenWidth    string `json:"screen_width"`
+			ApplicationFPS string `json:"application_fps"`
 		}
 
 		// parse request
@@ -199,7 +203,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		if err != nil {
 			log.WithFields(log.Fields{
 				"Warn Type":        "Recv Callback Error",
-				"Recv Packet Type": "start_stream_application",
+				"Recv Packet Type": "select_stream_application",
 				"ConsumerID":       consumer.ClientID,
 				"error":            err,
 			}).Warn("Failed to decode json during receiving, abandoned")
@@ -217,7 +221,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		if err != nil {
 			log.WithFields(log.Fields{
 				"Warn Type":            "Recv Callback Error",
-				"Recv Packet Type":     "start_stream_application",
+				"Recv Packet Type":     "select_stream_application",
 				"ConsumerID":           consumer.ClientID,
 				"Given Application ID": reqPacketData.ApplicationID,
 				"error":                err,
@@ -229,8 +233,14 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		}
 
 		// create stream application instance
+		ScreenHeightInt, _ := strconv.Atoi(reqPacketData.ScreenHeight)
+		ScreenWidthInt, _ := strconv.Atoi(reqPacketData.ScreenWidth)
+		FPSInt, _ := strconv.Atoi(reqPacketData.ApplicationFPS)
 		streamInstance := &model.StreamInstance{
 			StreamApplication: streamApplication,
+			ScreenHeight:      ScreenHeightInt,
+			ScreenWidth:       ScreenWidthInt,
+			FPS:               FPSInt,
 		}
 
 		// schedule
@@ -238,7 +248,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		if err != nil {
 			log.WithFields(log.Fields{
 				"Warn Type":            "Recv Callback Error",
-				"Recv Packet Type":     "start_stream_application",
+				"Recv Packet Type":     "select_stream_application",
 				"Given Application ID": reqPacketData.ApplicationID,
 				"ConsumerID":           consumer.ClientID,
 				"error":                err,
@@ -284,7 +294,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		if err != nil {
 			log.WithFields(log.Fields{
 				"Warn Type":        "Recv Callback Error",
-				"Recv Packet Type": "start_stream_application",
+				"Recv Packet Type": "select_stream_application",
 				"ConsumerID":       consumer.ClientID,
 				"error":            err,
 			}).Warn("Failed to marshal request to provider, abandoned")
@@ -314,7 +324,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		if err != nil {
 			log.WithFields(log.Fields{
 				"Warn Type":        "Recv Callback Error",
-				"Recv Packet Type": "start_stream_application",
+				"Recv Packet Type": "select_stream_application",
 				"ConsumerID":       consumer.ClientID,
 				"error":            err,
 			}).Warn("Failed to marshal response to consumer, abandoned")

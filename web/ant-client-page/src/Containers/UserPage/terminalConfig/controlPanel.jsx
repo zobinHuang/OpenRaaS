@@ -5,11 +5,13 @@ import Button from '@mui/material/Button';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
+import LaunchIcon from '@mui/icons-material/Launch';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions as TerminalActions } from '../../../Data/Reducers/terminalReducer';
 import { actions as SnackBarActions } from '../../../Data/Reducers/snackBarReducer'
 import GetTimestamp from '../../../Utils/get_timestamp';
-import { TabIndex_Dashboard_Application, TabIndex_Dashboard_LogViewer } from '../terminalConfig';
+import { TabIndex_Dashboard_Application, TabIndex_Dashboard_LogViewer, TabIndex_Dashboard_Terminal } from '../terminalConfig';
+import { TERMINAL_STEP_CONFIG_INSTANCE, TERMINAL_STEP_CONNECT_TO_SCHEDULER, TERMINAL_STEP_PREPARE_INSTANCE, TERMINAL_STEP_RUN_INSTANCE, TERMINAL_STEP_SCHEDULE_COMPUTE_NODE, TERMINAL_STEP_SCHEDULE_STORAGE_NODE } from '../terminals';
 
 const ControlPanelBtnGroupContainer = styled.div`
     width: 100%;
@@ -40,8 +42,8 @@ const TerminalControlPanel = (props) => {
 
     // get global states of terminal reducer
     const StateTerminals = useSelector(state => state.terminal.StateTerminals)
-    let CurrentSelectedTerminal = StateTerminals.terminalsMap[StateTerminals.currentSelected]
-    let CurrentApplicationMeta = StateTerminals.terminalsMap[StateTerminals.currentSelected].applicationMeta
+    const CurrentSelectedTerminal = StateTerminals.terminalsMap[StateTerminals.currentSelected]
+    const CurrentApplicationMeta = StateTerminals.terminalsMap[StateTerminals.currentSelected].applicationMeta
 
     // get global states of websocket api
     const StateAPI = useSelector(state => state.api.StateAPI)
@@ -65,6 +67,21 @@ const TerminalControlPanel = (props) => {
                 "dashboard_id": TabIndex_Dashboard_Application
             }))
             
+            return
+        }
+
+        // check whether user have configed terminal
+        if(!CurrentSelectedTerminal.terminalConfigConfirm){
+            // show snackbar
+            dispatch(SnackBarActions.showSnackBar(`Please config related terminal metadata before you create this terminal`))
+            
+            // jump to application panel
+            dispatch(TerminalActions.updateTerminal({
+                "type": "UPDATE_DASHBOARD_ID",
+                "terminal_key": `${StateTerminals.currentSelected}`,
+                "dashboard_id": TabIndex_Dashboard_Terminal
+            }))
+
             return
         }
 
@@ -101,7 +118,7 @@ const TerminalControlPanel = (props) => {
         dispatch(TerminalActions.updateTerminal({
             "type": "UPDATE_TERMINAL_STEP",
             "terminal_key": `${currentSelectedTerminalKey}`,
-            "current_step_index": 1
+            "current_step_index": TERMINAL_STEP_CONNECT_TO_SCHEDULER
         }))
 
         // register websocket
@@ -146,7 +163,7 @@ const TerminalControlPanel = (props) => {
         dispatch(TerminalActions.updateTerminal({
             "type": "UPDATE_TERMINAL_STEP",
             "terminal_key": `${currentSelectedTerminalKey}`,
-            "current_step_index": 0
+            "current_step_index": TERMINAL_STEP_CONFIG_INSTANCE
         }))
 
         // unconfirm websocket connection started
@@ -169,11 +186,20 @@ const TerminalControlPanel = (props) => {
         dispatch(TerminalActions.deleteTerminal(StateTerminals.currentSelected))
     }
 
+    /*
+        @function: handleLaunchInstance
+        @description:
+            handle launch instance
+    */
+    const handleLaunchInstance = (event, newValue) => {
+
+    }
+
     return <ControlPanelBtnGroupContainer>
         {/* Start || CancelConnect */}
         <ButtonItem>
         {
-            CurrentSelectedTerminal.currentStepIndex === 0 &&
+            CurrentSelectedTerminal.currentStepIndex === TERMINAL_STEP_CONFIG_INSTANCE &&
             <div align="center">
                 <Button 
                     variant="contained"
@@ -188,7 +214,7 @@ const TerminalControlPanel = (props) => {
         }
 
         {
-            (CurrentSelectedTerminal.currentStepIndex === 1 || CurrentSelectedTerminal.currentStepIndex === 2 || CurrentSelectedTerminal.currentStepIndex === 3) &&
+            (CurrentSelectedTerminal.currentStepIndex !== TERMINAL_STEP_CONFIG_INSTANCE) &&
             <div align="center">
                 <Button 
                     variant="contained"
@@ -203,13 +229,28 @@ const TerminalControlPanel = (props) => {
         }
         </ButtonItem>
 
+        {/* Launch */}
+        <ButtonItem>
+        <div align="center">
+            <Button 
+                variant="contained"
+                startIcon={<LaunchIcon />}
+                disabled={CurrentSelectedTerminal.currentStepIndex !== TERMINAL_STEP_RUN_INSTANCE}
+                onClick={handleLaunchInstance}
+            >
+                Launch
+            </Button>
+            <ButtonItemDesp>Launch Instance</ButtonItemDesp>
+        </div>
+        </ButtonItem>
+
         {/* Delete */}
         <ButtonItem>
         <div align="center">
             <Button 
                 variant="contained"
                 startIcon={<DeleteIcon />}
-                disabled={CurrentSelectedTerminal.currentStepIndex === 1 || CurrentSelectedTerminal.currentStepIndex === 4}
+                disabled={CurrentSelectedTerminal.currentStepIndex !== TERMINAL_STEP_CONFIG_INSTANCE}
                 onClick={handleTerminalDelete}
             >
                 Delete

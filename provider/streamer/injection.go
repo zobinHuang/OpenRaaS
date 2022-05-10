@@ -32,6 +32,7 @@ func inject() (*gin.Engine, error) {
 	wsCommunicator := communicator.NewWebsocketCommunicator(&communicator.WebsocketCommunicatorConfig{
 		SchedulerDAL: schedulerDAL,
 		DaemonDAL:    daemonDAL,
+		InstanceDAL:  instanceDAL,
 	})
 
 	// --------------------- Service Layer --------------------------

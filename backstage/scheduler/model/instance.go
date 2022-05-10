@@ -7,7 +7,10 @@ package model
 */
 type StreamInstance struct {
 	*StreamApplication
-	InstanceID string `json:"instance_id"`
+	InstanceID   string `json:"instance_id"`
+	ScreenWidth  int    `json:"screen_width"`
+	ScreenHeight int    `json:"screen_height"`
+	FPS          int    `json:"fps"`
 }
 
 /*

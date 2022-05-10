@@ -2,6 +2,7 @@ package dal
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 )
@@ -49,4 +50,17 @@ func (d *InstanceRoomDAL) CreateStreamInstanceRoom(ctx context.Context, streamIn
 */
 func (d *InstanceRoomDAL) DeleteStreamInstanceRoom(ctx context.Context, instanceID string) {
 	delete(d.StreamInstanceRoomList, instanceID)
+}
+
+/*
+	@func: GetConsumerMapByInstanceID
+	@description:
+		obtain consumer map by given instance room id
+*/
+func (d *InstanceRoomDAL) GetConsumerMapByInstanceID(ctx context.Context, instanceID string) (map[string]*model.Consumer, error) {
+	instanceRoom, ok := d.StreamInstanceRoomList[instanceID]
+	if !ok {
+		return nil, fmt.Errorf("No instance founded by given instance id")
+	}
+	return instanceRoom.ConsumerList, nil
 }

@@ -6,6 +6,7 @@ import axios from 'axios'
 import GetUUID from '../../Utils/get_uuid'
 import { APP_LIST_ORDER_BY_NAME, APP_LIST_ORDER_BY_UPDATE_TIME, APP_LIST_ORDER_BY_USAGE_COUNT } from '../../Containers/UserPage/terminalConfig/applicationMetadata/applicationList'
 import { APPLICATION_DETAIL_STATE_LOADED, APPLICATION_DETAIL_STATE_LOADING } from '../../Containers/UserPage/terminalConfig/applicationMetadata/applicationDetails'
+import { FPS_30, RESOLUTION_1280_720 } from '../../Containers/UserPage/terminalConfig/terminalMetadata'
 
 const defaultTerminalState = {
     // Name of the terminal
@@ -42,10 +43,17 @@ const defaultTerminalState = {
             failedMessage: "Failed to Schedule Storage Node"
         },
         {
+            name: "Prepare Instance",
+            id: "prepare",
+            state: "beforeStep",
+            descriptionMessage: "The compute node is preparing instance",
+            failedMessage: "Failed to Prepare Instance on Compute Node"
+        },
+        {
             name: "Run Instance",
             id: "run",
             state: "beforeStep",
-            descriptionMessage: "The instance is new ready for operating",
+            descriptionMessage: "The instance is now ready for operating",
             failedMessage: "Failed to Run Instance on Compute Node"
         }
     ],
@@ -58,6 +66,9 @@ const defaultTerminalState = {
         //     "content": "error message",
         // },
     ],
+
+    // instance id in scheduler
+    instanceSchedulerID: "",
 
     // amount of newly unread log
     unreadLogCount: 0,
@@ -80,6 +91,17 @@ const defaultTerminalState = {
     // state to inidicate whether websocket connection has started
     wsConnectionStarted: false,
 
+    // current selected resolution
+    currentResolution: RESOLUTION_1280_720,
+    screenHeight: 0,
+    screenWidth: 0,
+
+    // current frame per second (fps)
+    currentFPS: FPS_30,
+
+    // confirmation of terminal metadata has been configured
+    terminalConfigConfirm: false,
+
     // application metadata for current terminal
     applicationMeta: {
         // application nav for current terminal
@@ -98,16 +120,16 @@ const defaultTerminalState = {
 
         // application search result for current terminal
         applicationList: [
-            {
-                values: {
-                    application_name: "road rash",
-                    application_id: "xxxx-xxxx-xxxx-xxxx",
-                    create_user: "zobinHuang",
-                    updated_at: "Feb.14 2022",
-                    usage_count: 2013,
-                },
-                selected: false,
-            }
+            // {
+            //     values: {
+            //         application_name: "road rash",
+            //         application_id: "xxxx-xxxx-xxxx-xxxx",
+            //         create_user: "zobinHuang",
+            //         updated_at: "Feb.14 2022",
+            //         usage_count: 2013,
+            //     },
+            //     selected: false,
+            // }
         ],
 
         // application list state for current terminal
@@ -148,6 +170,7 @@ const defaultTerminalState = {
             usageCount: ""
         },
 
+        // confirmation of application has been selected
         selectedApplicationConfirmed: false
     }
 }
@@ -244,6 +267,23 @@ const terminalsSlice = createSlice({
                     state.StateTerminals.terminalsMap[action.payload.terminal_key].currentStepIndex = action.payload.current_step_index
                     break;
                 
+                /* Case: update terminal resolution */
+                case "UPDATE_INSTANCE_SCHEDULER_ID":
+                    state.StateTerminals.terminalsMap[action.payload.terminal_key].instanceSchedulerID = action.payload.instance_scheduler_id
+                    break;
+                
+                /* Case: update terminal resolution */
+                case "UPDATE_TERMINAL_RESOLUTION":
+                    state.StateTerminals.terminalsMap[action.payload.terminal_key].currentResolution = action.payload.resolution
+                    state.StateTerminals.terminalsMap[action.payload.terminal_key].screenHeight = action.payload.height
+                    state.StateTerminals.terminalsMap[action.payload.terminal_key].screenWidth = action.payload.width
+                    break;
+                
+                /* Case: update terminal resolution */
+                case "UPDATE_TERMINAL_FPS":
+                    state.StateTerminals.terminalsMap[action.payload.terminal_key].currentFPS = action.payload.fps
+                    break;
+
                 /* Case: update selected application type */
                 case "UPDATE_APPLICATION_TYPE":
                     state.StateTerminals.terminalsMap[action.payload.terminal_key].applicationMeta.currentSelectedApplicationType = action.payload.application_type
@@ -272,6 +312,16 @@ const terminalsSlice = createSlice({
                 /* Case: unconfirm selected application */
                 case "UNCONFIRM_SELECTED_APPLICATION":
                     state.StateTerminals.terminalsMap[action.payload.terminal_key].applicationMeta.selectedApplicationConfirmed = false
+                    break;
+
+                /* Case: confirm terminal configuration */
+                case "CONFIRM_TERMINAL_CONFIG":
+                    state.StateTerminals.terminalsMap[action.payload.terminal_key].terminalConfigConfirm = true
+                    break;
+
+                /* Case: unconfirm terminal configuration */
+                case "UNCONFIRM_TERMINAL_CONFIG":
+                    state.StateTerminals.terminalsMap[action.payload.terminal_key].terminalConfigConfirm = false
                     break;
 
                 /* Case: update state of selected application details */

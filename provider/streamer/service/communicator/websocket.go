@@ -3,8 +3,11 @@ package communicator
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"net/url"
 	"os"
 
+	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/zobinHuang/BrosCloud/provider/streamer/model"
@@ -17,6 +20,7 @@ import (
 type WebsocketCommunicator struct {
 	SchedulerWSConnection *model.Websocket
 	DaemonWSConnection    *model.Websocket
+	InstanceDAL           model.InstanceDAL
 	SchedulerDAL          model.SchedulerDAL
 	DaemonDAL             model.DaemonDAL
 }
@@ -26,6 +30,7 @@ type WebsocketCommunicator struct {
 	@description: used for config instance of struct WebsocketCommunicator
 */
 type WebsocketCommunicatorConfig struct {
+	InstanceDAL  model.InstanceDAL
 	SchedulerDAL model.SchedulerDAL
 	DaemonDAL    model.DaemonDAL
 }
@@ -39,11 +44,56 @@ func NewWebsocketCommunicator(c *WebsocketCommunicatorConfig) model.WebsocketCom
 	wsCommunicator := &WebsocketCommunicator{
 		SchedulerDAL: c.SchedulerDAL,
 		DaemonDAL:    c.DaemonDAL,
+		InstanceDAL:  c.InstanceDAL,
 	}
 
-	wsCommunicator.InitSchdulerConnectionForDebug()
+	err := wsCommunicator.InitDaemonConnection()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Fatalln("Failed to build connection to provider daemon")
+	}
+
+	// wsCommunicator.InitSchdulerConnectionForDebug()
 
 	return wsCommunicator
+}
+
+func (s *WebsocketCommunicator) InitDaemonConnection() error {
+	ctx := context.Background()
+
+	// obtain websocket metadata to daemon
+	wsScheme := os.Getenv("DAEMON_WS_SCHEME")
+	wsHostname := os.Getenv("DAEMON_WS_HOSTNAME")
+	wsPort := os.Getenv("DAEMON_WS_PORT")
+	wsPath := os.Getenv("DAEMON_WS_PATH")
+
+	completeHostname := fmt.Sprintf("%s:%s", wsHostname, wsPort)
+	daemonURL := url.URL{
+		Scheme:   wsScheme,
+		Host:     completeHostname,
+		Path:     wsPath,
+		RawQuery: "type=provider",
+	}
+
+	conn, _, err := websocket.DefaultDialer.Dial(daemonURL.String(), nil)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Warn("Failed to build websocket connection to daemon")
+		return err
+	}
+
+	// store websocket to daemon, and start to serve it
+	s.NewDaemonConnection(ctx, conn)
+
+	// register recv callbacks
+	s.InitDaemonRecvRoute(ctx)
+
+	// start keep alive
+	s.KeepDaemonConnAlive(ctx)
+
+	return nil
 }
 
 /*

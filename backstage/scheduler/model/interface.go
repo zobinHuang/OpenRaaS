@@ -111,6 +111,7 @@ type FilestoreDAL interface {
 type InstanceRoomDAL interface {
 	CreateStreamInstanceRoom(ctx context.Context, streamInstanceRoom *StreamInstanceRoom)
 	DeleteStreamInstanceRoom(ctx context.Context, instanceID string)
+	GetConsumerMapByInstanceID(ctx context.Context, instanceID string) (map[string]*Consumer, error)
 }
 
 /*

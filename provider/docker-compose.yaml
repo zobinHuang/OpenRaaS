@@ -14,13 +14,13 @@ services:
       - "--providers.docker.exposedByDefault=false"
     ports:
       # The HTTP port
-      - "82:80"
+      - "3090:80"
       # Web UI
       - "8082:8080"
     volumes:
       # So that Traefik can listen to the Docker event
       - /var/run/docker.sock:/var/run/docker.sock
-  
+    
   streamer:
     build:
       context: ./streamer
@@ -42,3 +42,4 @@ services:
       - ./streamer:/go/src/app
     # have to use $$ (double-dollar) so docker doesn't try to substitute a variable
     command: reflex -r "\.go$$" -s -- sh -c "go run ./"
+    network_mode: "host"

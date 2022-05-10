@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/websocket"
@@ -16,8 +17,9 @@ import (
 	@description: service layer
 */
 type ProviderService struct {
-	ProviderDAL model.ProviderDAL
-	ICEServers  string
+	InstanceRoomDAL model.InstanceRoomDAL
+	ProviderDAL     model.ProviderDAL
+	ICEServers      string
 }
 
 /*
@@ -25,8 +27,9 @@ type ProviderService struct {
 	@description: used for config instance of struct ProviderService
 */
 type ProviderServiceConfig struct {
-	ICEServers  string
-	ProviderDAL model.ProviderDAL
+	ICEServers      string
+	ProviderDAL     model.ProviderDAL
+	InstanceRoomDAL model.InstanceRoomDAL
 }
 
 /*
@@ -36,8 +39,9 @@ type ProviderServiceConfig struct {
 */
 func NewProviderService(c *ProviderServiceConfig) model.ProviderService {
 	return &ProviderService{
-		ICEServers:  c.ICEServers,
-		ProviderDAL: c.ProviderDAL,
+		ICEServers:      c.ICEServers,
+		ProviderDAL:     c.ProviderDAL,
+		InstanceRoomDAL: c.InstanceRoomDAL,
 	}
 }
 
@@ -167,6 +171,266 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 		// log.WithFields(log.Fields{
 		// 	"ConsumerID": consumer.ClientID,
 		// }).Debug("Consumer Heartbeat")
+		return model.EmptyPacket
+	})
+
+	/*
+		@callback: state_selected_storage
+		@description:
+			notification from provider of successfully selecting storage node
+	*/
+	provider.Receive("state_selected_storage", func(req model.WSPacket) (resp model.WSPacket) {
+		// define request format
+		var reqPacketData struct {
+			StreamInstanceID   string               `json:"stream_instance_id"`
+			SelectedDepository model.DepositaryCore `json:"selected_depository"`
+			SelectedFilestore  model.FilestoreCore  `json:"selected_filestore"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_selected_storage",
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		log.WithFields(log.Fields{
+			"Stream Instance ID":  reqPacketData.StreamInstanceID,
+			"Selected Depository": fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.HostAddress, reqPacketData.SelectedDepository.Port),
+			"Selected Filestore":  fmt.Sprintf("%s:%s", reqPacketData.SelectedFilestore.HostAddress, reqPacketData.SelectedFilestore.Port),
+		}).Info("Notification from daemon of successfully selecting storage node")
+
+		// construct responses to consumers
+		respToConsumers := struct {
+			TargetDepository string `json:"target_depository"`
+			TargetFilestore  string `json:"target_filestore"`
+		}{
+			TargetDepository: fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.HostAddress, reqPacketData.SelectedDepository.Port),
+			TargetFilestore:  fmt.Sprintf("%s:%s", reqPacketData.SelectedFilestore.HostAddress, reqPacketData.SelectedFilestore.Port),
+		}
+		respToConsumersString, err := json.Marshal(respToConsumers)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_selected_storage",
+				"error":            err,
+			}).Warn("Failed to marshal response to consumer, abandoned")
+			return model.EmptyPacket
+		}
+
+		// find consumers based on instance id
+		consumerMap, err := s.InstanceRoomDAL.GetConsumerMapByInstanceID(ctx, reqPacketData.StreamInstanceID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_selected_storage",
+				"error":            err.Error(),
+			}).Warn("Failed to obtained consumer map while receiving selected storage node notification from provider, abandoned")
+		}
+
+		// notify every consumer in this instance room
+		for consumerID := range consumerMap {
+			consumerMap[consumerID].Send(model.WSPacket{
+				PacketType: "state_selected_storage",
+				Data:       string(respToConsumersString),
+			}, nil)
+		}
+
+		return model.EmptyPacket
+	})
+
+	/*
+		@callback: state_selected_storage
+		@description:
+			notification from provider of failed to select storage node
+	*/
+	provider.Receive("state_failed_select_storage", func(req model.WSPacket) (resp model.WSPacket) {
+		// define request format
+		var reqPacketData struct {
+			StreamInstanceID string `json:"stream_instance_id"`
+			Error            string `json:"error"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_failed_select_storage",
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		log.WithFields(log.Fields{
+			"Stream Instance ID": reqPacketData.StreamInstanceID,
+		}).Info("Notification from daemon of failed to select storage node")
+
+		// construct response to consumer
+		respToConsumers := struct {
+			Error string `json:"error"`
+		}{
+			Error: reqPacketData.Error,
+		}
+		respToConsumersString, err := json.Marshal(respToConsumers)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_failed_select_storage",
+				"error":            err,
+			}).Warn("Failed to marshal response to consumer, abandoned")
+			return model.EmptyPacket
+		}
+
+		// find consumers based on instance id
+		consumerMap, err := s.InstanceRoomDAL.GetConsumerMapByInstanceID(ctx, reqPacketData.StreamInstanceID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_failed_select_storage",
+				"error":            err.Error(),
+			}).Warn("Failed to obtained consumer map while receiving failure notification of selecting storage node from provider, abandoned")
+		}
+
+		// notify every consumer in this instance room
+		for consumerID := range consumerMap {
+			consumerMap[consumerID].Send(model.WSPacket{
+				PacketType: "state_failed_select_storage",
+				Data:       string(respToConsumersString),
+			}, nil)
+		}
+
+		return model.EmptyPacket
+	})
+
+	/*
+		@callback: state_run_instance
+		@description:
+			notification from provider of successfully running instance
+	*/
+	provider.Receive("state_run_instance", func(req model.WSPacket) (resp model.WSPacket) {
+		var reqPacketData struct {
+			StreamInstanceID string `json:"stream_instance_id"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_run_instance",
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		log.WithFields(log.Fields{
+			"Stream Instance ID": reqPacketData.StreamInstanceID,
+		}).Info("Provider notified that the instance is now successfully running")
+
+		// construct websocket packet to consumer
+		respToConsumers := struct {
+			StreamInstanceID string `json:"stream_instance_id"`
+		}{
+			StreamInstanceID: reqPacketData.StreamInstanceID,
+		}
+		respToConsumersString, err := json.Marshal(respToConsumers)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_run_instance",
+				"error":            err,
+			}).Warn("Failed to marshal response to consumer, abandoned")
+			return model.EmptyPacket
+		}
+
+		// find consumers based on instance id
+		consumerMap, err := s.InstanceRoomDAL.GetConsumerMapByInstanceID(ctx, reqPacketData.StreamInstanceID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_run_instance",
+				"error":            err.Error(),
+			}).Warn("Failed to obtained consumer map while receiving success notification of running instance from provider, abandoned")
+		}
+
+		// notify every consumer in this instance room
+		for consumerID := range consumerMap {
+			consumerMap[consumerID].Send(model.WSPacket{
+				PacketType: "state_run_instance",
+				Data:       string(respToConsumersString),
+			}, nil)
+		}
+
+		return model.EmptyPacket
+	})
+
+	/*
+		@callback: state_failed_run_instance
+		@description:
+			notification from provider of failed to run instance
+	*/
+	provider.Receive("state_failed_run_instance", func(req model.WSPacket) (resp model.WSPacket) {
+		var reqPacketData struct {
+			Error            string `json:"error"`
+			StreamInstanceID string `json:"stream_instance_id"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_failed_run_instance",
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		log.WithFields(log.Fields{
+			"Stream Instance ID": reqPacketData.StreamInstanceID,
+		}).Info("Provider notified that the instance is failed to run")
+
+		// construct websocket packet to consumer
+		respToConsumers := struct {
+			Error            string `json:"error"`
+			StreamInstanceID string `json:"stream_instance_id"`
+		}{
+			Error:            reqPacketData.Error,
+			StreamInstanceID: reqPacketData.StreamInstanceID,
+		}
+		respToConsumersString, err := json.Marshal(respToConsumers)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_failed_run_instance",
+				"error":            err,
+			}).Warn("Failed to marshal response to consumer, abandoned")
+			return model.EmptyPacket
+		}
+
+		// find consumers based on instance id
+		consumerMap, err := s.InstanceRoomDAL.GetConsumerMapByInstanceID(ctx, reqPacketData.StreamInstanceID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "state_failed_run_instance",
+				"error":            err.Error(),
+			}).Warn("Failed to obtained consumer map while receiving failure notification of running instance from provider, abandoned")
+		}
+
+		// notify every consumer in this instance room
+		for consumerID := range consumerMap {
+			consumerMap[consumerID].Send(model.WSPacket{
+				PacketType: "state_failed_run_instance",
+				Data:       string(respToConsumersString),
+			}, nil)
+		}
+
 		return model.EmptyPacket
 	})
 }

@@ -6,6 +6,7 @@ import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Tager from '../../../../Components/Tager/tager';
+import { TabIndex_Dashboard_Terminal } from '../../terminalConfig';
 
 const ApplicationDetailsContainer = styled.div`
     width: 100%;
@@ -68,9 +69,17 @@ const ApplicationDetails = (props) => {
     let CurrentApplicationMeta = StateTerminals.terminalsMap[StateTerminals.currentSelected].applicationMeta
 
     const handleSelectApplication = (event) => {
+        // confirm selected application
         dispatch(TerminalActions.updateTerminal({
             "type": "CONFIRM_SELECTED_APPLICATION",
             "terminal_key": `${StateTerminals.currentSelected}`,
+        }))
+
+        // jump to application terminal configuration panel
+        dispatch(TerminalActions.updateTerminal({
+            "type": "UPDATE_DASHBOARD_ID",
+            "terminal_key": `${StateTerminals.currentSelected}`,
+            "dashboard_id": TabIndex_Dashboard_Terminal
         }))
     }
 
@@ -144,6 +153,7 @@ const ApplicationDetails = (props) => {
                             variant="contained"
                             onClick={handleCancelSelectedApplication}
                             disabled={CurrentSelectedTerminal.wsConnectionStarted}
+                            color="success"
                             sx={{width: "100%"}}
                         >
                             Cancel Selection

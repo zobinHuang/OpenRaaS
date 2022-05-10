@@ -126,9 +126,9 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 	})
 
 	/*
-		@callback: notify_ice_server
+		@callback: start_schedule
 		@description:
-			notification of ice server from scheduler
+			notification of starting provider-side schedule
 	*/
 	s.SchedulerWSConnection.Receive("start_schedule", func(req model.WSPacket) (resp model.WSPacket) {
 		// define request format
@@ -154,7 +154,34 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			"Application ID": reqPacketData.StreamInstance.ApplicationID,
 		}).Info("Be nofified to start schedule")
 
-		// TODO: notify provider daemon
+		// construct websocket packet to daemon
+		reqToDaemonPacket := &model.StreamInstanceDaemonModel{
+			AppPath:        reqPacketData.StreamInstance.ApplicationPath,
+			AppFile:        reqPacketData.StreamInstance.ApplicationFile,
+			AppName:        reqPacketData.StreamInstance.ApplicationName,
+			HWKey:          reqPacketData.StreamInstance.HWKey,
+			ScreenWidth:    reqPacketData.StreamInstance.ScreenWidth,
+			ScreenHeight:   reqPacketData.StreamInstance.ScreenHeight,
+			FPS:            reqPacketData.StreamInstance.FPS,
+			FilestoreList:  reqPacketData.FilestoreList,
+			DepositaryList: reqPacketData.DepositaryList,
+			InstanceCore: model.InstanceCore{
+				Instanceid: reqPacketData.StreamInstance.InstanceID,
+			},
+		}
+
+		// notify provider daemon
+		reqToDaemonPacketString, err := json.Marshal(reqToDaemonPacket)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Instance ID": reqPacketData.StreamInstance.InstanceID,
+			}).Warn("Failed to marshal websocket data when try to notify daemon to start schedule, abandoned")
+			return model.EmptyPacket
+		}
+		s.DaemonWSConnection.Send(model.WSPacket{
+			PacketType: "add_wine_instance",
+			Data:       string(reqToDaemonPacketString),
+		}, nil)
 
 		return model.EmptyPacket
 	})

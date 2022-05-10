@@ -4,6 +4,7 @@ import GetTimestamp from '../../Utils/get_timestamp';
 import { actions as TerminalActions } from '../../Data/Reducers/terminalReducer';
 import { actions as SnackBarActions } from '../../Data/Reducers/snackBarReducer'
 import { useDispatch, useSelector } from 'react-redux';
+import { TERMINAL_STEP_SCHEDULE_COMPUTE_NODE, TERMINAL_STEP_CONFIG_INSTANCE, TERMINAL_STEP_SCHEDULE_STORAGE_NODE, TERMINAL_STEP_PREPARE_INSTANCE, TERMINAL_STEP_RUN_INSTANCE } from "../../Containers/UserPage/terminals";
 
 const WebsocketCallback = (props) => {
     const dispatch = useDispatch()
@@ -85,7 +86,7 @@ const WebsocketCallback = (props) => {
             dispatch(TerminalActions.updateTerminal({
                 "type": "UPDATE_TERMINAL_STEP",
                 "terminal_key": `${terminalKey}`,
-                "current_step_index": 2
+                "current_step_index": TERMINAL_STEP_SCHEDULE_COMPUTE_NODE
             }))
 
             // send consummer metadata to scheduler
@@ -160,6 +161,58 @@ const WebsocketCallback = (props) => {
                         StateTerminals: stateTerminals,
                     });
                     break;
+                
+                /*
+                    @ case: state_failed_select_storage
+                    @ description: notification that provider failed to find proper storage nodes
+                */
+                case "state_failed_select_storage":
+                    PubSub.publish('state_failed_select_storage', { 
+                        Socket: ws,
+                        TerminalKey: `${terminalKey}`,
+                        WSPacket: wsPacket,
+                        StateTerminals: stateTerminals,
+                    });
+                    break;
+                
+                /*
+                    @ case: state_selected_storage
+                    @ description: notification that storage nodes has selected
+                */
+                case "state_selected_storage":
+                    PubSub.publish('state_selected_storage', { 
+                        Socket: ws,
+                        TerminalKey: `${terminalKey}`,
+                        WSPacket: wsPacket,
+                        StateTerminals: stateTerminals,
+                    });
+                    break;
+                
+                /*
+                    @ case: state_run_instance
+                    @ description: notification that provider successfully runs instance
+                */
+                case "state_run_instance":
+                    PubSub.publish('state_run_instance', { 
+                        Socket: ws,
+                        TerminalKey: `${terminalKey}`,
+                        WSPacket: wsPacket,
+                        StateTerminals: stateTerminals,
+                    });
+                    break;
+
+                /*
+                    @ case: state_failed_run_instance
+                    @ description: notification that provider failed to run instance
+                */
+                case "state_failed_run_instance":
+                    PubSub.publish('state_failed_run_instance', { 
+                        Socket: ws,
+                        TerminalKey: `${terminalKey}`,
+                        WSPacket: wsPacket,
+                        StateTerminals: stateTerminals,
+                    });
+                    break;
 
                 /*
                     @ case: unknown websocket packet type
@@ -201,7 +254,7 @@ const WebsocketCallback = (props) => {
             dispatch(TerminalActions.updateTerminal({
                 "type": "UPDATE_TERMINAL_STEP",
                 "terminal_key": `${terminalKey}`,
-                "current_step_index": 0
+                "current_step_index": TERMINAL_STEP_CONFIG_INSTANCE,
             }))
         }
 
@@ -282,6 +335,9 @@ const WebsocketCallback = (props) => {
             packet_type: "select_stream_application",
             data: JSON.stringify({ 
                 application_id: payload.StateTerminals.terminalsMap[payload.TerminalKey].applicationMeta.currentSelectedApplication.id,
+                screen_height: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].screenHeight}`,
+                screen_width: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].screenWidth}`,
+                application_fps: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].currentFPS}`,
             }),
         })
         payload.Socket.send(reqWSPacket)
@@ -310,7 +366,7 @@ const WebsocketCallback = (props) => {
         dispatch(TerminalActions.updateTerminal({
             "type": "UPDATE_TERMINAL_STEP",
             "terminal_key": `${payload.TerminalKey}`,
-            "current_step_index": 0
+            "current_step_index": TERMINAL_STEP_CONFIG_INSTANCE
         }))
 
         // unconfirm websocket connection started
@@ -338,7 +394,124 @@ const WebsocketCallback = (props) => {
         dispatch(TerminalActions.updateTerminal({
             "type": "UPDATE_TERMINAL_STEP",
             "terminal_key": `${payload.TerminalKey}`,
-            "current_step_index": 3
+            "current_step_index": TERMINAL_STEP_SCHEDULE_STORAGE_NODE
+        }))
+    }
+
+    /*
+        @callback: callback_stateFailedStorageSchedule
+        @description: callback function for state notification of failed to find proper storage nodes
+    */
+    const callback_stateFailedStorageSchedule = (msg, payload) => {
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "ERROR",
+            "log_time": GetTimestamp(),
+            "log_content": `provider failed to find proper storage node: ${payload.WSPacket.data.error}`,
+        }))
+
+        // close websocket
+        PubSub.publish('delete_terminal_websocket', {
+            TerminalKey: payload.TerminalKey
+        });
+
+        // change current step
+        dispatch(TerminalActions.updateTerminal({
+            "type": "UPDATE_TERMINAL_STEP",
+            "terminal_key": `${payload.TerminalKey}`,
+            "current_step_index": TERMINAL_STEP_CONFIG_INSTANCE
+        }))
+
+        // unconfirm websocket connection started
+        dispatch(TerminalActions.updateTerminal({
+            "type": "UNCONFIRM_WS_CONNECTION_STARTED",
+            "terminal_key": `${payload.TerminalKey}`,
+        }))
+    }
+
+    /*
+        @callback: callback_stateStorageScheduled
+        @description: callback function for state notification of found proper storage nodes
+    */
+    const callback_stateStorageScheduled = (msg, payload) => {
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "SUCCESS",
+            "log_time": GetTimestamp(),
+            "log_content": `provider has found proper storage nodes: depository address ${payload.WSPacket.data.target_depository}, filestore address ${payload.WSPacket.data.target_filestore}`,
+        }))
+
+        // change current step
+        dispatch(TerminalActions.updateTerminal({
+            "type": "UPDATE_TERMINAL_STEP",
+            "terminal_key": `${payload.TerminalKey}`,
+            "current_step_index": TERMINAL_STEP_PREPARE_INSTANCE
+        }))
+    }
+
+    /*
+        @callback: callback_stateInstanceRunning
+        @description: callback function for state notification of instance is now running
+    */
+    const callback_stateInstanceRunning = (msg, payload) => {
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "SUCCESS",
+            "log_time": GetTimestamp(),
+            "log_content": `provider is now successfully running instance with instance id ${payload.WSPacket.data.stream_instance_id}`,
+        }))
+
+        // update instance id in scheduler
+        dispatch(TerminalActions.updateTerminal({
+            "type": "UPDATE_INSTANCE_SCHEDULER_ID",
+            "terminal_key": `${payload.TerminalKey}`,
+            "instance_scheduler_id": `${payload.WSPacket.data.stream_instance_id}`
+        }))
+
+        // change current step
+        dispatch(TerminalActions.updateTerminal({
+            "type": "UPDATE_TERMINAL_STEP",
+            "terminal_key": `${payload.TerminalKey}`,
+            "current_step_index": TERMINAL_STEP_RUN_INSTANCE
+        }))
+    }
+
+    /*
+        @callback: callback_stateFailedInstanceRunning
+        @description: callback function for state notification of instance is failed to run
+    */
+    const callback_stateFailedInstanceRunning = (msg, payload) => {
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "ERROR",
+            "log_time": GetTimestamp(),
+            "log_content": `provider failed to run instance: ${payload.WSPacket.data.error}`,
+        }))
+
+        // close websocket
+        PubSub.publish('delete_terminal_websocket', {
+            TerminalKey: payload.TerminalKey
+        });
+
+        // change current step
+        dispatch(TerminalActions.updateTerminal({
+            "type": "UPDATE_TERMINAL_STEP",
+            "terminal_key": `${payload.TerminalKey}`,
+            "current_step_index": TERMINAL_STEP_CONFIG_INSTANCE
+        }))
+
+        // unconfirm websocket connection started
+        dispatch(TerminalActions.updateTerminal({
+            "type": "UNCONFIRM_WS_CONNECTION_STARTED",
+            "terminal_key": `${payload.TerminalKey}`,
         }))
     }
 
@@ -353,6 +526,10 @@ const WebsocketCallback = (props) => {
         PubSub.subscribe('notify_ice_server', callback_recvNotifyIceServer)
         PubSub.subscribe('state_failed_provider_schedule', callback_stateFailedProviderSchedule)
         PubSub.subscribe('state_provider_scheduled', callback_stateProviderScheduled)
+        PubSub.subscribe('state_failed_select_storage', callback_stateFailedStorageSchedule)
+        PubSub.subscribe('state_selected_storage', callback_stateStorageScheduled)
+        PubSub.subscribe('state_run_instance', callback_stateInstanceRunning)
+        PubSub.subscribe('state_failed_run_instance', callback_stateFailedInstanceRunning)
     }
 
     useEffect( () => {
