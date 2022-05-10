@@ -83,6 +83,7 @@ type ConsumerDAL interface {
 type ProviderDAL interface {
 	CreateProvider(ctx context.Context, provider *Provider)
 	DeleteProvider(ctx context.Context, providerID string)
+	GetFirstProvider(ctx context.Context) *Provider
 }
 
 /*

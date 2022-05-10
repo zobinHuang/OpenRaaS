@@ -3,7 +3,7 @@ package dal
 import "github.com/zobinHuang/BrosCloud/provider/streamer/model"
 
 type InstanceDAL struct {
-	InstanceList map[string]*model.Instance
+	StreamInstanceList map[string]*model.StreamInstance
 }
 
 type InstanceDALConfig struct {
@@ -12,7 +12,7 @@ type InstanceDALConfig struct {
 func NewInstanceDAL(c *InstanceDALConfig) model.InstanceDAL {
 	idal := &InstanceDAL{}
 
-	idal.InstanceList = make(map[string]*model.Instance)
+	idal.StreamInstanceList = make(map[string]*model.StreamInstance)
 
 	return idal
 }

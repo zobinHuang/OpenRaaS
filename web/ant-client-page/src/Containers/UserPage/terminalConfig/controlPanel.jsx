@@ -188,7 +188,7 @@ const TerminalControlPanel = (props) => {
         }
 
         {
-            (CurrentSelectedTerminal.currentStepIndex === 1 || CurrentSelectedTerminal.currentStepIndex === 2) &&
+            (CurrentSelectedTerminal.currentStepIndex === 1 || CurrentSelectedTerminal.currentStepIndex === 2 || CurrentSelectedTerminal.currentStepIndex === 3) &&
             <div align="center">
                 <Button 
                     variant="contained"

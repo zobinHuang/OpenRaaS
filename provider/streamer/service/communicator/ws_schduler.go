@@ -20,7 +20,12 @@ import (
 func (s *WebsocketCommunicator) ConnectToScheduler(ctx context.Context, scheme string, hostname string, port string, path string) error {
 	// construct host name
 	completeHostname := fmt.Sprintf("%s:%s", hostname, port)
-	schedulerURL := url.URL{Scheme: scheme, Host: completeHostname, Path: path}
+	schedulerURL := url.URL{
+		Scheme:   scheme,
+		Host:     completeHostname,
+		Path:     path,
+		RawQuery: "type=provider",
+	}
 
 	if s.SchedulerWSConnection != nil {
 		log.Warn("Websocket connection to scheduler already exist, try to reconnect to scheduler")
@@ -78,8 +83,8 @@ func (s *WebsocketCommunicator) KeepSchedulerConnAlive(ctx context.Context) {
 				PacketType: "keep_consumer_alive",
 				Data:       "",
 			}, nil)
-			timeTicker.Stop()
 		}
+		// timeTicker.Stop()
 	}()
 }
 
@@ -89,6 +94,11 @@ func (s *WebsocketCommunicator) KeepSchedulerConnAlive(ctx context.Context) {
 		initialize receiving callback
 */
 func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
+	/*
+		@callback: notify_ice_server
+		@description:
+			notification of ice server from scheduler
+	*/
 	s.SchedulerWSConnection.Receive("notify_ice_server", func(req model.WSPacket) (resp model.WSPacket) {
 		// define request format
 		var reqPacketData struct {
@@ -108,6 +118,43 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 
 		// store ice server request
 		s.SchedulerDAL.SetICEServers(reqPacketData.ICEServers)
+		log.WithFields(log.Fields{
+			"ICE Servers": reqPacketData.ICEServers,
+		}).Info("Set ICE Servers")
+
+		return model.EmptyPacket
+	})
+
+	/*
+		@callback: notify_ice_server
+		@description:
+			notification of ice server from scheduler
+	*/
+	s.SchedulerWSConnection.Receive("start_schedule", func(req model.WSPacket) (resp model.WSPacket) {
+		// define request format
+		var reqPacketData struct {
+			StreamInstance model.StreamInstance   `json:"stream_instance"`
+			DepositaryList []model.DepositaryCore `json:"depositary_list"`
+			FilestoreList  []model.FilestoreCore  `json:"filestore_list"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "start_schedule",
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		log.WithFields(log.Fields{
+			"Instance ID":    reqPacketData.StreamInstance.InstanceID,
+			"Application ID": reqPacketData.StreamInstance.ApplicationID,
+		}).Info("Be nofified to start schedule")
+
+		// TODO: notify provider daemon
 
 		return model.EmptyPacket
 	})

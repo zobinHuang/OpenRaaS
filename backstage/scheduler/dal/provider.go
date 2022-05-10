@@ -43,6 +43,22 @@ func (d *ProviderDAL) CreateProvider(ctx context.Context, provider *model.Provid
 }
 
 /*
+	@func: GetFirstProvider
+	@description:
+		return the first provider from the list
+*/
+func (d *ProviderDAL) GetFirstProvider(ctx context.Context) *model.Provider {
+	if len(d.ProviderList) != 0 {
+		providerIDs := make([]string, 0, len(d.ProviderList))
+		for k := range d.ProviderList {
+			providerIDs = append(providerIDs, k)
+		}
+		return d.ProviderList[providerIDs[0]]
+	}
+	return nil
+}
+
+/*
 	@func: DeleteProvider
 	@description:
 		delete the specified provider from provider list

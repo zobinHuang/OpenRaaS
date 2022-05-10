@@ -273,6 +273,11 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 
 		// register instance room
 		s.ScheduleServiceCore.CreateStreamInstanceRoom(ctx, provider, consumer, streamInstance)
+		log.WithFields(log.Fields{
+			"First ConsumerID":  consumer.ClientID,
+			"ProviderID":        provider.ClientID,
+			"Stream InstanceID": streamInstance.InstanceID,
+		}).Info("Stream instance room created")
 
 		// notify instance initialization
 		reqToProviderString, err := json.Marshal(reqToProvider)
@@ -282,7 +287,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 				"Recv Packet Type": "start_stream_application",
 				"ConsumerID":       consumer.ClientID,
 				"error":            err,
-			}).Warn("Failed to marshal stream application, abandoned")
+			}).Warn("Failed to marshal request to provider, abandoned")
 			return model.WSPacket{
 				PacketType: "state_failed_provider_schedule",
 				Data:       err.Error(),
@@ -294,11 +299,35 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			PacketType: "start_schedule",
 			Data:       string(reqToProviderString),
 		}, nil)
+		log.WithFields(log.Fields{
+			"ProviderID":  provider.ClientID,
+			"Packet Type": "start_schedule",
+		}).Info("Send start schedule notification to selected provider")
 
-		// notify start provider has been selected, start
+		// construct ws packet to consumer
+		respToConsumer := struct {
+			ProviderID string `json:"provider_id"`
+		}{
+			ProviderID: provider.ClientID,
+		}
+		respToConsumerString, err := json.Marshal(respToConsumer)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "start_stream_application",
+				"ConsumerID":       consumer.ClientID,
+				"error":            err,
+			}).Warn("Failed to marshal response to consumer, abandoned")
+			return model.WSPacket{
+				PacketType: "state_failed_provider_schedule",
+				Data:       err.Error(),
+			}
+		}
+
+		// notify the consumer that provider has been selected
 		return model.WSPacket{
 			PacketType: "state_provider_scheduled",
-			Data:       "",
+			Data:       string(respToConsumerString),
 		}
 	})
 }

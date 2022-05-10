@@ -147,6 +147,19 @@ const WebsocketCallback = (props) => {
                         StateTerminals: stateTerminals,
                     });
                     break;
+                
+                /*
+                    @ case: state_provider_scheduled
+                    @ description: notification that provider has selected
+                */
+                case "state_provider_scheduled":
+                    PubSub.publish('state_provider_scheduled', { 
+                        Socket: ws,
+                        TerminalKey: `${terminalKey}`,
+                        WSPacket: wsPacket,
+                        StateTerminals: stateTerminals,
+                    });
+                    break;
 
                 /*
                     @ case: unknown websocket packet type
@@ -306,6 +319,28 @@ const WebsocketCallback = (props) => {
             "terminal_key": `${payload.TerminalKey}`,
         }))
     }
+    
+    /*
+        @callback: callback_stateProviderScheduled
+        @description: callback function for state notification of found proper provider
+    */
+    const callback_stateProviderScheduled = (msg, payload) => {
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "SUCCESS",
+            "log_time": GetTimestamp(),
+            "log_content": `scheduler has found one provider to serve, provider id: ${payload.WSPacket.data.provider_id}`,
+        }))
+
+        // change current step
+        dispatch(TerminalActions.updateTerminal({
+            "type": "UPDATE_TERMINAL_STEP",
+            "terminal_key": `${payload.TerminalKey}`,
+            "current_step_index": 3
+        }))
+    }
 
     /*
         @function: registerRecvCallback
@@ -317,6 +352,7 @@ const WebsocketCallback = (props) => {
         PubSub.subscribe('delete_terminal_websocket', callback_deleteTerminalWebsocket)
         PubSub.subscribe('notify_ice_server', callback_recvNotifyIceServer)
         PubSub.subscribe('state_failed_provider_schedule', callback_stateFailedProviderSchedule)
+        PubSub.subscribe('state_provider_scheduled', callback_stateProviderScheduled)
     }
 
     useEffect( () => {

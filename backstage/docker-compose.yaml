@@ -1,8 +1,8 @@
 # Docker Version
 # version: "3.8"
 
-services:
-  reverse-proxy:
+services:  
+  reverse-proxy-backend:
     # The official v2 Traefik docker image
     image: traefik:v2.2     
     command:
@@ -14,9 +14,9 @@ services:
       - "--providers.docker.exposedByDefault=false"
     ports:
       # The HTTP port
-      - "80:80"
+      - "81:80"
       # Web UI
-      - "8080:8080"
+      - "8081:8080"
     volumes:
       # So that Traefik can listen to the Docker event
       - /var/run/docker.sock:/var/run/docker.sock
@@ -51,7 +51,7 @@ services:
       - "8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.auth.rule=Host(`127.0.0.1`) && PathPrefix(`/api/auth`)"
+      - "traefik.http.routers.auth.rule=Host(`broscloud.dynv6.net`) && PathPrefix(`/api/auth`)"
       - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST"
       - "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
       - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
@@ -89,7 +89,7 @@ services:
       - "8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.scheduler.rule=Host(`127.0.0.1`) && PathPrefix(`/api/scheduler`)"
+      - "traefik.http.routers.scheduler.rule=Host(`broscloud.dynv6.net`) && PathPrefix(`/api/scheduler`)"
       - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST"
       - "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
       - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"

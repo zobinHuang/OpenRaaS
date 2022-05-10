@@ -92,8 +92,12 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 		// register recv callbacks
 		s.InitSchedulerRecvRoute(ctx)
 
-		// generate request websocket to scheduler to register provider metadata
-		reqToScheduler := struct{}{}
+		// generate request to scheduler to register provider metadata
+		reqToScheduler := struct {
+			ProviderType string `json:"provider_type"`
+		}{
+			ProviderType: "stream",
+		}
 		reqToSchedulerString, err := json.Marshal(reqToScheduler)
 		if err != nil {
 			log.WithFields(log.Fields{

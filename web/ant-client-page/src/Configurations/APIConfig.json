@@ -1,6 +1,6 @@
 {
-    "AuthHostAddr": "127.0.0.1",
-    "AuthPort": "80",
+    "AuthHostAddr": "broscloud.dynv6.net",
+    "AuthPort": "7588",
     "AuthBaseURL": "/api/auth",
     "AuthProtocol": "http",
     "AuthAPI": {
@@ -9,8 +9,8 @@
         "SignOut": "signout"
     },
     
-    "ScheduleHostAddr": "127.0.0.1",
-    "SchedulePort": "80",
+    "ScheduleHostAddr": "broscloud.dynv6.net",
+    "SchedulePort": "7588",
     "ScheduleBaseURL": "/api/scheduler",
     "ScheduleProtocol": "http",
     "ScheduleAPI": {
@@ -19,8 +19,8 @@
         "ApplicationDetails": "application_details"
     },
 
-    "WSHostAddr": "127.0.0.1",
-    "WSPort": "80",
+    "WSHostAddr": "broscloud.dynv6.net",
+    "WSPort": "7588",
     "WSBaseURL": "/api/scheduler",
     "WSProtocol": "ws",
     "WSAPI": {

@@ -40,6 +40,7 @@ func (h *Handler) WSConnect(c *gin.Context) {
 			"Given Client Type": clientType,
 			"Client Address":    c.Request.Host,
 		}).Warn("Unknown client type, abandoned")
+		return
 	}
 
 	// upgrade to websocket connection

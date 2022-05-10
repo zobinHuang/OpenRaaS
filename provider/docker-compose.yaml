@@ -14,9 +14,9 @@ services:
       - "--providers.docker.exposedByDefault=false"
     ports:
       # The HTTP port
-      - "81:80"
+      - "82:80"
       # Web UI
-      - "8081:8080"
+      - "8082:8080"
     volumes:
       # So that Traefik can listen to the Docker event
       - /var/run/docker.sock:/var/run/docker.sock

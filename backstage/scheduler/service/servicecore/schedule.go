@@ -55,7 +55,14 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 
 	//TODO: schedule strategy
 
-	return nil, nil, nil, fmt.Errorf("schedule strategy not implemented yet")
+	firstProvider := sc.ProviderDAL.GetFirstProvider(ctx)
+	if firstProvider != nil {
+		depositoryList := make([]model.DepositaryCore, 0, 0)
+		filestoreList := make([]model.FilestoreCore, 0, 0)
+		return firstProvider, depositoryList, filestoreList, nil
+	} else {
+		return nil, nil, nil, fmt.Errorf("no provider registered in shceudler")
+	}
 }
 
 /*
