@@ -277,7 +277,7 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 		fmt.Printf("%v", reqPacketData)
 
 		// store to instance dal
-		s.InstanceDAL.AddNewStreamInstance(reqPacketData)
+		s.InstanceDAL.AddNewStreamInstance(ctx, reqPacketData)
 
 		log.WithFields(log.Fields{
 			"Instance ID": reqPacketData.Instanceid,

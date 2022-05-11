@@ -27,12 +27,14 @@ func inject() (*gin.Engine, error) {
 	instanceDAL := dal.NewInstanceDAL(&dal.InstanceDALConfig{})
 	schedulerDAL := dal.NewSchedulerDAL(&dal.SchedulerDALConfig{})
 	daemonDAL := dal.NewDaemonDAL(&dal.DaemonDALConfig{})
+	webRTCStreamDAL := dal.NewWebRTCStreamDAL(&dal.WebRTCStreamDALConfig{})
 
 	// --------------------- Comnunicator Layer ---------------------
 	wsCommunicator := communicator.NewWebsocketCommunicator(&communicator.WebsocketCommunicatorConfig{
-		SchedulerDAL: schedulerDAL,
-		DaemonDAL:    daemonDAL,
-		InstanceDAL:  instanceDAL,
+		SchedulerDAL:    schedulerDAL,
+		DaemonDAL:       daemonDAL,
+		InstanceDAL:     instanceDAL,
+		WebRTCStreamDAL: webRTCStreamDAL,
 	})
 
 	// --------------------- Service Layer --------------------------

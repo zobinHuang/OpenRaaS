@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -21,6 +22,7 @@ type ConsumerService struct {
 	ScheduleServiceCore model.ScheduleServiceCore
 	ConsumerDAL         model.ConsumerDAL
 	ApplicationDAL      model.ApplicationDAL
+	InstanceRoomDAL     model.InstanceRoomDAL
 }
 
 /*
@@ -32,6 +34,7 @@ type ConsumerServiceConfig struct {
 	ScheduleServiceCore model.ScheduleServiceCore
 	ConsumerDAL         model.ConsumerDAL
 	ApplicationDAL      model.ApplicationDAL
+	InstanceRoomDAL     model.InstanceRoomDAL
 }
 
 /*
@@ -45,6 +48,7 @@ func NewConsumerService(c *ConsumerServiceConfig) model.ConsumerService {
 		ScheduleServiceCore: c.ScheduleServiceCore,
 		ConsumerDAL:         c.ConsumerDAL,
 		ApplicationDAL:      c.ApplicationDAL,
+		InstanceRoomDAL:     c.InstanceRoomDAL,
 	}
 }
 
@@ -178,9 +182,9 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			heartbeat
 	*/
 	consumer.Receive("keep_consumer_alive", func(req model.WSPacket) (resp model.WSPacket) {
-		// log.WithFields(log.Fields{
-		// 	"ConsumerID": consumer.ClientID,
-		// }).Debug("Consumer Heartbeat")
+		log.WithFields(log.Fields{
+			"ConsumerID": consumer.ClientID,
+		}).Info("Consumer Heartbeat")
 		return model.EmptyPacket
 	})
 
@@ -339,6 +343,76 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			PacketType: "state_provider_scheduled",
 			Data:       string(respToConsumerString),
 		}
+	})
+
+	/*
+		@callback: start_streamming
+		@description:
+			notification of start streaming
+	*/
+	consumer.Receive("start_streaming", func(req model.WSPacket) (resp model.WSPacket) {
+		// define request format
+		var reqPacketData struct {
+			InstanceID string `json:"instance_id"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "start_streaming",
+				"ConsumerID":       consumer.ClientID,
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		// get provider by given instance id
+		provider, err := s.InstanceRoomDAL.GetProviderByInstanceID(ctx, reqPacketData.InstanceID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":         "Recv Callback Error",
+				"Recv Packet Type":  "start_streaming",
+				"ConsumerID":        consumer.ClientID,
+				"Given Instance ID": reqPacketData.InstanceID,
+			}).Warn("Can't find corresponding provider based on given instance id, abandoned")
+
+			return model.WSPacket{
+				PacketType: "failed_start_streaming",
+				Data:       err.Error(),
+			}
+		}
+
+		// notify provider to start streaming to current consumer
+		reqToProvider := struct {
+			StreamInstanceID string `json:"stream_instance_id"`
+			ConsumerID       string `json:"consumer_id"`
+		}{
+			StreamInstanceID: reqPacketData.InstanceID,
+			ConsumerID:       consumer.ClientID,
+		}
+		reqToProviderString, err := json.Marshal(reqToProvider)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "start_streaming",
+				"ConsumerID":       consumer.ClientID,
+				"error":            err,
+			}).Warn("Failed to marshal response to consumer, abandoned")
+			return model.WSPacket{
+				PacketType: "failed_start_streaming",
+				Data:       fmt.Errorf("Server internal error: failed to send start_streaming to provider").Error(),
+			}
+		}
+
+		// send to provider
+		provider.Send(model.WSPacket{
+			PacketType: "start_streaming",
+			Data:       string(reqToProviderString),
+		}, nil)
+
+		return model.EmptyPacket
 	})
 }
 

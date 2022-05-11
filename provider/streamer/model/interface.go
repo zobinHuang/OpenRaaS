@@ -50,7 +50,8 @@ type WebsocketCommunicator interface {
 	description: interface of data access layer for instance
 */
 type InstanceDAL interface {
-	AddNewStreamInstance(streamInstanceDaemonModel *StreamInstanceDaemonModel)
+	AddNewStreamInstance(ctx context.Context, streamInstanceDaemonModel *StreamInstanceDaemonModel)
+	GetStreamInstanceByID(ctx context.Context, streamInstanceID string) (*StreamInstanceDaemonModel, error)
 }
 
 /*
@@ -66,4 +67,12 @@ type SchedulerDAL interface {
 	description: interface of data access layer for daemon
 */
 type DaemonDAL interface {
+}
+
+/*
+	interface: WebRTCStreamDAL
+	description: interface of data access layer for webrtc streamer
+*/
+type WebRTCStreamDAL interface {
+	NewWebRTCStreamer(ctx context.Context, streamInstance *StreamInstanceDaemonModel) (*WebRTCStreamer, error)
 }

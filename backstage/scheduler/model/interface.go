@@ -74,6 +74,7 @@ type RDbDAL interface {
 type ConsumerDAL interface {
 	CreateConsumer(ctx context.Context, consumer *Consumer)
 	DeleteConsumer(ctx context.Context, consumerID string)
+	GetConsumerByID(ctc context.Context, consumerID string) (*Consumer, error)
 }
 
 /*
@@ -112,6 +113,7 @@ type InstanceRoomDAL interface {
 	CreateStreamInstanceRoom(ctx context.Context, streamInstanceRoom *StreamInstanceRoom)
 	DeleteStreamInstanceRoom(ctx context.Context, instanceID string)
 	GetConsumerMapByInstanceID(ctx context.Context, instanceID string) (map[string]*Consumer, error)
+	GetProviderByInstanceID(ctx context.Context, instanceID string) (*Provider, error)
 }
 
 /*

@@ -64,3 +64,16 @@ func (d *InstanceRoomDAL) GetConsumerMapByInstanceID(ctx context.Context, instan
 	}
 	return instanceRoom.ConsumerList, nil
 }
+
+/*
+	@func: GetProviderByInstanceID
+	@description:
+		obtain provider by given instance room id
+*/
+func (d *InstanceRoomDAL) GetProviderByInstanceID(ctx context.Context, instanceID string) (*model.Provider, error) {
+	instanceRoom, ok := d.StreamInstanceRoomList[instanceID]
+	if !ok {
+		return nil, fmt.Errorf("No instance founded by given instance id")
+	}
+	return instanceRoom.Provider, nil
+}

@@ -185,4 +185,102 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 
 		return model.EmptyPacket
 	})
+
+	/*
+		@callback: start_streaming
+		@description:
+			notification of starting streaming
+	*/
+	s.SchedulerWSConnection.Receive("start_streaming", func(req model.WSPacket) (resp model.WSPacket) {
+		// define request format
+		var reqPacketData struct {
+			StreamInstanceID string `json:"stream_instance_id"`
+			ConsumerID       string `json:"consumer_id"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "start_streaming",
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.WSPacket{
+				PacketType: "failed_start_streaming",
+				Data:       fmt.Errorf("Server internal error: provider failed to start streaming").Error(),
+			}
+		}
+
+		// get instance by given instance id
+		streamInstance, err := s.InstanceDAL.GetStreamInstanceByID(ctx, reqPacketData.StreamInstanceID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":         "Recv Callback Error",
+				"Recv Packet Type":  "start_streaming",
+				"Given Instance ID": reqPacketData.StreamInstanceID,
+				"Given Consumer ID": reqPacketData.ConsumerID,
+			}).Warn("Failed to obtain instance by given instance id, abandoned")
+			return model.WSPacket{
+				PacketType: "failed_start_streaming",
+				Data:       fmt.Sprintf("%s", err.Error()),
+			}
+		}
+		fmt.Printf("%v", streamInstance)
+
+		// TODO: check whether the instance has a webRTCStreamer
+
+		// create new webrtc streamer
+		webRTCStreamer, err := s.WebRTCStreamDAL.NewWebRTCStreamer(ctx, streamInstance)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "start_streaming",
+				"Instance ID":      streamInstance.Instanceid,
+				"error":            err.Error(),
+			}).Warn("Failed to create WebRTCStreamer, abandoned")
+			return model.WSPacket{
+				PacketType: "failed_start_streaming",
+				Data:       fmt.Errorf("Provider failed to create WebRTCStreamer").Error(),
+			}
+		}
+
+		// create WebRTC video streamer
+		err = webRTCStreamer.CreateVideoListener()
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "start_streaming",
+				"Instance ID":      streamInstance.Instanceid,
+				"error":            err.Error(),
+			}).Warn("Failed to create WebRTC video listener, abandoned")
+			return model.WSPacket{
+				PacketType: "failed_start_streaming",
+				Data:       fmt.Errorf("Failed to create WebRTC video listener").Error(),
+			}
+		}
+
+		// create WebRTC audio streamer
+		err = webRTCStreamer.CreateAudioListener()
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "start_streaming",
+				"Instance ID":      streamInstance.Instanceid,
+				"error":            err.Error(),
+			}).Warn("Failed to create WebRTC audio listener, abandoned")
+			return model.WSPacket{
+				PacketType: "failed_start_streaming",
+				Data:       fmt.Errorf("Failed to create WebRTC audio listener").Error(),
+			}
+		}
+
+		// start hijacking video and audio stream
+		webRTCStreamer.ListenVideoStream()
+		webRTCStreamer.ListenAudioStream()
+
+		// TODO: send offer SDP
+
+		return model.EmptyPacket
+	})
 }

@@ -23,6 +23,7 @@ type WebsocketCommunicator struct {
 	InstanceDAL           model.InstanceDAL
 	SchedulerDAL          model.SchedulerDAL
 	DaemonDAL             model.DaemonDAL
+	WebRTCStreamDAL       model.WebRTCStreamDAL
 }
 
 /*
@@ -30,9 +31,10 @@ type WebsocketCommunicator struct {
 	@description: used for config instance of struct WebsocketCommunicator
 */
 type WebsocketCommunicatorConfig struct {
-	InstanceDAL  model.InstanceDAL
-	SchedulerDAL model.SchedulerDAL
-	DaemonDAL    model.DaemonDAL
+	InstanceDAL     model.InstanceDAL
+	SchedulerDAL    model.SchedulerDAL
+	DaemonDAL       model.DaemonDAL
+	WebRTCStreamDAL model.WebRTCStreamDAL
 }
 
 /*
@@ -42,9 +44,10 @@ type WebsocketCommunicatorConfig struct {
 */
 func NewWebsocketCommunicator(c *WebsocketCommunicatorConfig) model.WebsocketCommunicator {
 	wsCommunicator := &WebsocketCommunicator{
-		SchedulerDAL: c.SchedulerDAL,
-		DaemonDAL:    c.DaemonDAL,
-		InstanceDAL:  c.InstanceDAL,
+		SchedulerDAL:    c.SchedulerDAL,
+		DaemonDAL:       c.DaemonDAL,
+		InstanceDAL:     c.InstanceDAL,
+		WebRTCStreamDAL: c.WebRTCStreamDAL,
 	}
 
 	err := wsCommunicator.InitDaemonConnection()

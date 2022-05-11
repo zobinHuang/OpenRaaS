@@ -192,7 +192,10 @@ const TerminalControlPanel = (props) => {
             handle launch instance
     */
     const handleLaunchInstance = (event, newValue) => {
-
+        PubSub.publish('init_webrtc_connection', { 
+            TerminalKey: `${StateTerminals.currentSelected}`,
+            StateTerminals: StateTerminals,
+        });
     }
 
     return <ControlPanelBtnGroupContainer>

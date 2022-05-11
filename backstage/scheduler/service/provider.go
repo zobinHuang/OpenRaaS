@@ -19,6 +19,7 @@ import (
 type ProviderService struct {
 	InstanceRoomDAL model.InstanceRoomDAL
 	ProviderDAL     model.ProviderDAL
+	ConsumerDAL     model.ConsumerDAL
 	ICEServers      string
 }
 
@@ -29,6 +30,7 @@ type ProviderService struct {
 type ProviderServiceConfig struct {
 	ICEServers      string
 	ProviderDAL     model.ProviderDAL
+	ConsumerDAL     model.ConsumerDAL
 	InstanceRoomDAL model.InstanceRoomDAL
 }
 
@@ -42,6 +44,7 @@ func NewProviderService(c *ProviderServiceConfig) model.ProviderService {
 		ICEServers:      c.ICEServers,
 		ProviderDAL:     c.ProviderDAL,
 		InstanceRoomDAL: c.InstanceRoomDAL,
+		ConsumerDAL:     c.ConsumerDAL,
 	}
 }
 
@@ -430,6 +433,51 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 				Data:       string(respToConsumersString),
 			}, nil)
 		}
+
+		return model.EmptyPacket
+	})
+
+	/*
+		@callback: failed_start_streaming
+		@description:
+			notification from provider of failed to start streaming
+	*/
+	provider.Receive("failed_start_streaming", func(req model.WSPacket) (resp model.WSPacket) {
+		// define request format
+		var reqPacketData struct {
+			InstanceID string `json:"instance_id"`
+			ConsumerID string `json:"consumer_id"`
+			Error      string `json:"error"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "failed_start_streaming",
+				"ProviderID":       provider.ClientID,
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		// fetch consumer based on given id
+		consumer, err := s.ConsumerDAL.GetConsumerByID(ctx, reqPacketData.ConsumerID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":         "Recv Callback Error",
+				"Recv Packet Type":  "failed_start_streaming",
+				"Given Consumer ID": reqPacketData.ConsumerID,
+			}).Warn("Failed to obtain consumer by given consumer id, abandoned")
+			return model.EmptyPacket
+		}
+
+		// send to consumer
+		consumer.Send(model.WSPacket{
+			PacketType: "failed_start_streaming",
+			Data:       reqPacketData.Error,
+		}, nil)
 
 		return model.EmptyPacket
 	})

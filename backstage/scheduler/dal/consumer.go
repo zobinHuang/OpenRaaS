@@ -2,6 +2,7 @@ package dal
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 )
@@ -49,4 +50,17 @@ func (d *ConsumerDAL) CreateConsumer(ctx context.Context, consumer *model.Consum
 */
 func (d *ConsumerDAL) DeleteConsumer(ctx context.Context, consumerID string) {
 	delete(d.ConsumerList, consumerID)
+}
+
+/*
+	@func: GetConsumerByID
+	@description:
+		obtain a consumer by given consumer id
+*/
+func (d *ConsumerDAL) GetConsumerByID(ctc context.Context, consumerID string) (*model.Consumer, error) {
+	consumer, ok := d.ConsumerList[consumerID]
+	if !ok {
+		return nil, fmt.Errorf("Failed to obtain consumer by given consumer id")
+	}
+	return consumer, nil
 }

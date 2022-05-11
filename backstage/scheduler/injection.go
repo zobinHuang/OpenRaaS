@@ -55,12 +55,14 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 		ScheduleServiceCore: scheduleServiceCore,
 		ConsumerDAL:         comsumerDAL,
 		ApplicationDAL:      applicationDAL,
+		InstanceRoomDAL:     instanceRoomDAL,
 	})
 
 	providerService := service.NewProviderService(&service.ProviderServiceConfig{
 		ICEServers:      `[{"urls":"stun:stun.l.google.com:19302"}]`,
 		ProviderDAL:     providerDAL,
 		InstanceRoomDAL: instanceRoomDAL,
+		ConsumerDAL:     comsumerDAL,
 	})
 
 	applicationService := service.NewApplicationService(&service.ApplicationServiceConfig{

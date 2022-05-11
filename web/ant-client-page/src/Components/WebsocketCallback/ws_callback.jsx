@@ -516,12 +516,33 @@ const WebsocketCallback = (props) => {
     }
 
     /*
+        @callback: callback_InitializeWebRTCConnection
+        @description: start webrtc connection (invoked when user click on launch instance)
+    */
+    const callback_InitializeWebRTCConnection = (msg, payload) => {
+        // obtain websocket connection from global map
+        let ws = terminalWsMap.get(payload.TerminalKey)
+
+        // send start streamming notification to scheduler
+        let reqPacket = JSON.stringify({
+            packet_type: "start_streamming",
+            data: JSON.stringify({ 
+                instance_id: payload.StateTerminals.terminalsMap[payload.TerminalKey].instanceSchedulerID,
+            }),
+        })
+    }
+
+    /*
         @function: registerRecvCallback
         @description: register recv callback functions of given websocket
     */
     const registerRecvCallback = () => {
-        PubSub.subscribe('register_terminal_websocket', callback_registerTerminalWebsocket)
+        // user interaction callback
         PubSub.subscribe('config_websocket_state', callback_configWebsocketState)
+        PubSub.subscribe('init_webrtc_connection', callback_InitializeWebRTCConnection)
+
+        // websocket callback
+        PubSub.subscribe('register_terminal_websocket', callback_registerTerminalWebsocket)
         PubSub.subscribe('delete_terminal_websocket', callback_deleteTerminalWebsocket)
         PubSub.subscribe('notify_ice_server', callback_recvNotifyIceServer)
         PubSub.subscribe('state_failed_provider_schedule', callback_stateFailedProviderSchedule)
