@@ -136,7 +136,7 @@ const TerminalsPage = (props) => {
                                 (terminalIndex, index) => {
                                     let terminal = StateTerminalMap[terminalIndex]
                                     switch(terminal.currentStepIndex){
-                                        case 0:
+                                        case TERMINAL_STEP_CONFIG_INSTANCE:
                                             return <Tab 
                                                 icon={<BuildCircleIcon />}
                                                 key={terminalIndex}
@@ -144,7 +144,7 @@ const TerminalsPage = (props) => {
                                                 label={terminal.name}
                                                 style={{textTransform: 'none'}}
                                             />
-                                        case 1:
+                                        case TERMINAL_STEP_CONNECT_TO_SCHEDULER:
                                             return <Tab 
                                                 icon={<ArrowCircleUpIcon />}
                                                 key={terminalIndex}
@@ -152,7 +152,7 @@ const TerminalsPage = (props) => {
                                                 label={terminal.name}
                                                 style={{textTransform: 'none'}}
                                             />
-                                        case 4:
+                                        case TERMINAL_STEP_RUN_INSTANCE:
                                             return <Tab 
                                                 icon={<CheckCircleIcon />}
                                                 key={terminalIndex}
@@ -160,7 +160,7 @@ const TerminalsPage = (props) => {
                                                 label={terminal.name}
                                                 style={{textTransform: 'none'}}
                                             />
-                                        case 2 || 3:
+                                        default:
                                             return <Tab 
                                                 icon={<PendingIcon />}
                                                 key={terminalIndex}
