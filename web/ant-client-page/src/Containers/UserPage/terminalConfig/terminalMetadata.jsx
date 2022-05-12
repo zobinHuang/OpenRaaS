@@ -89,6 +89,9 @@ export const FPS_30 = 30
 export const FPS_60 = 60
 export const FPS_120 = 120
 
+export const VCODEC_H264 = "VCODEC_H264"
+export const VCODEC_VPX = "vpx"
+
 const TerminalMetadata = (props) => {
     // get dispatch
     const dispatch = useDispatch()
@@ -215,6 +218,19 @@ const TerminalMetadata = (props) => {
         }))
     }
 
+    /*
+        @function: handleChangeVCodec
+        @description:
+            handle change vcodec
+    */
+    const handleChangeVCodec = (event) => {
+        dispatch(TerminalActions.updateTerminal({
+            "type": "UPDATE_TERMINAL_VCODEC",
+            "terminal_key": `${StateTerminals.currentSelected}`,
+            "vcodec": event.target.value,
+        }))
+    }
+
     const fpsFormat = [
         {
             value: FPS_24,
@@ -231,6 +247,17 @@ const TerminalMetadata = (props) => {
         {
             value: FPS_120,
             label: "120fps"
+        },
+    ]
+
+    const vcodecFormat = [
+        {
+            value: VCODEC_H264,
+            label: "H.264"
+        },
+        {
+            value: VCODEC_VPX,
+            label: "VPX"
         },
     ]
 
@@ -305,7 +332,7 @@ const TerminalMetadata = (props) => {
             </ResolutionConfigEntry>
         </ResolutionConfigContainer>
 
-        {/* Terminal Name */}
+        {/* Frame Per Second (FPS) */}
         <ConfigItemTitleContainer>
             <ConfigItemTitle>Frame Per Second (FPS)</ConfigItemTitle>
         </ConfigItemTitleContainer>
@@ -319,6 +346,26 @@ const TerminalMetadata = (props) => {
           fullWidth
         >
           {fpsFormat.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
+
+        {/* VCODEC */}
+        <ConfigItemTitleContainer>
+            <ConfigItemTitle>Video Codec</ConfigItemTitle>
+        </ConfigItemTitleContainer>
+        <TextField
+          id="outlined-select-currency"
+          select
+          label="Video Codec"
+          disabled={CurrentSelectedTerminal.terminalConfigConfirm}
+          value={CurrentSelectedTerminal.vCodec}
+          onChange={handleChangeVCodec}
+          fullWidth
+        >
+          {vcodecFormat.map((option) => (
             <MenuItem key={option.value} value={option.value}>
               {option.label}
             </MenuItem>

@@ -179,6 +179,7 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			ScreenWidth:    reqPacketData.StreamInstance.ScreenWidth,
 			ScreenHeight:   reqPacketData.StreamInstance.ScreenHeight,
 			FPS:            reqPacketData.StreamInstance.FPS,
+			VCodec:         reqPacketData.StreamInstance.VCodec,
 			FilestoreList:  reqPacketData.FilestoreList,
 			DepositaryList: reqPacketData.DepositaryList,
 			InstanceCore: model.InstanceCore{
@@ -305,22 +306,82 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 		}
 
 		// create WebRTC Pipe for this consumer
-		// webRTCPipe, err := s.WebRTCStreamDAL.NewWebRTCPipe(ctx, streamInstance, reqPacketData.ConsumerID)
-		// if err != nil {
-		// 	log.WithFields(log.Fields{
-		// 		"Warn Type":        "Recv Callback Error",
-		// 		"Recv Packet Type": "start_streaming",
-		// 		"Instance ID":      streamInstance.Instanceid,
-		// 		"error":            err.Error(),
-		// 	}).Warn("Failed to create WebRTC Pipe, abandoned")
-		// 	return model.WSPacket{
-		// 		PacketType: "failed_start_streaming",
-		// 		Data:       fmt.Errorf("Failed to create WebRTC Pipe").Error(),
-		// 	}
-		// }
+		webRTCPipe, err := s.WebRTCStreamDAL.NewWebRTCPipe(ctx, streamInstance, reqPacketData.ConsumerID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "start_streaming",
+				"Instance ID":      streamInstance.Instanceid,
+				"error":            err.Error(),
+			}).Warn("Failed to create WebRTC Pipe, abandoned")
+			return model.WSPacket{
+				PacketType: "failed_start_streaming",
+				Data:       fmt.Errorf("Failed to create WebRTC Pipe").Error(),
+			}
+		}
 
-		// TODO: send offer SDP
+		// open WebRTC pipe
+		offerSDP, err := webRTCPipe.Open(s.SchedulerDAL.GetICEServers(), streamInstance.VCodec, func(candidate string) {
+			/* This function will be invoked while this WebRTC Pipe received ICE Candidate result */
 
-		return model.EmptyPacket
+			// construct provider ice candidate notification to scheudler
+			// (would be forwarded to consumer)
+			var respToScheduler = &struct {
+				InstanceID           string `json:"instance_id"`
+				ConsumerID           string `json:"consumer_id"`
+				ProviderICECandidate string `json:"provider_ice_candidate"`
+			}{
+				InstanceID:           reqPacketData.StreamInstanceID,
+				ConsumerID:           reqPacketData.ConsumerID,
+				ProviderICECandidate: candidate,
+			}
+
+			// marshal resp
+			respToSchedulerString, err := json.Marshal(respToScheduler)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"Instance ID": reqPacketData.StreamInstanceID,
+					"Consumer ID": reqPacketData.ConsumerID,
+				}).Warn("Failed to marshal ice candidate of provider which would be sent to scheduler, abandoned")
+				return
+			}
+
+			// send to scheduler
+			s.SchedulerWSConnection.Send(model.WSPacket{
+				PacketType: "provider_ice_candidate",
+				Data:       string(respToSchedulerString),
+			}, nil)
+		})
+
+		// construct offer SDP to scheudler
+		// (would be forwarded to consumer)
+		var reqToScheduler = &struct {
+			InstanceID string `json:"instance_id"`
+			ConsumerID string `json:"consumer_id"`
+			OfferSDP   string `json:"offer_sdp"`
+		}{
+			InstanceID: reqPacketData.StreamInstanceID,
+			ConsumerID: reqPacketData.ConsumerID,
+			OfferSDP:   offerSDP,
+		}
+
+		// marshal resp
+		reqToSchedulerString, err := json.Marshal(reqToScheduler)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Instance ID": reqPacketData.StreamInstanceID,
+				"Consumer ID": reqPacketData.ConsumerID,
+			}).Warn("Failed to marshal offer SDP from provider which would be sent to scheduler, abandoned")
+			return model.WSPacket{
+				PacketType: "failed_start_streaming",
+				Data:       fmt.Errorf("Failed to create offer SDP").Error(),
+			}
+		}
+
+		// send offer SDP to scheduler
+		return model.WSPacket{
+			PacketType: "offer_sdp",
+			Data:       string(reqToSchedulerString),
+		}
 	})
 }

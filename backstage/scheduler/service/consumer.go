@@ -199,6 +199,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			ApplicationID  string `json:"application_id"`
 			ScreenHeight   string `json:"screen_height"`
 			ScreenWidth    string `json:"screen_width"`
+			VCodec         string `json:"vcodec"`
 			ApplicationFPS string `json:"application_fps"`
 		}
 
@@ -245,6 +246,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			ScreenHeight:      ScreenHeightInt,
 			ScreenWidth:       ScreenWidthInt,
 			FPS:               FPSInt,
+			VCodec:            reqPacketData.VCodec,
 		}
 
 		// schedule
@@ -411,6 +413,12 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			PacketType: "start_streaming",
 			Data:       string(reqToProviderString),
 		}, nil)
+
+		log.WithFields(log.Fields{
+			"Consumer ID":        consumer.ClientID,
+			"Instance ID":        reqPacketData.InstanceID,
+			"Target Provider ID": provider.ClientID,
+		}).Info("Receive start streaming request from consumer, nofity provider")
 
 		return model.EmptyPacket
 	})

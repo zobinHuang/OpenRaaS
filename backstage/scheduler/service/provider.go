@@ -481,4 +481,76 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 		return model.EmptyPacket
 	})
+
+	/*
+		@callback: offer_sdp
+		@description:
+			receive offer SDP, forward to corresponding consumers
+	*/
+	provider.Receive("offer_sdp", func(req model.WSPacket) (resp model.WSPacket) {
+		var reqPacketData struct {
+			InstanceID string `json:"instance_id"`
+			ConsumerID string `json:"consumer_id"`
+			OfferSDP   string `json:"offer_sdp"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "offer_sdp",
+				"ProviderID":       provider.ClientID,
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		// obtain consumer by given consumer id
+		consumer, err := s.ConsumerDAL.GetConsumerByID(ctx, reqPacketData.ConsumerID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":         "Recv Callback Error",
+				"Recv Packet Type":  "offer_sdp",
+				"ProviderID":        provider.ClientID,
+				"Given Consumer ID": reqPacketData.ConsumerID,
+				"error":             err,
+			}).Warn("Failed to obtain consumer by given consumer id")
+			return model.EmptyPacket
+		}
+
+		// construct websocket packet to consumer
+		var respPacketData = &struct {
+			InstanceID string `json:"instance_id"`
+			ConsumerID string `json:"consumer_id"`
+			OfferSDP   string `json:"offer_sdp"`
+		}{
+			InstanceID: reqPacketData.InstanceID,
+			ConsumerID: reqPacketData.ConsumerID,
+			OfferSDP:   reqPacketData.OfferSDP,
+		}
+
+		// marshal websocket packet
+		jsonRespPacketData, err := json.Marshal(respPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Provider ID": provider.ClientID,
+				"Consumer ID": consumer.ClientID,
+			}).Info("Failed to marshal websocket data when try to notify offer SDP to consumer, abandoned")
+			return model.EmptyPacket
+		}
+
+		// send to consumer
+		consumer.Send(model.WSPacket{
+			PacketType: "offer_sdp",
+			Data:       string(jsonRespPacketData),
+		}, nil)
+
+		log.WithFields(log.Fields{
+			"Provider ID": provider.ClientID,
+			"Consumer ID": consumer.ClientID,
+		}).Info("Forward offer SDP to consumer")
+
+		return model.EmptyPacket
+	})
 }

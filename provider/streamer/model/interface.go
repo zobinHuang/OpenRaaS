@@ -60,6 +60,7 @@ type InstanceDAL interface {
 */
 type SchedulerDAL interface {
 	AddICEServers(iceServer string)
+	GetICEServers() []string
 }
 
 /*

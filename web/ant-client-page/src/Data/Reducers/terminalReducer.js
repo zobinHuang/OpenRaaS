@@ -6,7 +6,7 @@ import axios from 'axios'
 import GetUUID from '../../Utils/get_uuid'
 import { APP_LIST_ORDER_BY_NAME, APP_LIST_ORDER_BY_UPDATE_TIME, APP_LIST_ORDER_BY_USAGE_COUNT } from '../../Containers/UserPage/terminalConfig/applicationMetadata/applicationList'
 import { APPLICATION_DETAIL_STATE_LOADED, APPLICATION_DETAIL_STATE_LOADING } from '../../Containers/UserPage/terminalConfig/applicationMetadata/applicationDetails'
-import { FPS_30, RESOLUTION_1280_720 } from '../../Containers/UserPage/terminalConfig/terminalMetadata'
+import { FPS_30, RESOLUTION_1280_720, VCODEC_H264 } from '../../Containers/UserPage/terminalConfig/terminalMetadata'
 
 const defaultTerminalState = {
     // Name of the terminal
@@ -98,6 +98,9 @@ const defaultTerminalState = {
 
     // current frame per second (fps)
     currentFPS: FPS_30,
+
+    // selected vcodec
+    vCodec: VCODEC_H264,
 
     // confirmation of terminal metadata has been configured
     terminalConfigConfirm: false,
@@ -282,6 +285,11 @@ const terminalsSlice = createSlice({
                 /* Case: update terminal resolution */
                 case "UPDATE_TERMINAL_FPS":
                     state.StateTerminals.terminalsMap[action.payload.terminal_key].currentFPS = action.payload.fps
+                    break;
+                
+                /* Case: update vcodec */
+                case "UPDATE_TERMINAL_VCODEC":
+                    state.StateTerminals.terminalsMap[action.payload.terminal_key].vCodec = action.payload.vcodec
                     break;
 
                 /* Case: update selected application type */

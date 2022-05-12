@@ -74,7 +74,7 @@ type RDbDAL interface {
 type ConsumerDAL interface {
 	CreateConsumer(ctx context.Context, consumer *Consumer)
 	DeleteConsumer(ctx context.Context, consumerID string)
-	GetConsumerByID(ctc context.Context, consumerID string) (*Consumer, error)
+	GetConsumerByID(ctx context.Context, consumerID string) (*Consumer, error)
 }
 
 /*

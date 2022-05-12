@@ -15,8 +15,16 @@ const WebsocketCallback = (props) => {
     /*
         @state: "terminal <-> websocket" mapping relationship
         @description:
+            mapping relationship of "terminal <-> websocket"
     */
     const [terminalWsMap, setTerminalWsMap] = useState(new Map())
+
+    /*
+        @state: "terminal <-> RtcPeer" mapping relationship
+        @description:
+            mapping relationship of "terminal <-> RtcPeer"
+    */
+    const [terminalRtcPeerMap, setTerminalRtcPeerMap] = useState(new Map())
 
     /*
         @callback: callback_registerTerminalWebsocket
@@ -213,6 +221,19 @@ const WebsocketCallback = (props) => {
                         StateTerminals: stateTerminals,
                     });
                     break;
+                
+                /*
+                    @ case: offer_sdp
+                    @ description: WebRTC offer SDP from provider
+                */
+                case "offer_sdp":
+                    PubSub.publish('offer_sdp', { 
+                        Socket: ws,
+                        TerminalKey: `${terminalKey}`,
+                        WSPacket: wsPacket,
+                        StateTerminals: stateTerminals,
+                    });
+                    break;
 
                 /*
                     @ case: unknown websocket packet type
@@ -338,6 +359,7 @@ const WebsocketCallback = (props) => {
                 screen_height: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].screenHeight}`,
                 screen_width: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].screenWidth}`,
                 application_fps: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].currentFPS}`,
+                vcodec: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].vCodec}`,
             }),
         })
         payload.Socket.send(reqWSPacket)
@@ -516,10 +538,117 @@ const WebsocketCallback = (props) => {
     }
 
     /*
-        @callback: callback_InitializeWebRTCConnection
+        @callback: callback_registerTerminalRTCPeer
+        @description: 
+            callback function for registering new "terminal <-> RTCPeer" mapping relationship
+    */
+    const callback_registerTerminalRTCPeer = (msg, payload) => {
+        setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, {
+            PeerConnection: null,
+            inputChannel: null,
+            mediaStream: null,
+            candidates: Array(),
+            isAnswered: false,
+            isFlushing: false,
+            connected: false,
+            inputReady: false
+        }))
+    }
+
+    /*
+        @callback: callback_InitializeWebRTCPeer
         @description: start webrtc connection (invoked when user click on launch instance)
     */
-    const callback_InitializeWebRTCConnection = (msg, payload) => {
+    const callback_InitializeWebRTCPeer = (msg, payload) => {
+        // obtain RtcPeer object from global map
+        let RtcPeer = terminalRtcPeerMap.get(payload.TerminalKey)
+
+        // create new WebRTC peer connection
+        let connection = new RTCPeerConnection({
+            iceServers: JSON.parse(payload.StateTerminals.terminalsMap[payload.TerminalKey].iceServers)
+        })
+        RtcPeer.PeerConnection = connection
+
+        // create new media stream
+        let mediaStream = new MediaStream()
+        RtcPeer.mediaStream = mediaStream
+
+        /*
+            @callback: ondatachannel
+            @description: 
+                todo
+        */
+        connection.ondatachannel = (e) => {
+            RtcPeer.inputChannel = e.channel
+            /*
+                @callback: onopen
+                @description: 
+                    todo
+            */
+            RtcPeer.inputChannel.onopen = () => {
+                console.log('Info - webrtc message: input channel has opened')
+                RtcPeer.inputReady = true
+            }
+            
+            /*
+                @callback: onopen
+                @description: 
+                    todo
+            */
+           RtcPeer.inputChannel.onclose = () => {
+                console.log('Warn - webrtc message: input channel has closed')
+                RtcPeer.inputReady = false
+           }
+        }
+
+        /*
+            @callback: oniceconnectionstatechange
+            @description: 
+                todo
+        */
+        connection.oniceconnectionstatechange = () => {
+            PubSub.publish('webrtc_oniceconnectionstatechange', { 
+                TerminalKey: `${payload.TerminalKey}`,
+            });
+        }
+
+        /*
+            @callback: onicegatheringstatechange
+            @description: 
+                todo
+        */
+        connection.onicegatheringstatechange = () => {
+            PubSub.publish('webrtc_onicegatheringstatechange', { 
+                TerminalKey: `${payload.TerminalKey}`,
+            });
+        }
+
+        /*
+            @callback: onicecandidate
+            @description: 
+                todo
+        */
+        connection.onicecandidate = () => {
+            PubSub.publish('webrtc_onicecandidate', { 
+                TerminalKey: `${payload.TerminalKey}`,
+            });
+        }
+
+        /*
+            @callback: ontrack
+            @description: 
+                todo
+        */
+        connection.ontrack = (event) => {
+            PubSub.publish('webrtc_ontrack', { 
+                TerminalKey: `${payload.TerminalKey}`,
+                Track: event.track,
+            });
+        }
+
+        // save updated RtcPeer
+        setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
+
         // obtain websocket connection from global map
         let ws = terminalWsMap.get(payload.TerminalKey)
 
@@ -530,6 +659,48 @@ const WebsocketCallback = (props) => {
                 instance_id: payload.StateTerminals.terminalsMap[payload.TerminalKey].instanceSchedulerID,
             }),
         })
+
+        // send to scheudler
+        ws.send(reqPacket)
+    }
+
+    /*
+        @callback: callback_ProviderOfferSDP
+        @description: 
+            invoked while receiving provider offer SDP
+    */
+    const callback_ProviderOfferSDP = async (msg, payload) => {
+        // obtain RTC Peer object
+        let RtcPeer = terminalRtcPeerMap.get(payload.TerminalKey)
+
+        // parse offer SDP
+        const offer = new RTCSessionDescription(JSON.parse(atob(payload.WSPacket.data.offer_sdp)))
+        
+        // set remote description
+        await RtcPeer.PeerConnection.setRemoteDescription(offer)
+
+        // create answer sdp
+        const answer = await RtcPeer.PeerConnection.createAnswer()
+        answer.sdp = answer.sdp.replace(
+            /(a=fmtp:111 .*)/g,
+            "$1;stereo=1;sprop-stereo=1"
+        )
+        await RtcPeer.PeerConnection.setLocalDescription(answer);
+        RtcPeer.PeerConnection.isAnswered = true
+
+        // obtain websocket connection from global map
+        let ws = terminalWsMap.get(payload.TerminalKey)
+
+        // send start streamming notification to scheduler
+        let reqPacket = JSON.stringify({
+            packet_type: "answer_sdp",
+            data: JSON.stringify({ 
+                answer_sdp: btoa(JSON.stringify(answer)),
+            }),
+        })
+
+        // send to scheudler
+        ws.send(reqPacket)
     }
 
     /*
@@ -537,13 +708,16 @@ const WebsocketCallback = (props) => {
         @description: register recv callback functions of given websocket
     */
     const registerRecvCallback = () => {
-        // user interaction callback
+        // user interaction callback (websocket)
         PubSub.subscribe('config_websocket_state', callback_configWebsocketState)
-        PubSub.subscribe('init_webrtc_connection', callback_InitializeWebRTCConnection)
-
-        // websocket callback
         PubSub.subscribe('register_terminal_websocket', callback_registerTerminalWebsocket)
         PubSub.subscribe('delete_terminal_websocket', callback_deleteTerminalWebsocket)
+
+        // user interaction callback (webRTC)
+        PubSub.subscribe('init_webrtc_connection', callback_InitializeWebRTCPeer)
+        PubSub.subscribe('register_terminal_rtc_connection', callback_registerTerminalRTCPeer)
+        
+        // websocket callback
         PubSub.subscribe('notify_ice_server', callback_recvNotifyIceServer)
         PubSub.subscribe('state_failed_provider_schedule', callback_stateFailedProviderSchedule)
         PubSub.subscribe('state_provider_scheduled', callback_stateProviderScheduled)
@@ -551,6 +725,10 @@ const WebsocketCallback = (props) => {
         PubSub.subscribe('state_selected_storage', callback_stateStorageScheduled)
         PubSub.subscribe('state_run_instance', callback_stateInstanceRunning)
         PubSub.subscribe('state_failed_run_instance', callback_stateFailedInstanceRunning)
+        PubSub.subscribe('offer_sdp', callback_ProviderOfferSDP)
+
+        // webRTC callback
+        
     }
 
     useEffect( () => {

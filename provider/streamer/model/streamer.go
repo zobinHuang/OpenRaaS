@@ -46,11 +46,14 @@ type WebRTCStreamer struct {
 */
 func (s *WebRTCStreamer) CreateVideoListener() error {
 	// obtain listen metadata
-	instanceIP := s.StreamInstance.InstanceIP
 	videoRTCPort, _ := strconv.Atoi(s.StreamInstance.VideoRTCPort)
 
+	log.WithFields(log.Fields{
+		"Video RTC Port": s.StreamInstance.VideoRTCPort,
+	}).Info("Try to create video listener")
+
 	// obtain listen
-	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP(instanceIP), Port: videoRTCPort})
+	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: videoRTCPort})
 	if err != nil {
 		return fmt.Errorf("Failed to obtain listener of the video stream")
 	}
@@ -82,11 +85,14 @@ func (s *WebRTCStreamer) CreateVideoListener() error {
 */
 func (s *WebRTCStreamer) CreateAudioListener() error {
 	// obtain listen metadata
-	instanceIP := s.StreamInstance.InstanceIP
 	audioRTCPort, _ := strconv.Atoi(s.StreamInstance.AudioRTCPort)
 
+	log.WithFields(log.Fields{
+		"Video RTC Port": s.StreamInstance.AudioRTCPort,
+	}).Info("Try to create audio listener")
+
 	// obtain listen
-	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP(instanceIP), Port: audioRTCPort})
+	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: audioRTCPort})
 	if err != nil {
 		return fmt.Errorf("Failed to obtain listener of the audio stream")
 	}

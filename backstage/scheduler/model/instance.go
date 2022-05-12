@@ -10,6 +10,7 @@ type StreamInstance struct {
 	InstanceID   string `json:"instance_id"`
 	ScreenWidth  int    `json:"screen_width"`
 	ScreenHeight int    `json:"screen_height"`
+	VCodec       string `json:"vcodec"`
 	FPS          int    `json:"fps"`
 }
 

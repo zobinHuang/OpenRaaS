@@ -11,12 +11,13 @@ type StreamInstanceDaemonModel struct {
 	AppPath          string           `json:"application_path"`
 	AppFile          string           `json:"application_file"`
 	AppName          string           `json:"application_name"`
-	HWKey            string           `json:"hw_key"` // 'app' or 'game'
+	HWKey            string           `json:"hw_key"`
 	ScreenWidth      int              `json:"screen_width"`
 	ScreenHeight     int              `json:"screen_height"`
 	FPS              int              `json:"fps"`
-	FilestoreList    []FilestoreCore  `json:"filestore_list"`  // list of ip address
-	DepositaryList   []DepositaryCore `json:"depositary_list"` // list of ip address
+	VCodec           string           `json:"vcodec"`
+	FilestoreList    []FilestoreCore  `json:"filestore_list"`
+	DepositaryList   []DepositaryCore `json:"depositary_list"`
 	TargetFilestore  FilestoreCore    `json:"target_filestore"`
 	TargetDepositary DepositaryCore   `json:"target_depositary"`
 }
@@ -52,5 +53,6 @@ type StreamInstance struct {
 	InstanceID   string `json:"instance_id"`
 	ScreenWidth  int    `json:"screen_width"`
 	ScreenHeight int    `json:"screen_height"`
+	VCodec       string `json:"vcodec"`
 	FPS          int    `json:"fps"`
 }

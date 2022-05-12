@@ -192,6 +192,12 @@ const TerminalControlPanel = (props) => {
             handle launch instance
     */
     const handleLaunchInstance = (event, newValue) => {
+        // resgiter rtc connection
+        PubSub.publish('register_terminal_rtc_connection', { 
+            TerminalKey: `${StateTerminals.currentSelected}`,
+        });
+
+        // initilize webrtc connection
         PubSub.publish('init_webrtc_connection', { 
             TerminalKey: `${StateTerminals.currentSelected}`,
             StateTerminals: StateTerminals,

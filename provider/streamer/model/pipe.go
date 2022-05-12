@@ -18,7 +18,7 @@ const (
 	INPUT_PIPE_CHANNEL_LENGTH int = 100
 
 	// video encode
-	VCODEC_H254 string = "h264"
+	VCODEC_H264 string = "h264"
 	VCODEC_VPX  string = "vpx"
 )
 
@@ -47,7 +47,7 @@ type WebRTCPipe struct {
 		[2] create video, audio, input track for newly created connection
 		[3] register callbacks of input track and WebRTC connection
 */
-func (p *WebRTCPipe) Open(iceServers []string, ssrc uint32, vCodec string, onICECandidateCallback func(candidate string)) (string, error) {
+func (p *WebRTCPipe) Open(iceServers []string, vCodec string, onICECandidateCallback func(candidate string)) (string, error) {
 	defer func() {
 		if err := recover(); err != nil {
 			log.WithFields(log.Fields{
@@ -84,7 +84,7 @@ func (p *WebRTCPipe) Open(iceServers []string, ssrc uint32, vCodec string, onICE
 	// config video codec
 	var codec string
 	switch vCodec {
-	case VCODEC_H254:
+	case VCODEC_H264:
 		codec = webrtc.MimeTypeH264
 	case VCODEC_VPX:
 		codec = webrtc.MimeTypeVP8
@@ -201,17 +201,38 @@ func (p *WebRTCPipe) Open(iceServers []string, ssrc uint32, vCodec string, onICE
 		}
 	})
 
+	// store peer connection
+	p.PeerConnection = webRTCConnection
+
+	// create offer SDP
 	offer, err := p.PeerConnection.CreateOffer(nil)
 	if err != nil {
-
+		return "", fmt.Errorf("Failed to create offer SDP: %s\n", err.Error())
 	}
 
-	return nil
+	// set local description
+	err = p.PeerConnection.SetLocalDescription(offer)
+	if err != nil {
+		return "", fmt.Errorf("Failed to set local description: %s\n", err.Error())
+	}
+	log.WithFields(log.Fields{
+		"Instance ID": p.StreamInstance.Instanceid,
+		"Consumer ID": p.ConsumerID,
+	}).Info("Set local description")
+
+	// encode offer SDP
+	offerSDP, err := utils.EncodeBase64(offer)
+	if err != nil {
+		return "", fmt.Errorf("Failed to encode offer SDP into base64 string")
+	}
+
+	return offerSDP, nil
 }
 
 /*
 	@function: StartStreaming
 	@description:
+		start WebRTC streaming
 */
 func (p *WebRTCPipe) StartStreaming(videoTrack *webrtc.TrackLocalStaticRTP, audioTrack *webrtc.TrackLocalStaticRTP) {
 	log.WithFields(log.Fields{
