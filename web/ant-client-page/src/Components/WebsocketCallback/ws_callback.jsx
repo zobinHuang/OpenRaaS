@@ -576,27 +576,41 @@ const WebsocketCallback = (props) => {
         /*
             @callback: ondatachannel
             @description: 
-                todo
+                register callbacks for the input channel
         */
         connection.ondatachannel = (e) => {
             RtcPeer.inputChannel = e.channel
             /*
                 @callback: onopen
                 @description: 
-                    todo
+                    invoked when input channel is opened
             */
             RtcPeer.inputChannel.onopen = () => {
-                console.log('Info - webrtc message: input channel has opened')
+                // append log
+                dispatch(TerminalActions.updateTerminal({
+                    "type": "APPEND_LOG_CONTENT",
+                    "terminal_key": `${payload.TerminalKey}`,
+                    "log_priority": "INFO",
+                    "log_time": GetTimestamp(),
+                    "log_content": `Input channel attached to WebRTC connection is opened`,
+                }))
                 RtcPeer.inputReady = true
             }
             
             /*
                 @callback: onopen
                 @description: 
-                    todo
+                    invoked when input channel is closed
             */
-           RtcPeer.inputChannel.onclose = () => {
-                console.log('Warn - webrtc message: input channel has closed')
+            RtcPeer.inputChannel.onclose = () => {
+                // append log
+                dispatch(TerminalActions.updateTerminal({
+                    "type": "APPEND_LOG_CONTENT",
+                    "terminal_key": `${payload.TerminalKey}`,
+                    "log_priority": "WARN",
+                    "log_time": GetTimestamp(),
+                    "log_content": `Input channel attached to WebRTC connection is closed`,
+                }))
                 RtcPeer.inputReady = false
            }
         }
@@ -606,9 +620,10 @@ const WebsocketCallback = (props) => {
             @description: 
                 todo
         */
-        connection.oniceconnectionstatechange = () => {
+        connection.oniceconnectionstatechange = (e) => {
             PubSub.publish('webrtc_oniceconnectionstatechange', { 
                 TerminalKey: `${payload.TerminalKey}`,
+                Event: e,
             });
         }
 
@@ -617,9 +632,10 @@ const WebsocketCallback = (props) => {
             @description: 
                 todo
         */
-        connection.onicegatheringstatechange = () => {
+        connection.onicegatheringstatechange = (e) => {
             PubSub.publish('webrtc_onicegatheringstatechange', { 
                 TerminalKey: `${payload.TerminalKey}`,
+                Event: e,
             });
         }
 
@@ -628,9 +644,10 @@ const WebsocketCallback = (props) => {
             @description: 
                 todo
         */
-        connection.onicecandidate = () => {
+        connection.onicecandidate = (e) => {
             PubSub.publish('webrtc_onicecandidate', { 
                 TerminalKey: `${payload.TerminalKey}`,
+                Event: e,
             });
         }
 
@@ -639,15 +656,24 @@ const WebsocketCallback = (props) => {
             @description: 
                 todo
         */
-        connection.ontrack = (event) => {
+        connection.ontrack = (e) => {
             PubSub.publish('webrtc_ontrack', { 
                 TerminalKey: `${payload.TerminalKey}`,
-                Track: event.track,
+                Track: e.track,
             });
         }
 
         // save updated RtcPeer
         setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
+
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "INFO",
+            "log_time": GetTimestamp(),
+            "log_content": `created WebRTC peer connection for current terminal`,
+        }))
 
         // obtain websocket connection from global map
         let ws = terminalWsMap.get(payload.TerminalKey)
@@ -687,6 +713,18 @@ const WebsocketCallback = (props) => {
         )
         await RtcPeer.PeerConnection.setLocalDescription(answer);
         RtcPeer.PeerConnection.isAnswered = true
+        
+        // save updated RtcPeer
+        setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
+            
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "INFO",
+            "log_time": GetTimestamp(),
+            "log_content": `receive offer SDP from provider, set as remote description`,
+        }))
 
         // obtain websocket connection from global map
         let ws = terminalWsMap.get(payload.TerminalKey)
@@ -696,11 +734,114 @@ const WebsocketCallback = (props) => {
             packet_type: "answer_sdp",
             data: JSON.stringify({ 
                 answer_sdp: btoa(JSON.stringify(answer)),
+                instance_id: StateTerminals.terminalsMap[payload.TerminalKey].instanceSchedulerID,
             }),
         })
 
         // send to scheudler
         ws.send(reqPacket)
+    }
+
+    /*
+        @callback: callback_ICEConnectionStateChange
+        @description: 
+            invoked while state of WebRTC ICE connection changed
+    */
+    const callback_ICEConnectionStateChange = async (msg, payload) => {
+        // obtain RTC Peer object
+        let RtcPeer = terminalRtcPeerMap.get(payload.TerminalKey)
+        
+        switch(RtcPeer.PeerConnection.iceConnectionState){
+            case "connected":
+                RtcPeer.connected = true
+                break
+            case "disconnected":
+                RtcPeer.connected = false
+                break
+            case "failed":
+                RtcPeer.connected = false
+                const offer = await RtcPeer.PeerConnection.createOffer({ iceRestart: true })
+                RtcPeer.PeerConnection.setLocalDescription(offer)
+                break
+        }
+
+        // save updated RtcPeer
+        setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
+
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "INFO",
+            "log_time": GetTimestamp(),
+            "log_content": `ICE connection state changed: ${RtcPeer.PeerConnection.iceConnectionState}`,
+        }))
+    }
+
+    /*
+        @state: intervalForGathering
+        @description: interval for ice candidate gathering
+    */
+    const [intervalForGathering, setIntervalForGathering] = useState(null)
+
+    /*
+        @callback: callback_ICEGatheringStateChange
+        @description: 
+            invoked while state of WebRTC ICE gathering state change
+    */
+    const callback_ICEGatheringStateChange = (msg, payload) => {
+        const ICE_GATHERING_TIMEOUT = 2000
+        switch(payload.Event.target.iceGatheringState){
+            case "gathering":
+                let interval = setTimeout(() => {
+                    // append log
+                    dispatch(TerminalActions.updateTerminal({
+                        "type": "APPEND_LOG_CONTENT",
+                        "terminal_key": `${payload.TerminalKey}`,
+                        "log_priority": "INFO",
+                        "log_time": GetTimestamp(),
+                        "log_content": `ICE gathering state exceed maximum duration, timeout`,
+                    }))
+                }, ICE_GATHERING_TIMEOUT)
+                setIntervalForGathering(interval)
+                break
+            
+            case "complete":
+                if(intervalForGathering){
+                    clearTimeout(intervalForGathering)
+                }
+                break
+        }
+    }
+
+    /*
+        @callback: callback_onICECandidate
+        @description: 
+            invoked while notification of ice candidates from STUN server
+    */
+    const callback_onICECandidate = (msg, payload) => {
+        // obtain RTC Peer object
+        let RtcPeer = terminalRtcPeerMap.get(payload.TerminalKey)
+
+        // save WebRTC candidates
+        if(payload.Event.candidate != null){
+            RtcPeer.candidates = JSON.stringify(payload.Event.candidate);
+        }
+
+        // save updated RtcPeer
+        setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
+
+        // TODO: send to schedulers
+        
+    }
+
+    /*
+        @callback: callback_onTrack
+        @description: 
+            todo
+    */
+    const callback_onTrack = (msg, payload) => {
+
     }
 
     /*
@@ -728,7 +869,10 @@ const WebsocketCallback = (props) => {
         PubSub.subscribe('offer_sdp', callback_ProviderOfferSDP)
 
         // webRTC callback
-        
+        PubSub.subscribe('webrtc_oniceconnectionstatechange', callback_ICEConnectionStateChange)
+        PubSub.subscribe('webrtc_onicegatheringstatechange', callback_ICEGatheringStateChange)
+        PubSub.subscribe('webrtc_onicecandidate', callback_onICECandidate)
+        PubSub.subscribe('webrtc_ontrack', callback_onTrack)
     }
 
     useEffect( () => {
@@ -736,7 +880,7 @@ const WebsocketCallback = (props) => {
         console.log("register ws receive callback!")
     },[])
 
-    return <div />
+    return null
 }
 
 export default WebsocketCallback

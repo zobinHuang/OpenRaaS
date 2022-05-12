@@ -384,4 +384,14 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			Data:       string(reqToSchedulerString),
 		}
 	})
+
+	/*
+		@callback: answer_sdp
+		@description:
+			answer SDP from consumer
+	*/
+	s.SchedulerWSConnection.Receive("answer_sdp", func(req model.WSPacket) (resp model.WSPacket) {
+		// TODO
+		return model.EmptyPacket
+	})
 }

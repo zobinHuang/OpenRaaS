@@ -182,9 +182,9 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			heartbeat
 	*/
 	consumer.Receive("keep_consumer_alive", func(req model.WSPacket) (resp model.WSPacket) {
-		log.WithFields(log.Fields{
-			"ConsumerID": consumer.ClientID,
-		}).Info("Consumer Heartbeat")
+		// log.WithFields(log.Fields{
+		// 	"ConsumerID": consumer.ClientID,
+		// }).Info("Consumer Heartbeat")
 		return model.EmptyPacket
 	})
 
@@ -419,6 +419,72 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			"Instance ID":        reqPacketData.InstanceID,
 			"Target Provider ID": provider.ClientID,
 		}).Info("Receive start streaming request from consumer, nofity provider")
+
+		return model.EmptyPacket
+	})
+
+	/*
+		@callback: answer_sdp
+		@description:
+			notification of start streaming
+	*/
+	consumer.Receive("answer_sdp", func(req model.WSPacket) (resp model.WSPacket) {
+		// define request format
+		var reqPacketData struct {
+			InstanceID string `json:"instance_id"`
+			AnswerSDP  string `json:"answer_sdp"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "answer_sdp",
+				"ConsumerID":       consumer.ClientID,
+				"InstanceID":       reqPacketData.InstanceID,
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		// get provider
+		provider, err := s.InstanceRoomDAL.GetProviderByInstanceID(ctx, reqPacketData.InstanceID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "answer_sdp",
+				"ConsumerID":       consumer.ClientID,
+				"InstanceID":       reqPacketData.InstanceID,
+				"error":            err,
+			}).Warn("Failed to obtain provider by given instance id, abandoned")
+			return model.EmptyPacket
+		}
+
+		// construct websocket packet to provider
+		var respToProvider = struct {
+			ConsumerID string `json:"consumer_id"`
+			AnswerSDP  string `json:"answer_sdp"`
+		}{
+			ConsumerID: consumer.ClientID,
+			AnswerSDP:  reqPacketData.AnswerSDP,
+		}
+		respToProviderString, err := json.Marshal(respToProvider)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "answer_sdp",
+				"Consumer ID":      consumer.ClientID,
+				"error":            err,
+			}).Warn("Failed to marshal response to provider, abandoned")
+			return model.EmptyPacket
+		}
+
+		// send to provider
+		provider.Send(model.WSPacket{
+			PacketType: "answer_sdp",
+			Data:       string(respToProviderString),
+		}, nil)
 
 		return model.EmptyPacket
 	})
