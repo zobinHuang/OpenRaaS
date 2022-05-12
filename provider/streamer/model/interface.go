@@ -59,7 +59,7 @@ type InstanceDAL interface {
 	description: interface of data access layer for scheduler
 */
 type SchedulerDAL interface {
-	SetICEServers(iceServer string)
+	AddICEServers(iceServer string)
 }
 
 /*
@@ -75,4 +75,6 @@ type DaemonDAL interface {
 */
 type WebRTCStreamDAL interface {
 	NewWebRTCStreamer(ctx context.Context, streamInstance *StreamInstanceDaemonModel) (*WebRTCStreamer, error)
+	NewWebRTCPipe(ctx context.Context, streamInstance *StreamInstanceDaemonModel, consumerID string) (*WebRTCPipe, error)
+	GetWebRTCStreamerByInstanceID(ctx context.Context, instanceID string) (*WebRTCStreamer, bool)
 }

@@ -116,11 +116,27 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			return model.EmptyPacket
 		}
 
+		// marshall ice server
+		var ICEServers []struct {
+			Urls string `json:"urls"`
+		}
+		err = json.Unmarshal([]byte(reqPacketData.ICEServers), &ICEServers)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "notify_ice_server",
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
 		// store ice server request
-		s.SchedulerDAL.SetICEServers(reqPacketData.ICEServers)
-		log.WithFields(log.Fields{
-			"ICE Servers": reqPacketData.ICEServers,
-		}).Info("Set ICE Servers")
+		for _, iceServer := range ICEServers {
+			s.SchedulerDAL.AddICEServers(iceServer.Urls)
+			log.WithFields(log.Fields{
+				"ICE Servers": iceServer.Urls,
+			}).Info("Add ICE Servers")
+		}
 
 		return model.EmptyPacket
 	})
@@ -226,58 +242,82 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 				Data:       fmt.Sprintf("%s", err.Error()),
 			}
 		}
-		fmt.Printf("%v", streamInstance)
 
-		// TODO: check whether the instance has a webRTCStreamer
-
-		// create new webrtc streamer
-		webRTCStreamer, err := s.WebRTCStreamDAL.NewWebRTCStreamer(ctx, streamInstance)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"Warn Type":        "Recv Callback Error",
-				"Recv Packet Type": "start_streaming",
-				"Instance ID":      streamInstance.Instanceid,
-				"error":            err.Error(),
-			}).Warn("Failed to create WebRTCStreamer, abandoned")
-			return model.WSPacket{
-				PacketType: "failed_start_streaming",
-				Data:       fmt.Errorf("Provider failed to create WebRTCStreamer").Error(),
+		// obtain corresponding WebRTCStreamer (create if not exist)
+		webRTCStreamer, isExisted := s.WebRTCStreamDAL.GetWebRTCStreamerByInstanceID(ctx, reqPacketData.StreamInstanceID)
+		if !isExisted {
+			// create new webrtc streamer
+			webRTCStreamer, err = s.WebRTCStreamDAL.NewWebRTCStreamer(ctx, streamInstance)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"Warn Type":        "Recv Callback Error",
+					"Recv Packet Type": "start_streaming",
+					"Instance ID":      streamInstance.Instanceid,
+					"error":            err.Error(),
+				}).Warn("Failed to create WebRTCStreamer, abandoned")
+				return model.WSPacket{
+					PacketType: "failed_start_streaming",
+					Data:       fmt.Errorf("Provider failed to create WebRTCStreamer").Error(),
+				}
 			}
+
+			log.WithFields(log.Fields{
+				"Instance ID": streamInstance.Instanceid,
+			}).Info("Create WebRTC Streamer for a new instance")
+
+			// create WebRTC video streamer
+			err = webRTCStreamer.CreateVideoListener()
+			if err != nil {
+				log.WithFields(log.Fields{
+					"Warn Type":        "Recv Callback Error",
+					"Recv Packet Type": "start_streaming",
+					"Instance ID":      streamInstance.Instanceid,
+					"error":            err.Error(),
+				}).Warn("Failed to create WebRTC video listener, abandoned")
+				return model.WSPacket{
+					PacketType: "failed_start_streaming",
+					Data:       fmt.Errorf("Failed to create WebRTC video listener").Error(),
+				}
+			}
+
+			// create WebRTC audio streamer
+			err = webRTCStreamer.CreateAudioListener()
+			if err != nil {
+				log.WithFields(log.Fields{
+					"Warn Type":        "Recv Callback Error",
+					"Recv Packet Type": "start_streaming",
+					"Instance ID":      streamInstance.Instanceid,
+					"error":            err.Error(),
+				}).Warn("Failed to create WebRTC audio listener, abandoned")
+				return model.WSPacket{
+					PacketType: "failed_start_streaming",
+					Data:       fmt.Errorf("Failed to create WebRTC audio listener").Error(),
+				}
+			}
+
+			// start hijacking video and audio stream
+			webRTCStreamer.ListenVideoStream()
+			webRTCStreamer.ListenAudioStream()
+
+			log.WithFields(log.Fields{
+				"Instance ID": streamInstance.Instanceid,
+			}).Info("New WebRTC streamer is now hijacking video and audio stream")
 		}
 
-		// create WebRTC video streamer
-		err = webRTCStreamer.CreateVideoListener()
-		if err != nil {
-			log.WithFields(log.Fields{
-				"Warn Type":        "Recv Callback Error",
-				"Recv Packet Type": "start_streaming",
-				"Instance ID":      streamInstance.Instanceid,
-				"error":            err.Error(),
-			}).Warn("Failed to create WebRTC video listener, abandoned")
-			return model.WSPacket{
-				PacketType: "failed_start_streaming",
-				Data:       fmt.Errorf("Failed to create WebRTC video listener").Error(),
-			}
-		}
-
-		// create WebRTC audio streamer
-		err = webRTCStreamer.CreateAudioListener()
-		if err != nil {
-			log.WithFields(log.Fields{
-				"Warn Type":        "Recv Callback Error",
-				"Recv Packet Type": "start_streaming",
-				"Instance ID":      streamInstance.Instanceid,
-				"error":            err.Error(),
-			}).Warn("Failed to create WebRTC audio listener, abandoned")
-			return model.WSPacket{
-				PacketType: "failed_start_streaming",
-				Data:       fmt.Errorf("Failed to create WebRTC audio listener").Error(),
-			}
-		}
-
-		// start hijacking video and audio stream
-		webRTCStreamer.ListenVideoStream()
-		webRTCStreamer.ListenAudioStream()
+		// create WebRTC Pipe for this consumer
+		// webRTCPipe, err := s.WebRTCStreamDAL.NewWebRTCPipe(ctx, streamInstance, reqPacketData.ConsumerID)
+		// if err != nil {
+		// 	log.WithFields(log.Fields{
+		// 		"Warn Type":        "Recv Callback Error",
+		// 		"Recv Packet Type": "start_streaming",
+		// 		"Instance ID":      streamInstance.Instanceid,
+		// 		"error":            err.Error(),
+		// 	}).Warn("Failed to create WebRTC Pipe, abandoned")
+		// 	return model.WSPacket{
+		// 		PacketType: "failed_start_streaming",
+		// 		Data:       fmt.Errorf("Failed to create WebRTC Pipe").Error(),
+		// 	}
+		// }
 
 		// TODO: send offer SDP
 

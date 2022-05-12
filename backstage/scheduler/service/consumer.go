@@ -402,7 +402,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			}).Warn("Failed to marshal response to consumer, abandoned")
 			return model.WSPacket{
 				PacketType: "failed_start_streaming",
-				Data:       fmt.Errorf("Server internal error: failed to send start_streaming to provider").Error(),
+				Data:       fmt.Errorf("Server internal error: scheduler failed to send start_streaming to provider").Error(),
 			}
 		}
 

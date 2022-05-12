@@ -57,10 +57,20 @@ func (d *WebRTCStreamDAL) NewWebRTCStreamer(ctx context.Context, streamInstance 
 		AudioStream:    audioStreamChan,
 	}
 
-	// insert to global map
+	// insert to global map [instanceID -> webrtcStreamer]
 	d.StreamerMap[streamInstance.Instanceid] = webrtcStreamer
 
 	return webrtcStreamer, nil
+}
+
+/*
+	@function: GetWebRTCStreamerByInstanceID
+	@description:
+		obtain webRTC streamer by instance ID
+*/
+func (d *WebRTCStreamDAL) GetWebRTCStreamerByInstanceID(ctx context.Context, instanceID string) (*model.WebRTCStreamer, bool) {
+	streamer, ok := d.StreamerMap[instanceID]
+	return streamer, ok
 }
 
 /*
@@ -81,6 +91,9 @@ func (d *WebRTCStreamDAL) NewWebRTCPipe(ctx context.Context, streamInstance *mod
 		AudioChan:      audioChan,
 		InputChan:      inputChan,
 	}
+
+	// insert to global map [consumerID -> webrtcPipe]
+	d.PipeMap[consumerID] = webRTCPipe
 
 	return webRTCPipe, nil
 }

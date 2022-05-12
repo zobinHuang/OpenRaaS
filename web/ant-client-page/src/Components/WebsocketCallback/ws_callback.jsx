@@ -525,7 +525,7 @@ const WebsocketCallback = (props) => {
 
         // send start streamming notification to scheduler
         let reqPacket = JSON.stringify({
-            packet_type: "start_streamming",
+            packet_type: "start_streaming",
             data: JSON.stringify({ 
                 instance_id: payload.StateTerminals.terminalsMap[payload.TerminalKey].instanceSchedulerID,
             }),
