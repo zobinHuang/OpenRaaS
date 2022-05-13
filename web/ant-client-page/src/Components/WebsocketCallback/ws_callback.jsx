@@ -13,18 +13,36 @@ const WebsocketCallback = (props) => {
     const StateTerminals = useSelector(state => state.terminal)
 
     /*
-        @state: "terminal <-> websocket" mapping relationship
+        @state: terminalWsMap
         @description:
-            mapping relationship of "terminal <-> websocket"
+            mapping relationship of "terminal frontent id <-> websocket"
     */
     const [terminalWsMap, setTerminalWsMap] = useState(new Map())
 
     /*
-        @state: "terminal <-> RtcPeer" mapping relationship
+        @state: terminalRtcPeerMap
         @description:
-            mapping relationship of "terminal <-> RtcPeer"
+            mapping relationship of "terminal frontent id <-> RtcPeer"
     */
     const [terminalRtcPeerMap, setTerminalRtcPeerMap] = useState(new Map())
+
+    /*
+        @state: terminalDynamicState
+        @description:
+            mapping relationship of "terminal frontent id <-> terminalDynamicState"
+    */
+    const [terminalDynamicState, setTerminalDynamicState] = useState(new Map())
+
+    /*
+        @callback: callback_registerTerminalDynamicState
+        @description: 
+            callback function for registering new "terminal <-> websocket" mapping relationship
+    */
+    const callback_registerTerminalDynamicState = (msg, payload) => {
+        setTerminalDynamicState(terminalDynamicState.set(payload.TerminalKey, {
+            instanceSchedulerID: "",
+        }));
+    }
 
     /*
         @callback: callback_registerTerminalWebsocket
@@ -355,7 +373,7 @@ const WebsocketCallback = (props) => {
         let reqWSPacket = JSON.stringify({
             packet_type: "select_stream_application",
             data: JSON.stringify({ 
-                application_id: payload.StateTerminals.terminalsMap[payload.TerminalKey].applicationMeta.currentSelectedApplication.id,
+                application_id: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].applicationMeta.currentSelectedApplication.id}`,
                 screen_height: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].screenHeight}`,
                 screen_width: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].screenWidth}`,
                 application_fps: `${payload.StateTerminals.terminalsMap[payload.TerminalKey].currentFPS}`,
@@ -489,12 +507,12 @@ const WebsocketCallback = (props) => {
             "log_content": `provider is now successfully running instance with instance id ${payload.WSPacket.data.stream_instance_id}`,
         }))
 
-        // update instance id in scheduler
-        dispatch(TerminalActions.updateTerminal({
-            "type": "UPDATE_INSTANCE_SCHEDULER_ID",
-            "terminal_key": `${payload.TerminalKey}`,
-            "instance_scheduler_id": `${payload.WSPacket.data.stream_instance_id}`
-        }))
+        // update instance id from scheduler
+        let instanceDynamicState = terminalDynamicState.get(`${payload.TerminalKey}`)
+        instanceDynamicState.instanceSchedulerID = payload.WSPacket.data.stream_instance_id
+
+        // save updated terminal dynamic state
+        setTerminalDynamicState(terminalDynamicState.set(payload.TerminalKey, instanceDynamicState))
 
         // change current step
         dispatch(TerminalActions.updateTerminal({
@@ -682,7 +700,7 @@ const WebsocketCallback = (props) => {
         let reqPacket = JSON.stringify({
             packet_type: "start_streaming",
             data: JSON.stringify({ 
-                instance_id: payload.StateTerminals.terminalsMap[payload.TerminalKey].instanceSchedulerID,
+                instance_id: terminalDynamicState.get(payload.TerminalKey).instanceSchedulerID
             }),
         })
 
@@ -734,7 +752,7 @@ const WebsocketCallback = (props) => {
             packet_type: "answer_sdp",
             data: JSON.stringify({ 
                 answer_sdp: btoa(JSON.stringify(answer)),
-                instance_id: StateTerminals.terminalsMap[payload.TerminalKey].instanceSchedulerID,
+                instance_id: terminalDynamicState.get(payload.TerminalKey).instanceSchedulerID,
             }),
         })
 
@@ -853,6 +871,7 @@ const WebsocketCallback = (props) => {
         PubSub.subscribe('config_websocket_state', callback_configWebsocketState)
         PubSub.subscribe('register_terminal_websocket', callback_registerTerminalWebsocket)
         PubSub.subscribe('delete_terminal_websocket', callback_deleteTerminalWebsocket)
+        PubSub.subscribe('register_terminal_dynamic_state', callback_registerTerminalDynamicState)
 
         // user interaction callback (webRTC)
         PubSub.subscribe('init_webrtc_connection', callback_InitializeWebRTCPeer)

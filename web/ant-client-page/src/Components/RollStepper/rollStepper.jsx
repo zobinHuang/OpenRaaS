@@ -82,7 +82,7 @@ const RollStepper = (props) => {
 
             {/* Description Message */}
             <CurrentStepContainer>
-                {RollStepperConfig.currentStepIndex === RollStepperConfig.steps.length-1 ? <CheckCircleIcon style={{"margin-right": "20px"}} /> : <CircularProgress style={{"marginRight": "20px"}} size="1.5rem" color="success" />}
+                {RollStepperConfig.currentStepIndex === RollStepperConfig.steps.length-1 ? <CheckCircleIcon style={{"marginRight": "20px"}} /> : <CircularProgress style={{"marginRight": "20px"}} size="1.5rem" color="success" />}
                 {RollStepperConfig.steps[RollStepperConfig.currentStepIndex].descriptionMessage}
             </CurrentStepContainer>
         </Box>

@@ -31,7 +31,7 @@ type WebRTCPipe struct {
 	PeerConnection *webrtc.PeerConnection
 	StreamInstance *StreamInstanceDaemonModel
 	ConsumerID     string
-	RTCPeerConn    *webrtc.PeerConnection
+	done           chan struct{}
 	VideoChan      chan *rtp.Packet
 	AudioChan      chan *rtp.Packet
 	InputChan      chan []byte
@@ -230,6 +230,38 @@ func (p *WebRTCPipe) Open(iceServers []string, vCodec string, onICECandidateCall
 }
 
 /*
+	@function: SetRemoteSDP
+	@description:
+		set remote sdp while recevied it from the consumer
+*/
+func (p *WebRTCPipe) SetRemoteSDP(remoteSDP string) error {
+	// decode answer sdp
+	var answer webrtc.SessionDescription
+	err := utils.DecodeBase64(remoteSDP, &answer)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Instance ID": p.StreamInstance.Instanceid,
+			"Consumer ID": p.ConsumerID,
+			"error":       err,
+		}).Warn("Failed to decode answer SDP from base64, abandoned")
+		return err
+	}
+
+	// set remote sdp
+	err = p.PeerConnection.SetRemoteDescription(answer)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Instance ID": p.StreamInstance.Instanceid,
+			"Consumer ID": p.ConsumerID,
+			"error":       err,
+		}).Warn("Failed to set remote description in peer connection, abandoned")
+		return err
+	}
+
+	return nil
+}
+
+/*
 	@function: StartStreaming
 	@description:
 		start WebRTC streaming
@@ -304,8 +336,8 @@ func (p *WebRTCPipe) Close() {
 
 	// close WebRTC connection
 	if p.PeerConnection != nil {
-		p.RTCPeerConn.Close()
-		p.RTCPeerConn = nil
+		p.PeerConnection.Close()
+		p.PeerConnection = nil
 		log.WithFields(log.Fields{
 			"Instance ID": p.StreamInstance.Instanceid,
 			"Consumer ID": p.ConsumerID,

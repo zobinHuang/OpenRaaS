@@ -299,10 +299,15 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			// start hijacking video and audio stream
 			webRTCStreamer.ListenVideoStream()
 			webRTCStreamer.ListenAudioStream()
-
 			log.WithFields(log.Fields{
 				"Instance ID": streamInstance.Instanceid,
 			}).Info("New WebRTC streamer is now hijacking video and audio stream")
+
+			// start discharging
+			webRTCStreamer.Discharge()
+			log.WithFields(log.Fields{
+				"Instance ID": streamInstance.Instanceid,
+			}).Info("New WebRTC streamer is now discharging to downstream WebRTC pipes")
 		}
 
 		// create WebRTC Pipe for this consumer
@@ -346,12 +351,23 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 				return
 			}
 
+			log.WithFields(log.Fields{
+				"Instance ID": reqPacketData.StreamInstanceID,
+			}).Info("Obtain ICE candidate, send to schduler to notify corresponding consumer")
+
 			// send to scheduler
 			s.SchedulerWSConnection.Send(model.WSPacket{
 				PacketType: "provider_ice_candidate",
 				Data:       string(respToSchedulerString),
 			}, nil)
 		})
+
+		// add newly created pipe to WebRTC streamer
+		webRTCStreamer.AddWebRTCPipe(webRTCPipe)
+		log.WithFields(log.Fields{
+			"Instance ID": streamInstance.Instanceid,
+			"Consumer ID": reqPacketData.ConsumerID,
+		}).Info("Add WebRTC pipe to upstream streamer")
 
 		// construct offer SDP to scheudler
 		// (would be forwarded to consumer)
@@ -391,7 +407,46 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			answer SDP from consumer
 	*/
 	s.SchedulerWSConnection.Receive("answer_sdp", func(req model.WSPacket) (resp model.WSPacket) {
-		// TODO
+		// define request format
+		var reqPacketData struct {
+			ConsumerID string `json:"consumer_id"`
+			AnswerSDP  string `json:"answer_sdp"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "answer_sdp",
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		// obtain webRTCPipe
+		webRTCPipe, err := s.WebRTCStreamDAL.GetWebRTCPipeByConsumerID(ctx, reqPacketData.ConsumerID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":         "Recv Callback Error",
+				"Recv Packet Type":  "answer_sdp",
+				"Given Consumer ID": reqPacketData.ConsumerID,
+			}).Warn("Failed to obtain WebRTC pipe by given consumer id, abandoned")
+			return model.EmptyPacket
+		}
+
+		// setRemoteSDP
+		err = webRTCPipe.SetRemoteSDP(reqPacketData.AnswerSDP)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "answer_sdp",
+				"Consumer ID":      reqPacketData.ConsumerID,
+				"Instance ID":      webRTCPipe.StreamInstance.Instanceid,
+			}).Warn("Failed to config remote SDP, abandoned")
+			return model.EmptyPacket
+		}
+
 		return model.EmptyPacket
 	})
 }

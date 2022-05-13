@@ -37,6 +37,7 @@ type WebRTCStreamer struct {
 	AudioStreamSSRC uint32
 	VideoStream     chan *rtp.Packet
 	AudioStream     chan *rtp.Packet
+	Hub             []*WebRTCPipe
 }
 
 /*
@@ -213,6 +214,70 @@ func (s *WebRTCStreamer) ListenAudioStream() {
 			}
 
 			s.AudioStream <- packet
+		}
+	}()
+}
+
+/*
+	@func: AddWebRTCPipe
+	@description:
+		add a new WebRTC pipe to the hub
+*/
+func (s *WebRTCStreamer) AddWebRTCPipe(p *WebRTCPipe) {
+	s.Hub = append(s.Hub, p)
+}
+
+/*
+	@func: Discharge
+	@description:
+		discharge local streams to loaded WebRTCPipe in the hub
+*/
+func (s *WebRTCStreamer) Discharge() {
+	// discharge video stream
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.WithFields(log.Fields{
+					"Instance ID": s.StreamInstance.Instanceid,
+					"error":       r,
+				}).Warn("Recover from discharging video stream, error occurs since sent to closed video stream channel")
+			}
+		}()
+
+		for packet := range s.VideoStream {
+			for pipeIndex, pipe := range s.Hub {
+				select {
+				case <-pipe.done:
+					s.Hub = append(s.Hub[:pipeIndex], s.Hub[pipeIndex+1:]...)
+					close(pipe.VideoChan)
+					close(pipe.AudioChan)
+				case pipe.VideoChan <- packet:
+				}
+			}
+		}
+	}()
+
+	// discharge audio stream
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.WithFields(log.Fields{
+					"Instance ID": s.StreamInstance.Instanceid,
+					"error":       r,
+				}).Warn("Recover from discharging audio stream, error occurs since sent to closed audio stream channel")
+			}
+		}()
+
+		for packet := range s.AudioStream {
+			for pipeIndex, pipe := range s.Hub {
+				select {
+				case <-pipe.done:
+					s.Hub = append(s.Hub[:pipeIndex], s.Hub[pipeIndex+1:]...)
+					close(pipe.VideoChan)
+					close(pipe.AudioChan)
+				case pipe.AudioChan <- packet:
+				}
+			}
 		}
 	}()
 }

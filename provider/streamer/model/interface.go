@@ -78,4 +78,5 @@ type WebRTCStreamDAL interface {
 	NewWebRTCStreamer(ctx context.Context, streamInstance *StreamInstanceDaemonModel) (*WebRTCStreamer, error)
 	NewWebRTCPipe(ctx context.Context, streamInstance *StreamInstanceDaemonModel, consumerID string) (*WebRTCPipe, error)
 	GetWebRTCStreamerByInstanceID(ctx context.Context, instanceID string) (*WebRTCStreamer, bool)
+	GetWebRTCPipeByConsumerID(ctx context.Context, consumerID string) (*WebRTCPipe, error)
 }

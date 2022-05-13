@@ -127,6 +127,11 @@ const TerminalControlPanel = (props) => {
             TerminalKey: currentSelectedTerminalKey
         });
 
+        // register terminal dynamic state
+        PubSub.publish('register_terminal_dynamic_state', {
+            TerminalKey: currentSelectedTerminalKey
+        });
+
         // config the behaviors under different states of newly created websocket
         PubSub.publish('config_websocket_state', {
             Websocket: ws,

@@ -67,9 +67,6 @@ const defaultTerminalState = {
         // },
     ],
 
-    // instance id in scheduler
-    instanceSchedulerID: "",
-
     // amount of newly unread log
     unreadLogCount: 0,
 
@@ -271,18 +268,13 @@ const terminalsSlice = createSlice({
                     break;
                 
                 /* Case: update terminal resolution */
-                case "UPDATE_INSTANCE_SCHEDULER_ID":
-                    state.StateTerminals.terminalsMap[action.payload.terminal_key].instanceSchedulerID = action.payload.instance_scheduler_id
-                    break;
-                
-                /* Case: update terminal resolution */
                 case "UPDATE_TERMINAL_RESOLUTION":
                     state.StateTerminals.terminalsMap[action.payload.terminal_key].currentResolution = action.payload.resolution
                     state.StateTerminals.terminalsMap[action.payload.terminal_key].screenHeight = action.payload.height
                     state.StateTerminals.terminalsMap[action.payload.terminal_key].screenWidth = action.payload.width
                     break;
                 
-                /* Case: update terminal resolution */
+                /* Case: update terminal fps */
                 case "UPDATE_TERMINAL_FPS":
                     state.StateTerminals.terminalsMap[action.payload.terminal_key].currentFPS = action.payload.fps
                     break;

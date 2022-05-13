@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/gofrs/uuid"
@@ -486,43 +485,11 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			Data:       string(respToProviderString),
 		}, nil)
 
+		log.WithFields(log.Fields{
+			"Provider ID": provider.ClientID,
+			"Consumer ID": consumer.ClientID,
+		}).Info("Forward answer SDP to provider")
+
 		return model.EmptyPacket
 	})
-}
-
-/*
-	@func: SendInitNotification
-	@description:
-		notify consumer to start initialization process
-*/
-func (s *ConsumerService) SendInitNotification(ctx context.Context, consumer *model.Consumer) error {
-	// obtain stun/turn server
-	stunTurn := os.Getenv("STUNTURN_SERVER")
-
-	// define request format
-	reqData := struct {
-		ClientID string `json:"client_id"`
-		STUNTURN string `json:"stun_turn"`
-	}{
-		ClientID: consumer.ClientID,
-		STUNTURN: stunTurn,
-	}
-
-	// marshal request data of websocket packet into json string
-	reqDataString, err := json.Marshal(reqData)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"ClientID": consumer.ClientID,
-			"Function": "SendInitNotification",
-		}).Warn("Failed to marshal request data into json string, abandon")
-		return err
-	}
-
-	// send initialization notification
-	consumer.Send(model.WSPacket{
-		PacketType: "consumer_init_start",
-		Data:       string(reqDataString),
-	}, nil)
-
-	return nil
 }

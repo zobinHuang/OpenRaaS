@@ -2,6 +2,7 @@ package dal
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pion/rtp"
 	"github.com/zobinHuang/BrosCloud/provider/streamer/model"
@@ -94,6 +95,20 @@ func (d *WebRTCStreamDAL) NewWebRTCPipe(ctx context.Context, streamInstance *mod
 
 	// insert to global map [consumerID -> webrtcPipe]
 	d.PipeMap[consumerID] = webRTCPipe
+
+	return webRTCPipe, nil
+}
+
+/*
+	@function: GetWebRTCPipeByConsumerID
+	@description:
+		obtain WebRTC pipe by given consumer id
+*/
+func (d *WebRTCStreamDAL) GetWebRTCPipeByConsumerID(ctx context.Context, consumerID string) (*model.WebRTCPipe, error) {
+	webRTCPipe, ok := d.PipeMap[consumerID]
+	if !ok {
+		return nil, fmt.Errorf("Can't find WebRTC pipe with consumer id %s\n", consumerID)
+	}
 
 	return webRTCPipe, nil
 }
