@@ -92,6 +92,12 @@ func (p *WebRTCPipe) Open(iceServers []string, vCodec string, onICECandidateCall
 		codec = webrtc.MimeTypeVP8
 	}
 
+	log.WithFields(log.Fields{
+		"Instance ID": p.StreamInstance.Instanceid,
+		"Consumer ID": p.ConsumerID,
+		"Video Codec": codec,
+	}).Info("Choose video codec")
+
 	// create video track and add it to peer connection
 	videoTrack, err := webrtc.NewTrackLocalStaticRTP(webrtc.RTPCodecCapability{MimeType: codec}, "video", "pion")
 	if err != nil {
@@ -257,6 +263,47 @@ func (p *WebRTCPipe) SetRemoteSDP(remoteSDP string) error {
 		}).Warn("Failed to set remote description in peer connection, abandoned")
 		return err
 	}
+
+	log.WithFields(log.Fields{
+		"Instance ID": p.StreamInstance.Instanceid,
+		"Consumer ID": p.ConsumerID,
+	}).Info("Set remote description of consumer")
+
+	return nil
+}
+
+/*
+	@function: AddCandidate
+	@description:
+		add ice candidate of remote consumer
+*/
+func (p *WebRTCPipe) AddCandidate(candidate string) error {
+	// decode ICE candidate
+	var iceCandidate webrtc.ICECandidateInit
+	err := utils.DecodeBase64(candidate, &iceCandidate)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Instance ID": p.StreamInstance.Instanceid,
+			"Consumer ID": p.ConsumerID,
+			"error":       err,
+		}).Warn("Failed to decode ICE candidate from base64, abandoned")
+	}
+
+	err = p.PeerConnection.AddICECandidate(iceCandidate)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Instance ID": p.StreamInstance.Instanceid,
+			"Consumer ID": p.ConsumerID,
+			"error":       err,
+		}).Warn("Failed to add ice candidate in peer connection, abandoned")
+		return err
+	}
+
+	log.WithFields(log.Fields{
+		"Instance ID":   p.StreamInstance.Instanceid,
+		"Consumer ID":   p.ConsumerID,
+		"ICE Candidate": iceCandidate.Candidate,
+	}).Info("Add ice candidate of consumer")
 
 	return nil
 }

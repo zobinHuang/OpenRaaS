@@ -13,7 +13,7 @@ import (
 	@description: DAL layer
 */
 type WebRTCStreamDAL struct {
-	StreamerMap map[string]*model.WebRTCStreamer
+	StreamerMap map[string]*model.Pump
 	PipeMap     map[string]*model.WebRTCPipe
 }
 
@@ -30,7 +30,7 @@ type WebRTCStreamDALConfig struct{}
 */
 func NewWebRTCStreamDAL(c *WebRTCStreamDALConfig) model.WebRTCStreamDAL {
 	// allocate space for global maps
-	streamMap := make(map[string]*model.WebRTCStreamer)
+	streamMap := make(map[string]*model.Pump)
 	pipeMap := make(map[string]*model.WebRTCPipe)
 
 	wrtcDal := &WebRTCStreamDAL{
@@ -42,17 +42,17 @@ func NewWebRTCStreamDAL(c *WebRTCStreamDALConfig) model.WebRTCStreamDAL {
 }
 
 /*
-	@function: NewWebRTCStreamer
+	@function: NewPump
 	@description:
 		create a new webrtc streamer for a new instance
 */
-func (d *WebRTCStreamDAL) NewWebRTCStreamer(ctx context.Context, streamInstance *model.StreamInstanceDaemonModel) (*model.WebRTCStreamer, error) {
+func (d *WebRTCStreamDAL) NewPump(ctx context.Context, streamInstance *model.StreamInstanceDaemonModel) (*model.Pump, error) {
 	// create RTP channel
 	videoStreamChan := make(chan *rtp.Packet, 1)
 	audioStreamChan := make(chan *rtp.Packet, 1)
 
 	// create new webrtc streamer
-	webrtcStreamer := &model.WebRTCStreamer{
+	webrtcStreamer := &model.Pump{
 		StreamInstance: streamInstance,
 		VideoStream:    videoStreamChan,
 		AudioStream:    audioStreamChan,
@@ -65,11 +65,11 @@ func (d *WebRTCStreamDAL) NewWebRTCStreamer(ctx context.Context, streamInstance 
 }
 
 /*
-	@function: GetWebRTCStreamerByInstanceID
+	@function: GetPumpByInstanceID
 	@description:
 		obtain webRTC streamer by instance ID
 */
-func (d *WebRTCStreamDAL) GetWebRTCStreamerByInstanceID(ctx context.Context, instanceID string) (*model.WebRTCStreamer, bool) {
+func (d *WebRTCStreamDAL) GetPumpByInstanceID(ctx context.Context, instanceID string) (*model.Pump, bool) {
 	streamer, ok := d.StreamerMap[instanceID]
 	return streamer, ok
 }

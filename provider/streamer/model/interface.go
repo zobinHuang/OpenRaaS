@@ -75,8 +75,8 @@ type DaemonDAL interface {
 	description: interface of data access layer for webrtc streamer
 */
 type WebRTCStreamDAL interface {
-	NewWebRTCStreamer(ctx context.Context, streamInstance *StreamInstanceDaemonModel) (*WebRTCStreamer, error)
+	NewPump(ctx context.Context, streamInstance *StreamInstanceDaemonModel) (*Pump, error)
 	NewWebRTCPipe(ctx context.Context, streamInstance *StreamInstanceDaemonModel, consumerID string) (*WebRTCPipe, error)
-	GetWebRTCStreamerByInstanceID(ctx context.Context, instanceID string) (*WebRTCStreamer, bool)
+	GetPumpByInstanceID(ctx context.Context, instanceID string) (*Pump, bool)
 	GetWebRTCPipeByConsumerID(ctx context.Context, consumerID string) (*WebRTCPipe, error)
 }

@@ -28,7 +28,7 @@ const (
 	@description:
 		model for hijacking instance streams
 */
-type WebRTCStreamer struct {
+type Pump struct {
 	StreamInstance  *StreamInstanceDaemonModel
 	VideoListener   *net.UDPConn
 	AudioListener   *net.UDPConn
@@ -45,7 +45,7 @@ type WebRTCStreamer struct {
 	@description:
 		create UDP listened on video stream
 */
-func (s *WebRTCStreamer) CreateVideoListener() error {
+func (s *Pump) CreateVideoListener() error {
 	// obtain listen metadata
 	videoRTCPort, _ := strconv.Atoi(s.StreamInstance.VideoRTCPort)
 
@@ -54,9 +54,9 @@ func (s *WebRTCStreamer) CreateVideoListener() error {
 	}).Info("Try to create video listener")
 
 	// obtain listen
-	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: videoRTCPort})
+	listener, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: videoRTCPort})
 	if err != nil {
-		return fmt.Errorf("Failed to obtain listener of the video stream")
+		return fmt.Errorf("Failed to obtain listener of the video stream, %s", err.Error())
 	}
 
 	// listen for a single RTP packet to determine the SSRC of video stream
@@ -84,7 +84,7 @@ func (s *WebRTCStreamer) CreateVideoListener() error {
 	@description:
 		create UDP listened on audio stream
 */
-func (s *WebRTCStreamer) CreateAudioListener() error {
+func (s *Pump) CreateAudioListener() error {
 	// obtain listen metadata
 	audioRTCPort, _ := strconv.Atoi(s.StreamInstance.AudioRTCPort)
 
@@ -93,9 +93,9 @@ func (s *WebRTCStreamer) CreateAudioListener() error {
 	}).Info("Try to create audio listener")
 
 	// obtain listen
-	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: audioRTCPort})
+	listener, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: audioRTCPort})
 	if err != nil {
-		return fmt.Errorf("Failed to obtain listener of the audio stream")
+		return fmt.Errorf("Failed to obtain listener of the audio stream, %s", err.Error())
 	}
 
 	// listen for a single RTP packet to determine the SSRC of audio stream
@@ -123,14 +123,14 @@ func (s *WebRTCStreamer) CreateAudioListener() error {
 	@description:
 		start a goroutine to listen on video stream
 */
-func (s *WebRTCStreamer) ListenVideoStream() {
+func (s *Pump) ListenVideoStream() {
 	go func() {
 		// defer the closure of video stream listener
 		defer func() {
 			s.VideoListener.Close()
 			log.WithFields(log.Fields{
 				"Stream Instance ID": s.StreamInstance.Instanceid,
-			}).Warn("WebRTCStreamer stopped listen to the video stream from the instance")
+			}).Warn("Pump stopped listen to the video stream from the instance")
 		}()
 
 		// initialize a ring buffer
@@ -173,14 +173,14 @@ func (s *WebRTCStreamer) ListenVideoStream() {
 	@description:
 		start a goroutine to listen on audio stream
 */
-func (s *WebRTCStreamer) ListenAudioStream() {
+func (s *Pump) ListenAudioStream() {
 	go func() {
 		// defer the closure of audio stream listener
 		defer func() {
 			s.AudioListener.Close()
 			log.WithFields(log.Fields{
 				"Stream Instance ID": s.StreamInstance.Instanceid,
-			}).Warn("WebRTCStreamer stopped listen to the audio stream from the instance")
+			}).Warn("Pump stopped listen to the audio stream from the instance")
 		}()
 
 		// initialize a ring buffer
@@ -223,7 +223,7 @@ func (s *WebRTCStreamer) ListenAudioStream() {
 	@description:
 		add a new WebRTC pipe to the hub
 */
-func (s *WebRTCStreamer) AddWebRTCPipe(p *WebRTCPipe) {
+func (s *Pump) AddWebRTCPipe(p *WebRTCPipe) {
 	s.Hub = append(s.Hub, p)
 }
 
@@ -232,7 +232,7 @@ func (s *WebRTCStreamer) AddWebRTCPipe(p *WebRTCPipe) {
 	@description:
 		discharge local streams to loaded WebRTCPipe in the hub
 */
-func (s *WebRTCStreamer) Discharge() {
+func (s *Pump) Discharge() {
 	// discharge video stream
 	go func() {
 		defer func() {

@@ -89,7 +89,7 @@ export const FPS_30 = 30
 export const FPS_60 = 60
 export const FPS_120 = 120
 
-export const VCODEC_H264 = "VCODEC_H264"
+export const VCODEC_H264 = "h264"
 export const VCODEC_VPX = "vpx"
 
 const TerminalMetadata = (props) => {
@@ -124,8 +124,8 @@ const TerminalMetadata = (props) => {
                 "type": "UPDATE_TERMINAL_RESOLUTION",
                 "terminal_key": `${StateTerminals.currentSelected}`,
                 "resolution": RESOLUTION_640_480,
-                "height": 640,
-                "width": 480
+                "height": 480,
+                "width": 640
             }))
         }
     }
@@ -141,8 +141,8 @@ const TerminalMetadata = (props) => {
                 "type": "UPDATE_TERMINAL_RESOLUTION",
                 "terminal_key": `${StateTerminals.currentSelected}`,
                 "resolution": RESOLUTION_1024_600,
-                "height": 1024,
-                "width": 600
+                "height": 600,
+                "width": 1024
             }))
         }
     }
@@ -158,8 +158,8 @@ const TerminalMetadata = (props) => {
                 "type": "UPDATE_TERMINAL_RESOLUTION",
                 "terminal_key": `${StateTerminals.currentSelected}`,
                 "resolution": RESOLUTION_1280_1024,
-                "height": 1280,
-                "width": 1024
+                "height": 1024,
+                "width": 1280
             }))
         }
     }
@@ -175,8 +175,8 @@ const TerminalMetadata = (props) => {
                 "type": "UPDATE_TERMINAL_RESOLUTION",
                 "terminal_key": `${StateTerminals.currentSelected}`,
                 "resolution": RESOLUTION_1280_720,
-                "height": 1280,
-                "width": 720
+                "height": 720,
+                "width": 1280
             }))
         }
     }

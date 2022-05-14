@@ -4,34 +4,15 @@ import GetTimestamp from '../../Utils/get_timestamp';
 import { actions as TerminalActions } from '../../Data/Reducers/terminalReducer';
 import { actions as SnackBarActions } from '../../Data/Reducers/snackBarReducer'
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from "react-router-dom";
 import { TERMINAL_STEP_SCHEDULE_COMPUTE_NODE, TERMINAL_STEP_CONFIG_INSTANCE, TERMINAL_STEP_SCHEDULE_STORAGE_NODE, TERMINAL_STEP_PREPARE_INSTANCE, TERMINAL_STEP_RUN_INSTANCE } from "../../Containers/UserPage/terminals";
 
 const WebsocketCallback = (props) => {
     const dispatch = useDispatch()
+    
+    const navigate = useNavigate();
 
-    // get global state
-    const StateTerminals = useSelector(state => state.terminal)
-
-    /*
-        @state: terminalWsMap
-        @description:
-            mapping relationship of "terminal frontent id <-> websocket"
-    */
-    const [terminalWsMap, setTerminalWsMap] = useState(new Map())
-
-    /*
-        @state: terminalRtcPeerMap
-        @description:
-            mapping relationship of "terminal frontent id <-> RtcPeer"
-    */
-    const [terminalRtcPeerMap, setTerminalRtcPeerMap] = useState(new Map())
-
-    /*
-        @state: terminalDynamicState
-        @description:
-            mapping relationship of "terminal frontent id <-> terminalDynamicState"
-    */
-    const [terminalDynamicState, setTerminalDynamicState] = useState(new Map())
+    const { terminalWsMap, setTerminalWsMap, terminalRtcPeerMap, setTerminalRtcPeerMap, terminalDynamicState, setTerminalDynamicState } = props;
 
     /*
         @callback: callback_registerTerminalDynamicState
@@ -41,6 +22,8 @@ const WebsocketCallback = (props) => {
     const callback_registerTerminalDynamicState = (msg, payload) => {
         setTerminalDynamicState(terminalDynamicState.set(payload.TerminalKey, {
             instanceSchedulerID: "",
+            iceServers: [],
+            clientID: "",
         }));
     }
 
@@ -254,6 +237,19 @@ const WebsocketCallback = (props) => {
                     break;
 
                 /*
+                    @ case: provider_ice_candidate
+                    @ description: WebRTC ICE candidate from provider
+                */
+                case "provider_ice_candidate":
+                    PubSub.publish('provider_ice_candidate', { 
+                        Socket: ws,
+                        TerminalKey: `${terminalKey}`,
+                        WSPacket: wsPacket,
+                        StateTerminals: stateTerminals,
+                    });
+                    break;
+                    
+                /*
                     @ case: unknown websocket packet type
                     @ description: prompt unknown websocket packet type
                 */
@@ -338,6 +334,8 @@ const WebsocketCallback = (props) => {
         @description: callback function for receiving websocket packet of type "notify_ice_server"
     */
     const callback_recvNotifyIceServer = (msg, payload) => {
+        let instanceDynamicState = terminalDynamicState.get(`${payload.TerminalKey}`)
+
         // append terminal log
         dispatch(TerminalActions.updateTerminal({
             "type": "APPEND_LOG_CONTENT",
@@ -346,7 +344,6 @@ const WebsocketCallback = (props) => {
             "log_time": GetTimestamp(),
             "log_content": `obtain ice servers: ${payload.WSPacket.data.iceservers}`,
         }))
-
         dispatch(TerminalActions.updateTerminal({
             "type": "APPEND_LOG_CONTENT",
             "terminal_key": `${payload.TerminalKey}`,
@@ -356,18 +353,13 @@ const WebsocketCallback = (props) => {
         }))
 
         // store iceserver
-        dispatch(TerminalActions.updateTerminal({
-            "type": "UPDATE_ICESERVERS",
-            "terminal_key": `${payload.TerminalKey}`,
-            "ice_servers": `${payload.WSPacket.data.iceservers}`
-        }))
+        instanceDynamicState.iceServers = payload.WSPacket.data.iceservers
 
         // store client id from scheduler
-        dispatch(TerminalActions.updateTerminal({
-            "type": "UPDATE_CLIENT_ID",
-            "terminal_key": `${payload.TerminalKey}`,
-            "client_id": `${payload.WSPacket.data.client_id}`
-        }))
+        instanceDynamicState.clientID = payload.WSPacket.data.client_id
+
+        // save updated terminal dynamic state
+        setTerminalDynamicState(terminalDynamicState.set(payload.TerminalKey, instanceDynamicState)) 
 
         // send metadata of selected application to scheduler
         let reqWSPacket = JSON.stringify({
@@ -580,16 +572,17 @@ const WebsocketCallback = (props) => {
     const callback_InitializeWebRTCPeer = (msg, payload) => {
         // obtain RtcPeer object from global map
         let RtcPeer = terminalRtcPeerMap.get(payload.TerminalKey)
+        let instanceDynamicState = terminalDynamicState.get(`${payload.TerminalKey}`)
 
         // create new WebRTC peer connection
         let connection = new RTCPeerConnection({
-            iceServers: JSON.parse(payload.StateTerminals.terminalsMap[payload.TerminalKey].iceServers)
+            iceServers: JSON.parse(instanceDynamicState.iceServers)
         })
         RtcPeer.PeerConnection = connection
 
         // create new media stream
-        let mediaStream = new MediaStream()
-        RtcPeer.mediaStream = mediaStream
+        // let mediaStream = new MediaStream()
+        // RtcPeer.mediaStream = mediaStream
 
         /*
             @callback: ondatachannel
@@ -677,7 +670,7 @@ const WebsocketCallback = (props) => {
         connection.ontrack = (e) => {
             PubSub.publish('webrtc_ontrack', { 
                 TerminalKey: `${payload.TerminalKey}`,
-                Track: e.track,
+                Streams: e.streams,
             });
         }
 
@@ -755,9 +748,84 @@ const WebsocketCallback = (props) => {
                 instance_id: terminalDynamicState.get(payload.TerminalKey).instanceSchedulerID,
             }),
         })
-
+        
         // send to scheudler
         ws.send(reqPacket)
+        
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "INFO",
+            "log_time": GetTimestamp(),
+            "log_content": `send answer SDP back to provider`,
+        }))
+    }
+
+    /*
+        @callback: callback_ProviderICECandidate
+        @description: 
+            invoked while receiving provider ice candidate
+    */
+    const callback_ProviderICECandidate = async (msg, payload) => {
+        // obtain RTC Peer object
+        let RtcPeer = terminalRtcPeerMap.get(payload.TerminalKey)
+
+        // decode
+        let candidate_decode = atob(payload.WSPacket.data.provider_ice_candidate);
+
+        if(candidate_decode !== null && candidate_decode !== ""){
+            // add ice candidate
+            let candidate = new RTCIceCandidate(JSON.parse(candidate_decode));
+            RtcPeer.PeerConnection.addIceCandidate(candidate);
+
+            // save updated RtcPeer
+            setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
+
+            // append log
+            dispatch(TerminalActions.updateTerminal({
+                "type": "APPEND_LOG_CONTENT",
+                "terminal_key": `${payload.TerminalKey}`,
+                "log_priority": "INFO",
+                "log_time": GetTimestamp(),
+                "log_content": `add ice candidate: ${JSON.parse(atob(payload.WSPacket.data.provider_ice_candidate)).candidate}`,
+            }))
+        }
+    }
+
+    /*
+        @callback: callback_FlushICECandidate
+        @description: 
+            invoked while receiving empty provider ice candidate
+    */
+    const callback_FlushICECandidate = async (msg, payload) => {
+        // obtain RTC Peer object
+        let RtcPeer = terminalRtcPeerMap.get(payload.TerminalKey)
+        if (RtcPeer.isFlushing || !RtcPeer.isAnswered)
+            return
+        
+        RtcPeer.isFlushing = true
+        setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
+
+        RtcPeer.candidates.forEach(data => {
+            let d = atob(data);
+            let candidate = new RTCIceCandidate(JSON.parse(d));
+            RtcPeer.PeerConnection.addIceCandidate(candidate);
+        });
+
+        RtcPeer.isFlushing = false
+
+        // save updated RtcPeer
+        setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
+
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "INFO",
+            "log_time": GetTimestamp(),
+            "log_content": `flush existed candidates`,
+        }))
     }
 
     /*
@@ -772,12 +840,42 @@ const WebsocketCallback = (props) => {
         switch(RtcPeer.PeerConnection.iceConnectionState){
             case "connected":
                 RtcPeer.connected = true
+                dispatch(TerminalActions.updateTerminal({
+                    "type": "APPEND_LOG_CONTENT",
+                    "terminal_key": `${payload.TerminalKey}`,
+                    "log_priority": "INFO",
+                    "log_time": GetTimestamp(),
+                    "log_content": 'ICE connectition state changed: connected',
+                }))
+
+                // navigate to stream page
+                navigate({
+                    pathname: '/stream',
+                    search: `?key=${payload.TerminalKey}`
+                })
+
                 break
+            
             case "disconnected":
                 RtcPeer.connected = false
+                dispatch(TerminalActions.updateTerminal({
+                    "type": "APPEND_LOG_CONTENT",
+                    "terminal_key": `${payload.TerminalKey}`,
+                    "log_priority": "WARN",
+                    "log_time": GetTimestamp(),
+                    "log_content": 'ICE connectition state changed: disconnected',
+                }))
                 break
+            
             case "failed":
                 RtcPeer.connected = false
+                dispatch(TerminalActions.updateTerminal({
+                    "type": "APPEND_LOG_CONTENT",
+                    "terminal_key": `${payload.TerminalKey}`,
+                    "log_priority": "ERROR",
+                    "log_time": GetTimestamp(),
+                    "log_content": 'ICE connectition state changed: failed, restart',
+                }))
                 const offer = await RtcPeer.PeerConnection.createOffer({ iceRestart: true })
                 RtcPeer.PeerConnection.setLocalDescription(offer)
                 break
@@ -785,15 +883,6 @@ const WebsocketCallback = (props) => {
 
         // save updated RtcPeer
         setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
-
-        // append log
-        dispatch(TerminalActions.updateTerminal({
-            "type": "APPEND_LOG_CONTENT",
-            "terminal_key": `${payload.TerminalKey}`,
-            "log_priority": "INFO",
-            "log_time": GetTimestamp(),
-            "log_content": `ICE connection state changed: ${RtcPeer.PeerConnection.iceConnectionState}`,
-        }))
     }
 
     /*
@@ -838,19 +927,31 @@ const WebsocketCallback = (props) => {
             invoked while notification of ice candidates from STUN server
     */
     const callback_onICECandidate = (msg, payload) => {
-        // obtain RTC Peer object
-        let RtcPeer = terminalRtcPeerMap.get(payload.TerminalKey)
+        // obtain websocket connection from global map
+        let ws = terminalWsMap.get(payload.TerminalKey)
 
-        // save WebRTC candidates
-        if(payload.Event.candidate != null){
-            RtcPeer.candidates = JSON.stringify(payload.Event.candidate);
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "INFO",
+            "log_time": GetTimestamp(),
+            "log_content": `received ICE candidate infomation from ICE server: ${JSON.stringify(payload.Event.candidate)}`,
+        }))
+
+        // send start streamming notification to scheduler
+        if(payload.Event.candidate !== null){
+            let reqPacket = JSON.stringify({
+                packet_type: "consumer_ice_candidate",
+                data: JSON.stringify({ 
+                    instance_id: terminalDynamicState.get(payload.TerminalKey).instanceSchedulerID,
+                    consumer_ice_candidate: btoa(JSON.stringify(payload.Event.candidate))
+                }),
+            })
+
+            // send to scheudler
+            ws.send(reqPacket)
         }
-
-        // save updated RtcPeer
-        setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
-
-        // TODO: send to schedulers
-        
     }
 
     /*
@@ -859,7 +960,23 @@ const WebsocketCallback = (props) => {
             todo
     */
     const callback_onTrack = (msg, payload) => {
+        let RtcPeer = terminalRtcPeerMap.get(payload.TerminalKey)
 
+        // add track
+        // RtcPeer.mediaStream.addTrack(payload.Track);
+        RtcPeer.mediaStream = payload.Streams
+
+        // save updated RtcPeer
+        setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
+
+        // append log
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "INFO",
+            "log_time": GetTimestamp(),
+            "log_content": `add new track to media stream`,
+        }))
     }
 
     /*
@@ -886,12 +1003,14 @@ const WebsocketCallback = (props) => {
         PubSub.subscribe('state_run_instance', callback_stateInstanceRunning)
         PubSub.subscribe('state_failed_run_instance', callback_stateFailedInstanceRunning)
         PubSub.subscribe('offer_sdp', callback_ProviderOfferSDP)
+        PubSub.subscribe('provider_ice_candidate', callback_ProviderICECandidate)
 
         // webRTC callback
         PubSub.subscribe('webrtc_oniceconnectionstatechange', callback_ICEConnectionStateChange)
         PubSub.subscribe('webrtc_onicegatheringstatechange', callback_ICEGatheringStateChange)
         PubSub.subscribe('webrtc_onicecandidate', callback_onICECandidate)
         PubSub.subscribe('webrtc_ontrack', callback_onTrack)
+        PubSub.subscribe('flush_ice_candidate', callback_FlushICECandidate)        
     }
 
     useEffect( () => {

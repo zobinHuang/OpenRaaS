@@ -79,19 +79,13 @@ const defaultTerminalState = {
     // current step of the terminal (0: config, 1: connectScheduler, 2: scheduleComp, 3: scheduleStorage, 4: run)  
     currentStepIndex: 0,
     
-    // ice server list
-    iceServers: [],
-
-    // unique client ID in scheduler
-    clientID: "",
-
     // state to inidicate whether websocket connection has started
     wsConnectionStarted: false,
 
     // current selected resolution
     currentResolution: RESOLUTION_1280_720,
-    screenHeight: 0,
-    screenWidth: 0,
+    screenHeight: 720,
+    screenWidth: 1280,
 
     // current frame per second (fps)
     currentFPS: FPS_30,
@@ -236,19 +230,9 @@ const terminalsSlice = createSlice({
                     state.StateTerminals.terminalsMap[action.payload.terminal_key].name = action.payload.name
                     break;
 
-                /* Case: update ice server list */
-                case "UPDATE_ICESERVERS":
-                    state.StateTerminals.terminalsMap[action.payload.terminal_key].iceServers = action.payload.ice_servers
-                    break;
-
                 /* Case: update dashboard index */
                 case "UPDATE_DASHBOARD_ID":
                     state.StateTerminals.terminalsMap[action.payload.terminal_key].currentDashboardIndex = action.payload.dashboard_id
-                    break;
-
-                /* Case: update client index */
-                case "UPDATE_CLIENT_ID":
-                    state.StateTerminals.terminalsMap[action.payload.terminal_key].clientID = action.payload.client_id
                     break;
 
                 /* Case: update unread log count */

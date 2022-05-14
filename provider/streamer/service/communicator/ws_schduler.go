@@ -154,6 +154,9 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			FilestoreList  []model.FilestoreCore  `json:"filestore_list"`
 		}
 
+		fmt.Printf("start schedule vcodec\n")
+		fmt.Printf("%s\n", reqPacketData.StreamInstance.VCodec)
+
 		// parse request
 		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
 		if err != nil {
@@ -244,21 +247,21 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			}
 		}
 
-		// obtain corresponding WebRTCStreamer (create if not exist)
-		webRTCStreamer, isExisted := s.WebRTCStreamDAL.GetWebRTCStreamerByInstanceID(ctx, reqPacketData.StreamInstanceID)
+		// obtain corresponding Pump (create if not exist)
+		pump, isExisted := s.WebRTCStreamDAL.GetPumpByInstanceID(ctx, reqPacketData.StreamInstanceID)
 		if !isExisted {
 			// create new webrtc streamer
-			webRTCStreamer, err = s.WebRTCStreamDAL.NewWebRTCStreamer(ctx, streamInstance)
+			pump, err = s.WebRTCStreamDAL.NewPump(ctx, streamInstance)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"Warn Type":        "Recv Callback Error",
 					"Recv Packet Type": "start_streaming",
 					"Instance ID":      streamInstance.Instanceid,
 					"error":            err.Error(),
-				}).Warn("Failed to create WebRTCStreamer, abandoned")
+				}).Warn("Failed to create Pump, abandoned")
 				return model.WSPacket{
 					PacketType: "failed_start_streaming",
-					Data:       fmt.Errorf("Provider failed to create WebRTCStreamer").Error(),
+					Data:       fmt.Errorf("Provider failed to create Pump").Error(),
 				}
 			}
 
@@ -267,7 +270,7 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			}).Info("Create WebRTC Streamer for a new instance")
 
 			// create WebRTC video streamer
-			err = webRTCStreamer.CreateVideoListener()
+			err = pump.CreateVideoListener()
 			if err != nil {
 				log.WithFields(log.Fields{
 					"Warn Type":        "Recv Callback Error",
@@ -282,7 +285,7 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			}
 
 			// create WebRTC audio streamer
-			err = webRTCStreamer.CreateAudioListener()
+			err = pump.CreateAudioListener()
 			if err != nil {
 				log.WithFields(log.Fields{
 					"Warn Type":        "Recv Callback Error",
@@ -297,14 +300,14 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			}
 
 			// start hijacking video and audio stream
-			webRTCStreamer.ListenVideoStream()
-			webRTCStreamer.ListenAudioStream()
+			pump.ListenVideoStream()
+			pump.ListenAudioStream()
 			log.WithFields(log.Fields{
 				"Instance ID": streamInstance.Instanceid,
 			}).Info("New WebRTC streamer is now hijacking video and audio stream")
 
 			// start discharging
-			webRTCStreamer.Discharge()
+			pump.Discharge()
 			log.WithFields(log.Fields{
 				"Instance ID": streamInstance.Instanceid,
 			}).Info("New WebRTC streamer is now discharging to downstream WebRTC pipes")
@@ -363,7 +366,7 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 		})
 
 		// add newly created pipe to WebRTC streamer
-		webRTCStreamer.AddWebRTCPipe(webRTCPipe)
+		pump.AddWebRTCPipe(webRTCPipe)
 		log.WithFields(log.Fields{
 			"Instance ID": streamInstance.Instanceid,
 			"Consumer ID": reqPacketData.ConsumerID,
@@ -444,6 +447,56 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 				"Consumer ID":      reqPacketData.ConsumerID,
 				"Instance ID":      webRTCPipe.StreamInstance.Instanceid,
 			}).Warn("Failed to config remote SDP, abandoned")
+			return model.EmptyPacket
+		}
+
+		return model.EmptyPacket
+	})
+
+	/*
+		@callback: consumer_ice_candidate
+		@description:
+			receive consumer ICE candidate
+	*/
+	s.SchedulerWSConnection.Receive("consumer_ice_candidate", func(req model.WSPacket) (resp model.WSPacket) {
+		// define request format
+		var reqPacketData struct {
+			ConsumerID           string `json:"consumer_id"`
+			ConsumerICECandidate string `json:"consumer_ice_candidate"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "consumer_ice_candidate",
+				"Consumer ID":      reqPacketData.ConsumerID,
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		// obtain WebRTC pipe
+		webRTCPipe, err := s.WebRTCStreamDAL.GetWebRTCPipeByConsumerID(ctx, reqPacketData.ConsumerID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":         "Recv Callback Error",
+				"Recv Packet Type":  "answer_sdp",
+				"Given Consumer ID": reqPacketData.ConsumerID,
+			}).Warn("Failed to obtain WebRTC pipe by given consumer id, abandoned")
+			return model.EmptyPacket
+		}
+
+		// add ice candidate
+		err = webRTCPipe.AddCandidate(reqPacketData.ConsumerICECandidate)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "answer_sdp",
+				"Consumer ID":      reqPacketData.ConsumerID,
+				"Instance ID":      webRTCPipe.StreamInstance.Instanceid,
+			}).Warn("Failed to add ice candidate of consumer, abandoned")
 			return model.EmptyPacket
 		}
 

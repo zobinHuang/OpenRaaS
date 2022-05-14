@@ -492,4 +492,73 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 
 		return model.EmptyPacket
 	})
+
+	/*
+		@callback: consumer_ice_candidate
+		@description:
+			receive consumer ICE candidate, forward to corresponding provider
+	*/
+	consumer.Receive("consumer_ice_candidate", func(req model.WSPacket) (resp model.WSPacket) {
+		var reqPacketData struct {
+			InstanceID           string `json:"instance_id"`
+			ConsumerICECandidate string `json:"consumer_ice_candidate"`
+		}
+
+		// parse request
+		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "consumer_ice_candidate",
+				"Consumer ID":      consumer.ClientID,
+				"error":            err,
+			}).Warn("Failed to decode json during receiving, abandoned")
+			return model.EmptyPacket
+		}
+
+		// obtain provider by instance id
+		provider, err := s.InstanceRoomDAL.GetProviderByInstanceID(ctx, reqPacketData.InstanceID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":         "Recv Callback Error",
+				"Recv Packet Type":  "consumer_ice_candidate",
+				"Consumer ID":       consumer.ClientID,
+				"Given Instance ID": reqPacketData.InstanceID,
+			}).Warn("%s, abandoned", err.Error())
+			return model.EmptyPacket
+		}
+
+		// construct websocket packet to provider
+		respToProvider := &struct {
+			ConsumerID           string `json:"consumer_id"`
+			ConsumerICECandidate string `json:"consumer_ice_candidate"`
+		}{
+			ConsumerID:           consumer.ClientID,
+			ConsumerICECandidate: reqPacketData.ConsumerICECandidate,
+		}
+		respToProviderString, err := json.Marshal(respToProvider)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "consumer_ice_candidate",
+				"Provider ID":      provider.ClientID,
+				"Consumer ID":      consumer.ClientID,
+				"error":            err,
+			}).Warn("Failed to marshal response to provider, abandoned")
+			return model.EmptyPacket
+		}
+
+		// send to provider
+		provider.Send(model.WSPacket{
+			PacketType: "consumer_ice_candidate",
+			Data:       string(respToProviderString),
+		}, nil)
+
+		log.WithFields(log.Fields{
+			"Provider ID": provider.ClientID,
+			"Consumer ID": consumer.ClientID,
+		}).Info("Forward ICE candidates of consumer to provider")
+
+		return model.EmptyPacket
+	})
 }
