@@ -38,6 +38,7 @@ services:
       - "traefik.http.middlewares.testheader.headers.addvaryheader=true" 
     environment:
       - ENV=dev
+      - TZ=Asia/Shanghai
     volumes:
       - ./streamer:/go/src/app
     # have to use $$ (double-dollar) so docker doesn't try to substitute a variable

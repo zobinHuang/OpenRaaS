@@ -47,9 +47,9 @@ func NewWebRTCStreamDAL(c *WebRTCStreamDALConfig) model.WebRTCStreamDAL {
 		create a new webrtc streamer for a new instance
 */
 func (d *WebRTCStreamDAL) NewPump(ctx context.Context, streamInstance *model.StreamInstanceDaemonModel) (*model.Pump, error) {
-	// create RTP channel
-	videoStreamChan := make(chan *rtp.Packet, 1)
-	audioStreamChan := make(chan *rtp.Packet, 1)
+	// create RTP channel and input event channel
+	videoStreamChan := make(chan *rtp.Packet, model.VIDEO_PUMP_CHANNEL_LENGTH)
+	audioStreamChan := make(chan *rtp.Packet, model.AUDIO_PUMP_CHANNEL_LENGTH)
 
 	// create new webrtc streamer
 	webrtcStreamer := &model.Pump{

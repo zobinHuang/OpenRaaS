@@ -299,6 +299,21 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 				}
 			}
 
+			// create WebRTC input simulator
+			err = pump.CreateInputSimulator()
+			if err != nil {
+				log.WithFields(log.Fields{
+					"Warn Type":        "Recv Callback Error",
+					"Recv Packet Type": "start_streaming",
+					"Instance ID":      streamInstance.Instanceid,
+					"error":            err.Error(),
+				}).Warn("Failed to create WebRTC input simulator, abandoned")
+				return model.WSPacket{
+					PacketType: "failed_start_streaming",
+					Data:       fmt.Errorf("Failed to create WebRTC input simulator").Error(),
+				}
+			}
+
 			// start hijacking video and audio stream
 			pump.ListenVideoStream()
 			pump.ListenAudioStream()
@@ -311,6 +326,9 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			log.WithFields(log.Fields{
 				"Instance ID": streamInstance.Instanceid,
 			}).Info("New WebRTC streamer is now discharging to downstream WebRTC pipes")
+
+			// start profiling
+			pump.PerSecondProfiling()
 		}
 
 		// create WebRTC Pipe for this consumer
@@ -370,7 +388,14 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 		log.WithFields(log.Fields{
 			"Instance ID": streamInstance.Instanceid,
 			"Consumer ID": reqPacketData.ConsumerID,
-		}).Info("Add WebRTC pipe to upstream streamer")
+		}).Info("Add WebRTC pipe to upstream pump")
+
+		// start to harvest input data from this pipe
+		pump.HarvestInput(webRTCPipe)
+		log.WithFields(log.Fields{
+			"Instance ID": streamInstance.Instanceid,
+			"Consumer ID": reqPacketData.ConsumerID,
+		}).Info("Upstream pump start to harvest input data from current WebRTC pipe")
 
 		// construct offer SDP to scheudler
 		// (would be forwarded to consumer)

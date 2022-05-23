@@ -327,7 +327,7 @@ func (p *WebRTCPipe) StartStreaming(videoTrack *webrtc.TrackLocalStaticRTP, audi
 					"Instance ID": p.StreamInstance.Instanceid,
 					"Consumer ID": p.ConsumerID,
 					"error":       err,
-				}).Info("Recover from error while streaming video")
+				}).Warn("Recover from error while streaming video")
 			}
 		}()
 
@@ -336,7 +336,7 @@ func (p *WebRTCPipe) StartStreaming(videoTrack *webrtc.TrackLocalStaticRTP, audi
 				log.WithFields(log.Fields{
 					"Instance ID": p.StreamInstance.Instanceid,
 					"Consumer ID": p.ConsumerID,
-				}).Info("Error occurs while streaming video, panic")
+				}).Warn("Error occurs while streaming video, panic")
 				panic(err)
 			}
 		}
@@ -350,7 +350,7 @@ func (p *WebRTCPipe) StartStreaming(videoTrack *webrtc.TrackLocalStaticRTP, audi
 					"Instance ID": p.StreamInstance.Instanceid,
 					"Consumer ID": p.ConsumerID,
 					"error":       err,
-				}).Info("Recover from error while streaming audio")
+				}).Warn("Recover from error while streaming audio")
 			}
 		}()
 
@@ -359,7 +359,7 @@ func (p *WebRTCPipe) StartStreaming(videoTrack *webrtc.TrackLocalStaticRTP, audi
 				log.WithFields(log.Fields{
 					"Instance ID": p.StreamInstance.Instanceid,
 					"Consumer ID": p.ConsumerID,
-				}).Info("Error occurs while streaming audio, panic")
+				}).Warn("Error occurs while streaming audio, panic")
 				panic(err)
 			}
 		}

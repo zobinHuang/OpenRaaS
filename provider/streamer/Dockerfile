@@ -39,5 +39,8 @@ COPY --from=builder /go/src/app/run .
 # expose ports
 EXPOSE 8080
 
+# set timezone
+RUN apk update && apk add tzdata && cd /usr/share/zoneinfo && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
 # run application
 CMD ["./run"]
