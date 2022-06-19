@@ -22,10 +22,10 @@ import (
 		length of ring buffer of audio and video listener
 */
 const (
-	VIDEO_LISTENER_RING_LENGTH int = 100
-	AUDIO_LISTENER_RING_LENGTH int = 100
-	VIDEO_PUMP_CHANNEL_LENGTH  int = 100
-	AUDIO_PUMP_CHANNEL_LENGTH  int = 100
+	VIDEO_LISTENER_RING_LENGTH int = 300
+	AUDIO_LISTENER_RING_LENGTH int = 300
+	VIDEO_PUMP_CHANNEL_LENGTH  int = 300
+	AUDIO_PUMP_CHANNEL_LENGTH  int = 300
 )
 
 const (
@@ -256,13 +256,15 @@ func (s *Pump) ListenVideoStream() {
 
 			s.VideoStream <- packet
 
-			// profile (overall)
-			s.PumpProfiler.AddVideoPacketCounter(1)
-			s.PumpProfiler.AddVideoByteCounter(uint64(n))
+			if ENABLE_PUPMP_PROFILING {
+				// profile (overall)
+				s.PumpProfiler.AddVideoPacketCounter(1)
+				s.PumpProfiler.AddVideoByteCounter(uint64(n))
 
-			// profile (per second)
-			s.PumpProfiler.AddPerSecVideoPacketCounter(1)
-			s.PumpProfiler.AddPerSecVideoByteCounter(uint32(n))
+				// profile (per second)
+				s.PumpProfiler.AddPerSecVideoPacketCounter(1)
+				s.PumpProfiler.AddPerSecVideoByteCounter(uint32(n))
+			}
 		}
 	}()
 }
@@ -314,13 +316,15 @@ func (s *Pump) ListenAudioStream() {
 
 			s.AudioStream <- packet
 
-			// profile (overall)
-			s.PumpProfiler.AddAudioPacketCounter(1)
-			s.PumpProfiler.AddAudioByteCounter(uint64(n))
+			if ENABLE_PUPMP_PROFILING {
+				// profile (overall)
+				s.PumpProfiler.AddAudioPacketCounter(1)
+				s.PumpProfiler.AddAudioByteCounter(uint64(n))
 
-			// profile (per second)
-			s.PumpProfiler.AddPerSecAudioPacketCounter(1)
-			s.PumpProfiler.AddPerSecAudioByteCounter(uint32(n))
+				// profile (per second)
+				s.PumpProfiler.AddPerSecAudioPacketCounter(1)
+				s.PumpProfiler.AddPerSecAudioByteCounter(uint32(n))
+			}
 		}
 	}()
 }
@@ -402,7 +406,7 @@ func (s *Pump) HarvestInput(pipe *WebRTCPipe) {
 		}()
 
 		type keyboardEventData struct {
-			KeyCode int `json:"keycode"`
+			KeyCode int `json:"key_code"`
 		}
 
 		type mouseEventData struct {

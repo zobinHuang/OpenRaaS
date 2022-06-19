@@ -5,6 +5,10 @@ import { useSearchParams } from "react-router-dom"
 import PubSub from 'pubsub-js';
 
 const VideoStreamContainer = styled.div`
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 `
 
 const VideoShowcaseContainer = styled.div`
@@ -52,7 +56,7 @@ const VideoStreamPage = (props) => {
             RtcPeer.inputChannel.send(JSON.stringify({
                 packet_type: EVENT_KEYDOWN,
                 data: JSON.stringify({
-                  keyCode: event.keyCode,
+                  key_code: event.keyCode,
                 }),
             }))
         })
@@ -66,7 +70,7 @@ const VideoStreamPage = (props) => {
             RtcPeer.inputChannel.send(JSON.stringify({
                 packet_type: EVENT_KEYUP,
                 data: JSON.stringify({
-                    keyCode: event.keyCode,
+                    key_code: event.keyCode,
                 }),
             }))
         })
@@ -92,7 +96,14 @@ const VideoStreamPage = (props) => {
             }))
         })
 
-        
+        /*
+            @callback: contextmenu
+            @description: diable right click button
+        */
+        document.addEventListener("contextmenu", (event) => {
+            event.preventDefault()
+        })
+
         /*
             @callback: mouseup
             @description: send mouseup event and corresponding metadata to remote peer

@@ -2,6 +2,10 @@ package model
 
 import "github.com/robfig/cron"
 
+const (
+	ENABLE_PUPMP_PROFILING bool = false
+)
+
 /*
 	@model: PumpProfiler
 	@description:

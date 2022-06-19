@@ -13,9 +13,9 @@ import (
 
 const (
 	// length of pipe buffer
-	VIDEO_PIPE_CHANNEL_LENGTH int = 100
-	AUDIO_PIPE_CHANNEL_LENGTH int = 100
-	INPUT_PIPE_CHANNEL_LENGTH int = 100
+	VIDEO_PIPE_CHANNEL_LENGTH int = 300
+	AUDIO_PIPE_CHANNEL_LENGTH int = 300
+	INPUT_PIPE_CHANNEL_LENGTH int = 300
 
 	// video encode
 	VCODEC_H264 string = "h264"
@@ -78,7 +78,7 @@ func (p *WebRTCPipe) Open(iceServers []string, vCodec string, onICECandidateCall
 	// create new connection
 	webRTCConnection, err := webrtc.NewPeerConnection(webRTCConfig)
 	if err != nil {
-		return "", fmt.Errorf("Failed to create new WebRTC peer connection\n")
+		return "", fmt.Errorf("failed to create new WebRTC peer connection")
 	}
 
 	// config video codec
@@ -101,21 +101,21 @@ func (p *WebRTCPipe) Open(iceServers []string, vCodec string, onICECandidateCall
 	// create video track and add it to peer connection
 	videoTrack, err := webrtc.NewTrackLocalStaticRTP(webrtc.RTPCodecCapability{MimeType: codec}, "video", "pion")
 	if err != nil {
-		return "", fmt.Errorf("Failed to create video track: %s\n", err.Error())
+		return "", fmt.Errorf("failed to create video track: %s", err.Error())
 	}
 	_, err = webRTCConnection.AddTrack(videoTrack)
 	if err != nil {
-		return "", fmt.Errorf("Failed to add video track to peer connection: %s\n", err.Error())
+		return "", fmt.Errorf("failed to add video track to peer connection: %s", err.Error())
 	}
 
 	// create audio track and add it to peer connection
 	audioTrack, err := webrtc.NewTrackLocalStaticRTP(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeOpus}, "audio", "pion")
 	if err != nil {
-		return "", fmt.Errorf("Failed to create audio track: %s\n", err.Error())
+		return "", fmt.Errorf("failed to create audio track: %s", err.Error())
 	}
 	_, err = webRTCConnection.AddTrack(audioTrack)
 	if err != nil {
-		return "", fmt.Errorf("Failed to add audio track to peer connection: %s\n", err.Error())
+		return "", fmt.Errorf("failed to add audio track to peer connection: %s", err.Error())
 	}
 
 	_, err = webRTCConnection.AddTransceiverFromKind(webrtc.RTPCodecTypeAudio, webrtc.RTPTransceiverInit{
@@ -213,13 +213,13 @@ func (p *WebRTCPipe) Open(iceServers []string, vCodec string, onICECandidateCall
 	// create offer SDP
 	offer, err := p.PeerConnection.CreateOffer(nil)
 	if err != nil {
-		return "", fmt.Errorf("Failed to create offer SDP: %s\n", err.Error())
+		return "", fmt.Errorf("failed to create offer SDP: %s", err.Error())
 	}
 
 	// set local description
 	err = p.PeerConnection.SetLocalDescription(offer)
 	if err != nil {
-		return "", fmt.Errorf("Failed to set local description: %s\n", err.Error())
+		return "", fmt.Errorf("failed to set local description: %s", err.Error())
 	}
 	log.WithFields(log.Fields{
 		"Instance ID": p.StreamInstance.Instanceid,
@@ -229,7 +229,7 @@ func (p *WebRTCPipe) Open(iceServers []string, vCodec string, onICECandidateCall
 	// encode offer SDP
 	offerSDP, err := utils.EncodeBase64(offer)
 	if err != nil {
-		return "", fmt.Errorf("Failed to encode offer SDP into base64 string")
+		return "", fmt.Errorf("failed to encode offer SDP into base64 string")
 	}
 
 	return offerSDP, nil

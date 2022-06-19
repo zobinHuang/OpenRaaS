@@ -84,6 +84,8 @@ export const RESOLUTION_640_480 = "resolution_640_480"
 export const RESOLUTION_1024_600 = "resolution_1024_600"
 export const RESOLUTION_1280_1024 = "resolution_1280_1024"
 
+export const FPS_5 = 5
+export const FPS_15 = 15
 export const FPS_24 = 24
 export const FPS_30 = 30
 export const FPS_60 = 60
@@ -232,6 +234,14 @@ const TerminalMetadata = (props) => {
     }
 
     const fpsFormat = [
+        {
+            value: FPS_5,
+            label: "5fps"
+        },
+        {
+            value: FPS_15,
+            label: "15fps"
+        },
         {
             value: FPS_24,
             label: "24fps"

@@ -328,7 +328,9 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			}).Info("New WebRTC streamer is now discharging to downstream WebRTC pipes")
 
 			// start profiling
-			pump.PerSecondProfiling()
+			if model.ENABLE_PUPMP_PROFILING {
+				pump.PerSecondProfiling()
+			}
 		}
 
 		// create WebRTC Pipe for this consumer
