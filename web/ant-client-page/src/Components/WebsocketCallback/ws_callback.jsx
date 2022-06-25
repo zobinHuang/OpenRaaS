@@ -775,21 +775,32 @@ const WebsocketCallback = (props) => {
         let candidate_decode = atob(payload.WSPacket.data.provider_ice_candidate);
 
         if(candidate_decode !== null && candidate_decode !== ""){
-            // add ice candidate
-            let candidate = new RTCIceCandidate(JSON.parse(candidate_decode));
-            RtcPeer.PeerConnection.addIceCandidate(candidate);
+            if(RtcPeer.isAnswered === false){
+                // add ice candidate
+                let candidate = new RTCIceCandidate(JSON.parse(candidate_decode));
+                RtcPeer.PeerConnection.addIceCandidate(candidate);
 
-            // save updated RtcPeer
-            setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
+                // save updated RtcPeer
+                setTerminalRtcPeerMap(terminalRtcPeerMap.set(payload.TerminalKey, RtcPeer))
 
-            // append log
-            dispatch(TerminalActions.updateTerminal({
-                "type": "APPEND_LOG_CONTENT",
-                "terminal_key": `${payload.TerminalKey}`,
-                "log_priority": "INFO",
-                "log_time": GetTimestamp(),
-                "log_content": `add ice candidate: ${JSON.parse(atob(payload.WSPacket.data.provider_ice_candidate)).candidate}`,
-            }))
+                // append log
+                dispatch(TerminalActions.updateTerminal({
+                    "type": "APPEND_LOG_CONTENT",
+                    "terminal_key": `${payload.TerminalKey}`,
+                    "log_priority": "INFO",
+                    "log_time": GetTimestamp(),
+                    "log_content": `add ice candidate of remote provider: ${JSON.parse(atob(payload.WSPacket.data.provider_ice_candidate)).candidate}`,
+                }))
+            } else {
+                // append log
+                dispatch(TerminalActions.updateTerminal({
+                    "type": "APPEND_LOG_CONTENT",
+                    "terminal_key": `${payload.TerminalKey}`,
+                    "log_priority": "WARN",
+                    "log_time": GetTimestamp(),
+                    "log_content": `ignore ice candidate of remote provider: ${JSON.parse(atob(payload.WSPacket.data.provider_ice_candidate)).candidate}`,
+                }))
+            }
         }
     }
 
