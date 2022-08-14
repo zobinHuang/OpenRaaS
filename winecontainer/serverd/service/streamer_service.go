@@ -49,9 +49,8 @@ func (c *StreamerService) RunStreamerContainer(ctx context.Context) error {
 	var params []string
 
 	// Add Exec command
-	// assuming pwd is "~/winecontainer/serverd/", and target shell at "~/BrosCloud/provider/run-streamer.sh"
 	execCmd = "sh"
-	params = append(params, "../../BrosCloud/provider/run-streamer.sh")
+	params = append(params, "../../provider/run-streamer.sh")
 
 	// Add params
 	done := utils.RunShell(execCmd, params)
@@ -82,9 +81,8 @@ func (c *StreamerService) KillStreamerContainer(ctx context.Context) error {
 	var params []string
 
 	// Add Exec command
-	// assuming pwd is "~/winecontainer/serverd/", and target shell at "~/BrosCloud/provider/stop-streamer.sh"
 	execCmd = "sh"
-	params = append(params, "../../BrosCloud/provider/stop-streamer.sh")
+	params = append(params, "../../provider/stop-streamer.sh")
 
 	utils.RunShellWithReturn(execCmd, params)
 
