@@ -51,7 +51,7 @@ services:
       - "8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.auth.rule=Host(`broscloud.dynv6.net`) && PathPrefix(`/api/auth`)"
+      - "traefik.http.routers.auth.rule=Host(`kb109.dynv6.net`) && PathPrefix(`/api/auth`)"
       - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST"
       - "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
       - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
@@ -89,7 +89,7 @@ services:
       - "8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.scheduler.rule=Host(`broscloud.dynv6.net`) && PathPrefix(`/api/scheduler`)"
+      - "traefik.http.routers.scheduler.rule=Host(`kb109.dynv6.net`) && PathPrefix(`/api/scheduler`)"
       - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST"
       - "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
       - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
