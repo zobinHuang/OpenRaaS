@@ -62,6 +62,10 @@ type Depositary struct {
 /*
 	@model: DepositaryCore
 	@description: metadata for depositary client
+	@example:
+		depositary.HostAddress = "127.0.0.1"
+		depositary.Port = "5000"
+		depositary.Tag = "latest"
 */
 type DepositaryCore struct {
 	HostAddress string `json:"host_address"`

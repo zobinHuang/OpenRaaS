@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-cd ../../BrosCloud/provider/
+cd ../../provider/
 sudo docker-compose stop

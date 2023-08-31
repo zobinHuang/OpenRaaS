@@ -114,7 +114,7 @@ func (h *Handler) SelectFilestore(ctx context.Context, instanceModel *model.Inst
 
 	instanceModel.TargetFilestore = filestore
 
-	// TODO complete filestore schedule process
+	// TODO: complete filestore schedule process
 
 	return nil
 }
@@ -133,7 +133,7 @@ func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.Ins
 
 	instanceModel.TargetDepositary = depositary
 
-	// TODO complete depository schedule process
+	// TODO: complete depository schedule process
 
 	return nil
 }
