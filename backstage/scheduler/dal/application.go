@@ -3,10 +3,8 @@ package dal
 import (
 	"context"
 
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model/apperrors"
-
 	log "github.com/sirupsen/logrus"
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 	"gorm.io/gorm"
 )
 
@@ -56,7 +54,7 @@ func (d *ApplicationDAL) GetStreamApplicationByID(ctx context.Context, applicati
 		log.WithFields(log.Fields{
 			"Given Application ID": applicationID,
 		}).Warn("Unable to obtain stream application with given application id")
-		return nil, apperrors.NewNotFound("application_id", applicationID)
+		return nil, err
 	}
 
 	return streamApplication, nil
@@ -163,15 +161,78 @@ func (d *ApplicationDAL) GetStreamApplicationsCount(ctx context.Context) (int64,
 	return count, nil
 }
 
+// GetStreamApplication get all stream applications from rds
 func (d *ApplicationDAL) GetStreamApplication(ctx context.Context) ([]model.StreamApplication, error) {
-	return nil, nil
+	var apps []model.StreamApplication
+
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("stream_applications").Find(&apps).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Warn("Failed to obtain all stream applications from rds")
+		return nil, err
+	}
+
+	return apps, nil
 }
+
+// DeleteStreamApplicationByID delete stream application by id in rds
 func (d *ApplicationDAL) DeleteStreamApplicationByID(ctx context.Context, id string) error {
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("stream_applications").Where("application_id=?", id).Delete(&model.StreamApplication{}).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"id":    id,
+		}).Warn("Failed to delete stream application by id in rds")
+		return err
+	}
 	return nil
 }
+
+// UpdateStreamApplicationByID update stream application to rds by id
 func (d *ApplicationDAL) UpdateStreamApplicationByID(ctx context.Context, info *model.StreamApplication) error {
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("stream_applications").Where("application_id=?", info.ApplicationID).Updates(info).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"app":   info,
+		}).Warn("Failed to update stream application to rds by id")
+		return err
+	}
 	return nil
 }
+
+// CreateStreamApplication create stream application to rds
 func (d *ApplicationDAL) CreateStreamApplication(ctx context.Context, info *model.StreamApplication) error {
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("stream_applications").Create(info).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"app":   info,
+		}).Warn("Failed to create stream application to rds")
+		return err
+	}
+
 	return nil
+}
+
+// Clear delete all
+func (d *ApplicationDAL) Clear() {
+	if err := d.DB.Exec("DELETE FROM public.stream_applications").Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Fail to clear stream_applications table")
+	}
 }

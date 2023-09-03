@@ -2,6 +2,8 @@ package dal
 
 import (
 	"context"
+
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
@@ -13,7 +15,7 @@ import (
 */
 type ProviderDAL struct {
 	DB           *gorm.DB
-	ProviderList map[string]*model.Consumer
+	ProviderList map[string]*model.Provider
 }
 
 /*
@@ -31,12 +33,12 @@ type ProviderDALConfig struct {
 	create, config and return an instance of struct ProviderDAL
 */
 func NewProviderDAL(c *ProviderDALConfig) model.ProviderDAL {
-	cdal := &ProviderDAL{}
+	pdal := &ProviderDAL{}
 
-	cdal.ProviderList = make(map[string]*model.Consumer)
-	cdal.DB = c.DB
+	pdal.ProviderList = make(map[string]*model.Provider)
+	pdal.DB = c.DB
 
-	return cdal
+	return pdal
 }
 
 /*
@@ -45,27 +47,118 @@ func NewProviderDAL(c *ProviderDALConfig) model.ProviderDAL {
 
 	insert a new provider to provider list
 */
-func (d *ProviderDAL) CreateProvider(ctx context.Context, provider *model.Provider) error {
-	// todo
-	return nil
+func (d *ProviderDAL) CreateProvider(ctx context.Context, provider *model.Provider) {
+	d.ProviderList[provider.ClientID] = provider
 }
 
 /*
-@func: DeleteProviderByID
+@func: DeleteProvider
 @description:
 
 	delete the specified provider from provider list
 */
-func (d *ProviderDAL) DeleteProviderByID(ctx context.Context, id string) error {
+func (d *ProviderDAL) DeleteProvider(ctx context.Context, providerID string) {
+	delete(d.ProviderList, providerID)
+}
+
+func (d *ProviderDAL) GetProvider() []*model.Provider {
+	providers := make([]*model.Provider, 0, 0)
+	for _, value := range d.ProviderList {
+		providers = append(providers, value)
+	}
+	return providers
+}
+
+// CreateProviderInRDS create provider core info to rds
+func (d *ProviderDAL) CreateProviderInRDS(ctx context.Context, provider *model.ProviderCore) error {
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("provider_cores").Create(provider).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error":    err,
+			"provider": provider,
+		}).Warn("Failed to create provider core info to rds")
+		return err
+	}
+
 	return nil
 }
 
-func (d *ProviderDAL) GetProvider(ctx context.Context) ([]model.Provider, error) {
-	return nil, nil
-}
-func (d *ProviderDAL) GetProviderByID(ctx context.Context, id string) (*model.Provider, error) {
-	return nil, nil
-}
-func (d *ProviderDAL) UpdateProviderByID(ctx context.Context, info *model.Provider) error {
+// DeleteProviderInRDSByID
+func (d *ProviderDAL) DeleteProviderInRDSByID(ctx context.Context, id string) error {
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("provider_cores").Where("id=?", id).Delete(&model.ProviderCore{}).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"id":    id,
+		}).Warn("Failed to delete provider core info by id in rds")
+		return err
+	}
+
 	return nil
+}
+
+// GetProviderInRDS obtain all provider core info from rds
+func (d *ProviderDAL) GetProviderInRDS(ctx context.Context) ([]model.ProviderCore, error) {
+	var infos []model.ProviderCore
+
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("provider_cores").Find(&infos).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Warn("Failed to obtain all provider core info from rds")
+		return nil, err
+	}
+
+	return infos, nil
+}
+
+// GetProviderInRDSByID get provider core info by id from rds
+func (d *ProviderDAL) GetProviderInRDSByID(ctx context.Context, id string) (*model.ProviderCore, error) {
+	var info model.ProviderCore
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("provider_cores").Where("id = ?", id).First(&info).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"id":    id,
+		}).Warn("Failed to get provider core info by id from rds")
+		return nil, err
+	}
+	return &info, nil
+}
+
+// UpdateProviderInRDSByID update provider core info by id in rds
+func (d *ProviderDAL) UpdateProviderInRDSByID(ctx context.Context, provider *model.ProviderCore) error {
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("provider_cores").Where("id=?", provider.ID).Updates(provider).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"id":    provider.ID,
+		}).Warn("Failed to update provider core info by id in rds")
+		return err
+	}
+	return nil
+}
+
+// Clear delete all
+func (d *ProviderDAL) Clear() {
+	if err := d.DB.Exec("DELETE FROM public.provider_cores").Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Fail to clear provider_cores table")
+	}
 }

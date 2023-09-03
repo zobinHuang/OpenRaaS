@@ -2,7 +2,6 @@ package model
 
 import (
 	"context"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -32,6 +31,7 @@ description: interface of consumer service
 type ConsumerService interface {
 	CreateConsumer(ctx context.Context, ws *websocket.Conn) (*Consumer, error)
 	InitRecvRoute(ctx context.Context, consumer *Consumer)
+	Clear()
 }
 
 /*
@@ -42,6 +42,10 @@ type ApplicationService interface {
 	GetStreamApplicationsCount(ctx context.Context) (int64, error)
 	GetStreamApplicationDetails(ctx context.Context, applicationID string) (*StreamApplication, error)
 	GetStreamApplications(ctx context.Context, pageNumber int, pageSize int, orderBy string) ([]*StreamApplication, error)
+	CreateStreamApplication(ctx context.Context, info *StreamApplication) error
+	AddFileStoreIDToAPPInRDS(ctx context.Context, info *StreamApplication, id string) error
+	ShowEnterInfo(ctx context.Context, app *StreamApplication, nodeId string)
+	ShowAllInfo(ctx context.Context)
 }
 
 /*
@@ -49,8 +53,11 @@ interface: ProviderService
 description: interface of provider service
 */
 type ProviderService interface {
-	CreateProvider(ctx context.Context, ws *websocket.Conn) (*Provider, error)
+	CreateProvider(ctx context.Context, ws *websocket.Conn, uuid string) (*Provider, error)
 	InitRecvRoute(ctx context.Context, provider *Provider)
+	CreateProviderInRDS(ctx context.Context, provider *ProviderCore) error
+	ShowEnterInfo(ctx context.Context, provider *ProviderCore)
+	ShowAllInfo(ctx context.Context)
 }
 
 /*
@@ -58,23 +65,26 @@ interface: FileStoreService
 description: interface of FileStore service
 */
 type FileStoreService interface {
-	CreateFileStore(ctx context.Context, ws *websocket.Conn) (*FileStore, error)
-	InitRecvRoute(ctx context.Context, provider *FileStore)
+	CreateFileStoreInRDS(ctx context.Context, info *FileStoreCore) error
+	ShowEnterInfo(ctx context.Context, fileStore *FileStoreCore)
+	ShowAllInfo(ctx context.Context)
 }
 
 /*
-interface: DepositaryService
-description: interface of Depositary service
+interface: DepositoryService
+description: interface of Depository service
 */
-type DepositaryService interface {
-	CreateDepositary(ctx context.Context, ws *websocket.Conn) (*FileStore, error)
-	InitRecvRoute(ctx context.Context, provider *FileStore)
+type DepositoryService interface {
+	CreateDepositoryInRDS(ctx context.Context, info *DepositoryCore) error
+	ShowEnterInfo(ctx context.Context, depository *DepositoryCore)
+	ShowAllInfo(ctx context.Context)
 }
 
 // --------- Service Core Layer Interface ---------
 type ScheduleServiceCore interface {
 	CreateStreamInstanceRoom(ctx context.Context, provider *Provider, consumer *Consumer, streamInstance *StreamInstance) (*StreamInstanceRoom, error)
-	ScheduleStream(ctx context.Context, streamInstance *StreamInstance) (*Provider, []DepositaryCore, []FileStoreCore, error)
+	ScheduleStream(ctx context.Context, streamInstance *StreamInstance) (*Provider, []DepositoryCore, []FileStoreCore, error)
+	Clear()
 }
 
 // --------- DAL Layer Interface ---------
@@ -94,6 +104,7 @@ type ConsumerDAL interface {
 	CreateConsumer(ctx context.Context, consumer *Consumer)
 	DeleteConsumer(ctx context.Context, consumerID string)
 	GetConsumerByID(ctx context.Context, consumerID string) (*Consumer, error)
+	Clear()
 }
 
 /*
@@ -101,23 +112,31 @@ interface: ProviderDAL
 description: interface of data access layer for provider
 */
 type ProviderDAL interface {
-	GetProvider(ctx context.Context) ([]Provider, error)
-	GetProviderByID(ctx context.Context, id string) (*Provider, error)
-	DeleteProviderByID(ctx context.Context, id string) error
-	UpdateProviderByID(ctx context.Context, info *Provider) error
-	CreateProvider(ctx context.Context, info *Provider) error
+	CreateProvider(ctx context.Context, provider *Provider)
+	DeleteProvider(ctx context.Context, providerID string)
+	GetProvider() []*Provider
+	GetProviderInRDS(ctx context.Context) ([]ProviderCore, error)
+	GetProviderInRDSByID(ctx context.Context, id string) (*ProviderCore, error)
+	DeleteProviderInRDSByID(ctx context.Context, id string) error
+	UpdateProviderInRDSByID(ctx context.Context, provider *ProviderCore) error
+	CreateProviderInRDS(ctx context.Context, provider *ProviderCore) error
+	Clear()
 }
 
 /*
-interface: DepositaryDAL
-description: interface of data access layer for depositary
+interface: DepositoryDAL
+description: interface of data access layer for depository
 */
-type DepositaryDAL interface {
-	GetDepositary(ctx context.Context) ([]Depositary, error)
-	GetDepositaryByID(ctx context.Context, id string) (*Depositary, error)
-	DeleteDepositaryByID(ctx context.Context, id string) error
-	UpdateDepositaryByID(ctx context.Context, info *Depositary) error
-	CreateDepositary(ctx context.Context, info *Depositary) error
+type DepositoryDAL interface {
+	CreateDepository(ctx context.Context, depository *Depository)
+	DeleteDepository(ctx context.Context, depositoryID string)
+	GetDepositoryInRDS(ctx context.Context) ([]DepositoryCore, error)
+	GetDepositoryBetweenIDInRDS(ctx context.Context, ids []string) ([]DepositoryCore, error)
+	GetDepositoryInRDSByID(ctx context.Context, id string) (*DepositoryCore, error)
+	DeleteDepositoryInRDSByID(ctx context.Context, id string) error
+	UpdateDepositoryInRDSByID(ctx context.Context, info *DepositoryCore) error
+	CreateDepositoryInRDS(ctx context.Context, info *DepositoryCore) error
+	Clear()
 }
 
 /*
@@ -125,11 +144,15 @@ interface: FileStoreDAL
 description: interface of data access layer for filestore
 */
 type FileStoreDAL interface {
-	GetFileStore(ctx context.Context) ([]FileStore, error)
-	GetFileStoreByID(ctx context.Context, id string) (*FileStore, error)
-	DeleteFileStoreByID(ctx context.Context, id string) error
-	UpdateFileStoreByID(ctx context.Context, info *FileStore) error
-	CreateFileStore(ctx context.Context, info *FileStore) error
+	CreateFileStore(ctx context.Context, fileStore *FileStore)
+	DeleteFileStore(ctx context.Context, id string)
+	GetFileStoreInRDS(ctx context.Context) ([]FileStoreCore, error)
+	GetFileStoreInRDSByID(ctx context.Context, id string) (*FileStoreCore, error)
+	GetFileStoreInRDSBetweenID(ctx context.Context, ids []string) ([]FileStoreCore, error)
+	DeleteFileStoreInRDSByID(ctx context.Context, id string) error
+	UpdateFileStoreInRDSByID(ctx context.Context, info *FileStoreCore) error
+	CreateFileStoreInRDS(ctx context.Context, info *FileStoreCore) error
+	Clear()
 }
 
 /*
@@ -141,6 +164,7 @@ type InstanceRoomDAL interface {
 	DeleteStreamInstanceRoom(ctx context.Context, instanceID string)
 	GetConsumerMapByInstanceID(ctx context.Context, instanceID string) (map[string]*Consumer, error)
 	GetProviderByInstanceID(ctx context.Context, instanceID string) (*Provider, error)
+	Clear()
 }
 
 /*
@@ -157,4 +181,5 @@ type ApplicationDAL interface {
 	DeleteStreamApplicationByID(ctx context.Context, id string) error
 	UpdateStreamApplicationByID(ctx context.Context, info *StreamApplication) error
 	CreateStreamApplication(ctx context.Context, info *StreamApplication) error
+	Clear()
 }

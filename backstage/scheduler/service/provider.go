@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
 
-	"github.com/gofrs/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 
@@ -49,15 +49,19 @@ func NewProviderService(c *ProviderServiceConfig) model.ProviderService {
 	}
 }
 
+// CreateProviderInRDS write Provider info to rds
+func (s *ProviderService) CreateProviderInRDS(ctx context.Context, provider *model.ProviderCore) error {
+	return s.ProviderDAL.CreateProviderInRDS(ctx, provider)
+}
+
 /*
 @func: CreateProvider
 @description:
 
 	create a new provider instance and start to serve it
 */
-func (s *ProviderService) CreateProvider(ctx context.Context, ws *websocket.Conn) (*model.Provider, error) {
+func (s *ProviderService) CreateProvider(ctx context.Context, ws *websocket.Conn, providerID string) (*model.Provider, error) {
 	// initialize client instance
-	providerID := uuid.Must(uuid.NewV4()).String()
 	sendCallbackList := map[string]func(model.WSPacket){}
 	recvCallbackList := map[string]func(model.WSPacket){}
 	newProvider := &model.Provider{
@@ -136,13 +140,6 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 			return model.EmptyPacket
 		}
 
-		// config provider type
-		provider.ProviderType = reqPacketData.ProviderType
-		log.WithFields(log.Fields{
-			"ProviderID":    provider.ClientID,
-			"Provider Type": reqPacketData.ProviderType,
-		}).Info("Set provider type")
-
 		// Notify ice servers list to stream provider
 		if reqPacketData.ProviderType == model.PROVIDER_TYPE_STREAM {
 			respPacketData := struct {
@@ -189,7 +186,7 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 		// define request format
 		var reqPacketData struct {
 			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepositary model.DepositaryCore `json:"selected_depositary"`
+			SelectedDepository model.DepositoryCore `json:"selected_depository"`
 			SelectedFileStore  model.FileStoreCore  `json:"selected_filestore"`
 		}
 
@@ -206,17 +203,17 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 		log.WithFields(log.Fields{
 			"Stream Instance ID":  reqPacketData.StreamInstanceID,
-			"Selected Depositary": fmt.Sprintf("%s:%s", reqPacketData.SelectedDepositary.HostAddress, reqPacketData.SelectedDepositary.Port),
-			"Selected FileStore":  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.HostAddress, reqPacketData.SelectedFileStore.Port),
+			"Selected Depository": fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.IP, reqPacketData.SelectedDepository.Port),
+			"Selected FileStore":  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.IP, reqPacketData.SelectedFileStore.Port),
 		}).Info("Notification from daemon of successfully selecting storage node")
 
 		// construct responses to consumers
 		respToConsumers := struct {
-			TargetDepositary string `json:"target_depositary"`
+			TargetDepository string `json:"target_depository"`
 			TargetFileStore  string `json:"target_filestore"`
 		}{
-			TargetDepositary: fmt.Sprintf("%s:%s", reqPacketData.SelectedDepositary.HostAddress, reqPacketData.SelectedDepositary.Port),
-			TargetFileStore:  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.HostAddress, reqPacketData.SelectedFileStore.Port),
+			TargetDepository: fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.IP, reqPacketData.SelectedDepository.Port),
+			TargetFileStore:  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.IP, reqPacketData.SelectedFileStore.Port),
 		}
 		respToConsumersString, err := json.Marshal(respToConsumers)
 		if err != nil {
@@ -625,4 +622,45 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 		return model.EmptyPacket
 	})
+}
+
+// ShowEnterInfo show info when register a new provider
+func (s *ProviderService) ShowEnterInfo(ctx context.Context, provider *model.ProviderCore) {
+	log.Infof("%s, allow new provider enter, id: %s", utils.GetCurrentTime(), provider.ID)
+	performance := "normal"
+	if provider.IsContainGPU {
+		performance = "powerful"
+	}
+	log.Infof("%s, New provider id: %s, ip: %s, processor: %f GF, type: %s",
+		utils.GetCurrentTime(), provider.ID, provider.IP, provider.Processor, performance)
+}
+
+func (s *ProviderService) ShowAllInfo(ctx context.Context) {
+	providers, err := s.ProviderDAL.GetProviderInRDS(ctx)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error("ProviderService ShowAllInfo GetProviderInRDS error")
+	}
+	totalProcessor := 0.0
+	powerNum := 0
+	normalNum := 0
+	for _, p := range providers {
+		if p.IsContainGPU {
+			powerNum += 1
+		} else {
+			normalNum += 1
+		}
+		totalProcessor += p.Processor
+	}
+	log.Infof("%s, Providers Info, Total: %d nodes, %f GF, %d powerful node, %d normal node",
+		utils.GetCurrentTime(), len(providers), totalProcessor, powerNum, normalNum)
+	for _, p := range providers {
+		performance := "normal"
+		if p.IsContainGPU {
+			performance = "powerful"
+		}
+		log.Infof("%s, provider id: %s, ip: %s, processor: %f GF, performance: %s",
+			utils.GetCurrentTime(), p.ID, p.IP, p.Processor, performance)
+	}
 }

@@ -34,7 +34,7 @@ const (
 type StreamApplication struct {
 	StreamApplicationCore
 	ApplicationCore
-	AppRequireInfo
+	AppInfoAttach
 }
 
 /*
@@ -73,10 +73,9 @@ type ApplicationCore struct {
 
 	request info of an application
 */
-type AppRequireInfo struct {
-	FileStoreSet                string `gorm:"not null" json:"filestore_set"`
-	DepositarySet               string `gorm:"not null" json:"depositary_set"`
+type AppInfoAttach struct {
+	FileStoreList               string `json:"filestore_list"`
 	IsProviderReqGPU            bool   `gorm:"not null" json:"is_provider_req_gpu"`
 	IsFileStoreReqFastNetspeed  bool   `gorm:"not null" json:"is_filestore_req_fast_netspeed"`
-	IsDepositaryReqFastNetspeed bool   `gorm:"not null" json:"is_depositary_req_fast_netspeed"`
+	IsDepositoryReqFastNetspeed bool   `gorm:"not null" json:"is_depository_req_fast_netspeed"`
 }

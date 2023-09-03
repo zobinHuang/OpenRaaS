@@ -19,6 +19,8 @@ type Handler struct {
 	TokenService       model.TokenService
 	ConsumerService    model.ConsumerService
 	ProviderService    model.ProviderService
+	DepositoryService  model.DepositoryService
+	FileStoreService   model.FileStoreService
 	ApplicationService model.ApplicationService
 }
 
@@ -32,6 +34,8 @@ type Config struct {
 	TokenService       model.TokenService
 	ConsumerService    model.ConsumerService
 	ProviderService    model.ProviderService
+	DepositoryService  model.DepositoryService
+	FileStoreService   model.FileStoreService
 	ApplicationService model.ApplicationService
 	BaseURL            string
 	TimeoutDuration    time.Duration
@@ -47,6 +51,8 @@ func NewHandler(c *Config) {
 		TokenService:       c.TokenService,
 		ConsumerService:    c.ConsumerService,
 		ProviderService:    c.ProviderService,
+		DepositoryService:  c.DepositoryService,
+		FileStoreService:   c.FileStoreService,
 		ApplicationService: c.ApplicationService,
 	}
 
@@ -65,6 +71,10 @@ func NewHandler(c *Config) {
 
 	// add timeout middleware
 	g.Use(middleware.Timeout(c.TimeoutDuration, apperrors.NewServiceUnavailable()))
+
+	// disable authentication for debug
+	// g.GET("/clear", middleware.AuthUser(h.TokenService), h.Clear)
+	g.POST("clear", h.Clear)
 
 	// disable authentication for debug
 	// g.GET("/node_online", middleware.AuthUser(h.TokenService), h.NodeOnline)

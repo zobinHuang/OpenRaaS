@@ -1,8 +1,9 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 /*
@@ -24,6 +25,7 @@ type ProviderCore struct {
 	DeleteAt     gorm.DeletedAt `gorm:"index" json:"delete_at"`
 	ID           string         `gorm:"unique,not null" json:"id"`
 	IP           string         `gorm:"unique,not null" json:"ip"`
-	Port         int            `gorm:"not null" json:"port"`
+	Port         int            `json:"port"`
+	Processor    float64        `json:"processor"`
 	IsContainGPU bool           `gorm:"not null" json:"is_contain_gpu"`
 }

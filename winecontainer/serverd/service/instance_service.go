@@ -17,7 +17,7 @@ description: visual machine instance service
 */
 type InstanceService struct {
 	instances  map[int]*model.InstanceModel // store existed wine container, {vmid: InstanceModel}
-	image_name string                       // setted in FetchLayerFromDepositary, used in LaunchInstance, these two func should be called in order
+	image_name string                       // setted in FetchLayerFromDepository, used in LaunchInstance, these two func should be called in order
 }
 
 /*
@@ -270,11 +270,11 @@ func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestor
 }
 
 /*
-func: FetchLayerFromDepositary
-description: fetch the docker layer including some configuration of the app's installation from the target depositary server
+func: FetchLayerFromDepository
+description: fetch the docker layer including some configuration of the app's installation from the target depository server
 */
-func (c *InstanceService) FetchLayerFromDepositary(ctx context.Context, vmid int, depositary model.DepositaryCore) error {
-	// TODO complete model.Depositary
+func (c *InstanceService) FetchLayerFromDepository(ctx context.Context, vmid int, depository model.DepositoryCore) error {
+	// TODO complete model.Depository
 
 	var execCmd string
 	var params []string
@@ -282,10 +282,10 @@ func (c *InstanceService) FetchLayerFromDepositary(ctx context.Context, vmid int
 	execCmd = "docker"
 	params = append(params, "pull")
 
-	c.image_name = depositary.HostAddress + ":" + depositary.Port + "/dcwine"
-	if depositary.Tag != "" {
+	c.image_name = depository.HostAddress + ":" + depository.Port + "/dcwine"
+	if depository.Tag != "" {
 		// TODO check this
-		c.image_name = c.image_name + ":" + depositary.Tag
+		c.image_name = c.image_name + ":" + depository.Tag
 	}
 	params = append(params, c.image_name)
 

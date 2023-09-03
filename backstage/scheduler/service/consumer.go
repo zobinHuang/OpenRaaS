@@ -252,7 +252,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		}
 
 		// schedule
-		provider, depositaryList, filestoreList, err := s.ScheduleServiceCore.ScheduleStream(ctx, streamInstance)
+		provider, depositoryList, filestoreList, err := s.ScheduleServiceCore.ScheduleStream(ctx, streamInstance)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"Warn Type":            "Recv Callback Error",
@@ -281,11 +281,11 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		// generate request websocket to provider to start instance
 		reqToProvider := struct {
 			StreamInstance model.StreamInstance   `json:"stream_instance"`
-			DepositaryList []model.DepositaryCore `json:"depositary_list"`
+			DepositoryList []model.DepositoryCore `json:"depository_list"`
 			FileStoreList  []model.FileStoreCore  `json:"filestore_list"`
 		}{
 			StreamInstance: *streamInstance, // metadata of application instance
-			DepositaryList: depositaryList,  // metadata of depositary nodes
+			DepositoryList: depositoryList,  // metadata of depository nodes
 			FileStoreList:  filestoreList,   // metadata of filestore nodes
 		}
 
@@ -564,4 +564,9 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 
 		return model.EmptyPacket
 	})
+}
+
+// Clear
+func (s *ConsumerService) Clear() {
+	s.ScheduleServiceCore.Clear()
 }

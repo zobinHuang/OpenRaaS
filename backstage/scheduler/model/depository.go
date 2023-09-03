@@ -1,24 +1,26 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 /*
-@model: Depositary
-@description: depositary client
+@model: Depository
+@description: depository client
 */
-type Depositary struct {
-	DepositaryCore
+type Depository struct {
+	DepositoryCore
 	Client
 }
 
 /*
-@model: DepositaryCore
-@description: metadata for depositary client
+@model: DepositoryCore
+@description: metadata for depository client
+@param SupportApp: slice to json string
 */
-type DepositaryCore struct {
+type DepositoryCore struct {
 	CreateAt              time.Time      `json:"create_at"`
 	UpdatedAt             time.Time      `json:"updated_at"`
 	DeleteAt              gorm.DeletedAt `gorm:"index" json:"delete_at"`
@@ -26,5 +28,6 @@ type DepositaryCore struct {
 	IP                    string         `gorm:"not null" json:"ip"`
 	Port                  int            `gorm:"not null" json:"port"`
 	Tag                   string         `json:"tag"`
+	Mem                   float64        `json:"mem"`
 	IsContainFastNetspeed bool           `gorm:"not null" json:"is_contain_fast_netspeed"`
 }

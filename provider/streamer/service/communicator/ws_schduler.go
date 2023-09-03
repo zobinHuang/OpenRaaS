@@ -13,9 +13,10 @@ import (
 )
 
 /*
-	@func: ConnectToScheduler
-	@description:
-		connect to scheduler node
+@func: ConnectToScheduler
+@description:
+
+	connect to scheduler node
 */
 func (s *WebsocketCommunicator) ConnectToScheduler(ctx context.Context, scheme string, hostname string, port string, path string) error {
 	// construct host name
@@ -70,9 +71,10 @@ func (s *WebsocketCommunicator) ConnectToScheduler(ctx context.Context, scheme s
 }
 
 /*
-	@func: KeepSchedulerConnAlive
-	@description:
-		keep alive routine
+@func: KeepSchedulerConnAlive
+@description:
+
+	keep alive routine
 */
 func (s *WebsocketCommunicator) KeepSchedulerConnAlive(ctx context.Context) {
 	go func() {
@@ -89,9 +91,10 @@ func (s *WebsocketCommunicator) KeepSchedulerConnAlive(ctx context.Context) {
 }
 
 /*
-	@func: InitSchedulerRecvRoute
-	@description:
-		initialize receiving callback
+@func: InitSchedulerRecvRoute
+@description:
+
+	initialize receiving callback
 */
 func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 	/*
@@ -150,7 +153,7 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 		// define request format
 		var reqPacketData struct {
 			StreamInstance model.StreamInstance   `json:"stream_instance"`
-			DepositaryList []model.DepositaryCore `json:"depositary_list"`
+			DepositoryList []model.DepositoryCore `json:"depository_list"`
 			FilestoreList  []model.FilestoreCore  `json:"filestore_list"`
 		}
 
@@ -184,7 +187,7 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			FPS:            reqPacketData.StreamInstance.FPS,
 			VCodec:         reqPacketData.StreamInstance.VCodec,
 			FilestoreList:  reqPacketData.FilestoreList,
-			DepositaryList: reqPacketData.DepositaryList,
+			DepositoryList: reqPacketData.DepositoryList,
 			InstanceCore: model.InstanceCore{
 				Instanceid: reqPacketData.StreamInstance.InstanceID,
 			},
@@ -202,6 +205,8 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			PacketType: "add_wine_instance",
 			Data:       string(reqToDaemonPacketString),
 		}, nil)
+
+		// todo: timestamp
 
 		return model.EmptyPacket
 	})
@@ -326,6 +331,8 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			log.WithFields(log.Fields{
 				"Instance ID": streamInstance.Instanceid,
 			}).Info("New WebRTC streamer is now discharging to downstream WebRTC pipes")
+
+			// todo: timestamp
 
 			// start profiling
 			if model.ENABLE_PUPMP_PROFILING {

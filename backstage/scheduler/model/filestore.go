@@ -1,8 +1,9 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 /*
@@ -17,6 +18,7 @@ type FileStore struct {
 /*
 @model: FileStoreCore
 @description: metadata for filestore client
+@param SupportApp: slice to json string
 */
 type FileStoreCore struct {
 	CreateAt              time.Time      `json:"create_at"`
@@ -29,5 +31,6 @@ type FileStoreCore struct {
 	Directory             string         `gorm:"not null" json:"directory"`
 	Username              string         `json:"username"`
 	Password              string         `json:"password"`
+	Mem                   float64        `json:"mem"`
 	IsContainFastNetspeed bool           `gorm:"not null" json:"is_contain_fast_netspeed"`
 }

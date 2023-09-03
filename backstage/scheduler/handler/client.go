@@ -24,6 +24,7 @@ var upGrader = websocket.Upgrader{
 	handler for endpoint "/api/scheduler/wsconnect"
 */
 func (h *Handler) WSConnect(c *gin.Context) {
+	// todo: consumer create time
 	// extract client type from url
 	clientType, ok := c.GetQuery("type")
 	if !ok {
@@ -68,8 +69,15 @@ func (h *Handler) WSConnect(c *gin.Context) {
 		h.ConsumerService.InitRecvRoute(ctx, consumer)
 
 	case model.CLIENT_TYPE_PROVIDER:
+		uuid, ok := c.GetQuery("uuid")
+		if !ok {
+			log.WithFields(log.Fields{
+				"Client Address": c.Request.Host,
+			}).Error("Failed to extract uuid, invalid websocket connection request, abandoned")
+			return
+		}
 		// create provider instance and start to serve it
-		provider, err := h.ProviderService.CreateProvider(ctx, ws)
+		provider, err := h.ProviderService.CreateProvider(ctx, ws, uuid)
 		if err != nil {
 			return
 		}
@@ -78,16 +86,17 @@ func (h *Handler) WSConnect(c *gin.Context) {
 		h.ProviderService.InitRecvRoute(ctx, provider)
 
 	case model.CLIENT_TYPE_DEPOSITARY:
-		// todo
+		// not need now
 
 	case model.CLIENT_TYPE_FILESTORE:
-		// todo
+		// not need now
 
 	default:
 		// leave empty
 	}
 }
 
+// NodeOnline register node to rds
 func (h *Handler) NodeOnline(c *gin.Context) {
 	nodeType, ok := c.GetQuery("type")
 	if !ok {
@@ -107,35 +116,143 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		return
 	}
 
-	// upgrade to websocket connection
-	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"Node Address": c.Request.Host,
-			"error":        err,
-		}).Warn("Failed to upgrade to websocket connection, abandoned")
-		return
-	}
+	log.Info("type: ", nodeType)
 
 	ctx := c.Request.Context()
 
 	switch nodeType {
 	case model.CLIENT_TYPE_PROVIDER:
-		var reqPacketData struct {
-			StreamInstanceID string `json:"stream_instance_id"`
+		var headerData model.ProviderCore
+		if err := c.BindJSON(&headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error": err.Error(),
+				}).Error("Failed to extract provider json data")
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
 		}
+		if err := h.ProviderService.CreateProviderInRDS(ctx, &headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Error("Failed to register provider to rds")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		h.ProviderService.ShowEnterInfo(ctx, &headerData)
+		h.ProviderService.ShowAllInfo(ctx)
 
 	case model.CLIENT_TYPE_DEPOSITARY:
-		// todo
+		var headerData model.DepositoryCore
+		if err := c.BindJSON(&headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error": err.Error(),
+				}).Warn("Failed to extract depository json data")
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := h.DepositoryService.CreateDepositoryInRDS(ctx, &headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to register depository to rds")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		h.DepositoryService.ShowEnterInfo(ctx, &headerData)
+		h.DepositoryService.ShowAllInfo(ctx)
 
 	case model.CLIENT_TYPE_FILESTORE:
-		// todo
+		var headerData model.FileStoreCore
+		if err := c.BindJSON(&headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error": err.Error(),
+				}).Warn("Failed to extract FileStore json data")
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := h.FileStoreService.CreateFileStoreInRDS(ctx, &headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to register FileStore to rds")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		h.FileStoreService.ShowEnterInfo(ctx, &headerData)
+		h.FileStoreService.ShowAllInfo(ctx)
 
 	default:
 		// leave empty
 	}
 }
 
+// ApplicationOnline register application to rds
 func (h *Handler) ApplicationOnline(c *gin.Context) {
-	// todo:
+	ctx := c.Request.Context()
+	type newReqData struct {
+		model.StreamApplication
+		NewFileStoreID string `json:"new_file_store_id"`
+	}
+	var headerData newReqData
+	if err := c.BindJSON(&headerData); err != nil {
+		log.WithFields(
+			log.Fields{
+				"error": err.Error(),
+			}).Warn("Failed to extract stream application json data")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	appCore := model.StreamApplication{
+		StreamApplicationCore: model.StreamApplicationCore{},
+		ApplicationCore: model.ApplicationCore{
+			ApplicationName: headerData.ApplicationName,
+			ApplicationID:   headerData.ApplicationID,
+			ApplicationPath: headerData.ApplicationPath,
+			ApplicationFile: headerData.ApplicationFile,
+			HWKey:           headerData.HWKey,
+			OperatingSystem: headerData.OperatingSystem,
+			CreateUser:      headerData.CreateUser,
+			Description:     headerData.Description,
+			UsageCount:      headerData.UsageCount,
+		},
+		AppInfoAttach: model.AppInfoAttach{
+			FileStoreList:               headerData.FileStoreList,
+			IsProviderReqGPU:            headerData.IsProviderReqGPU,
+			IsFileStoreReqFastNetspeed:  headerData.IsFileStoreReqFastNetspeed,
+			IsDepositoryReqFastNetspeed: headerData.IsDepositoryReqFastNetspeed,
+		},
+	}
+	if headerData.NewFileStoreID == "" {
+		if err := h.ApplicationService.CreateStreamApplication(ctx, &appCore); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("CreateStreamApplication, Failed to register stream application to rds")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		if err := h.ApplicationService.AddFileStoreIDToAPPInRDS(ctx, &appCore, headerData.NewFileStoreID); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("AddFileStoreIDToAPPInRDS, Failed to register stream application to rds")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+	h.ApplicationService.ShowEnterInfo(ctx, &appCore, headerData.NewFileStoreID)
+	h.ApplicationService.ShowAllInfo(ctx)
+}
+
+func (h *Handler) Clear(c *gin.Context) {
+	h.ConsumerService.Clear()
 }

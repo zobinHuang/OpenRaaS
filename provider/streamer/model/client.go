@@ -1,10 +1,10 @@
 package model
 
 /*
-	@model: DepositaryCore
-	@description: metadata for depositary client
+	@model: DepositoryCore
+	@description: metadata for depository client
 */
-type DepositaryCore struct {
+type DepositoryCore struct {
 	HostAddress string `json:"host_address"`
 	Port        string `json:"port"`
 }

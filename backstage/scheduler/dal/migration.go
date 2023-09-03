@@ -23,7 +23,7 @@ func dBMigrator(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.DepositaryCore{})
+	err = db.AutoMigrate(&model.DepositoryCore{})
 	if err != nil {
 		return err
 	}
