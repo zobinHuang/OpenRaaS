@@ -16,17 +16,18 @@ type RDbService interface {
 }
 
 /*
-	interface: TokenService
-	description: interface of token service for
-			user authorization
+interface: TokenService
+description: interface of token service for
+
+	user authorization
 */
 type TokenService interface {
 	ValidateIDToken(tokenString string) (*User, error)
 }
 
 /*
-	interface: ConsumerService
-	description: interface of consumer service
+interface: ConsumerService
+description: interface of consumer service
 */
 type ConsumerService interface {
 	CreateConsumer(ctx context.Context, ws *websocket.Conn) (*Consumer, error)
@@ -34,8 +35,8 @@ type ConsumerService interface {
 }
 
 /*
-	interface: ApplicationService
-	description: interface of application service
+interface: ApplicationService
+description: interface of application service
 */
 type ApplicationService interface {
 	GetStreamApplicationsCount(ctx context.Context) (int64, error)
@@ -44,18 +45,36 @@ type ApplicationService interface {
 }
 
 /*
-	interface: ProviderService
-	description: interface of provider service
+interface: ProviderService
+description: interface of provider service
 */
 type ProviderService interface {
 	CreateProvider(ctx context.Context, ws *websocket.Conn) (*Provider, error)
 	InitRecvRoute(ctx context.Context, provider *Provider)
 }
 
+/*
+interface: FileStoreService
+description: interface of FileStore service
+*/
+type FileStoreService interface {
+	CreateFileStore(ctx context.Context, ws *websocket.Conn) (*FileStore, error)
+	InitRecvRoute(ctx context.Context, provider *FileStore)
+}
+
+/*
+interface: DepositaryService
+description: interface of Depositary service
+*/
+type DepositaryService interface {
+	CreateDepositary(ctx context.Context, ws *websocket.Conn) (*FileStore, error)
+	InitRecvRoute(ctx context.Context, provider *FileStore)
+}
+
 // --------- Service Core Layer Interface ---------
 type ScheduleServiceCore interface {
 	CreateStreamInstanceRoom(ctx context.Context, provider *Provider, consumer *Consumer, streamInstance *StreamInstance) (*StreamInstanceRoom, error)
-	ScheduleStream(ctx context.Context, streamInstance *StreamInstance) (*Provider, []DepositaryCore, []FilestoreCore, error)
+	ScheduleStream(ctx context.Context, streamInstance *StreamInstance) (*Provider, []DepositaryCore, []FileStoreCore, error)
 }
 
 // --------- DAL Layer Interface ---------
@@ -68,8 +87,8 @@ type RDbDAL interface {
 }
 
 /*
-	interface: ConsumerDAL
-	description: interface of data access layer for consumer
+interface: ConsumerDAL
+description: interface of data access layer for consumer
 */
 type ConsumerDAL interface {
 	CreateConsumer(ctx context.Context, consumer *Consumer)
@@ -78,36 +97,44 @@ type ConsumerDAL interface {
 }
 
 /*
-	interface: ProviderDAL
-	description: interface of data access layer for provider
+interface: ProviderDAL
+description: interface of data access layer for provider
 */
 type ProviderDAL interface {
-	CreateProvider(ctx context.Context, provider *Provider)
-	DeleteProvider(ctx context.Context, providerID string)
-	GetFirstProvider(ctx context.Context) *Provider
+	GetProvider(ctx context.Context) ([]Provider, error)
+	GetProviderByID(ctx context.Context, id string) (*Provider, error)
+	DeleteProviderByID(ctx context.Context, id string) error
+	UpdateProviderByID(ctx context.Context, info *Provider) error
+	CreateProvider(ctx context.Context, info *Provider) error
 }
 
 /*
-	interface: DepositaryDAL
-	description: interface of data access layer for depositary
+interface: DepositaryDAL
+description: interface of data access layer for depositary
 */
 type DepositaryDAL interface {
-	CreateDepositary(ctx context.Context, depositary *Depositary)
-	DeleteDepositary(ctx context.Context, depositaryID string)
+	GetDepositary(ctx context.Context) ([]Depositary, error)
+	GetDepositaryByID(ctx context.Context, id string) (*Depositary, error)
+	DeleteDepositaryByID(ctx context.Context, id string) error
+	UpdateDepositaryByID(ctx context.Context, info *Depositary) error
+	CreateDepositary(ctx context.Context, info *Depositary) error
 }
 
 /*
-	interface: FilestoreDAL
-	description: interface of data access layer for filestore
+interface: FileStoreDAL
+description: interface of data access layer for filestore
 */
-type FilestoreDAL interface {
-	CreateFilestore(ctx context.Context, filestore *Filestore)
-	DeleteFilestore(ctx context.Context, filestoreID string)
+type FileStoreDAL interface {
+	GetFileStore(ctx context.Context) ([]FileStore, error)
+	GetFileStoreByID(ctx context.Context, id string) (*FileStore, error)
+	DeleteFileStoreByID(ctx context.Context, id string) error
+	UpdateFileStoreByID(ctx context.Context, info *FileStore) error
+	CreateFileStore(ctx context.Context, info *FileStore) error
 }
 
 /*
-	interface: InstanceRoomDAL
-	description: interface of data access layer for instance room
+interface: InstanceRoomDAL
+description: interface of data access layer for instance room
 */
 type InstanceRoomDAL interface {
 	CreateStreamInstanceRoom(ctx context.Context, streamInstanceRoom *StreamInstanceRoom)
@@ -117,13 +144,17 @@ type InstanceRoomDAL interface {
 }
 
 /*
-	interface: ApplicationDAL
-	description: interface of data access layer for application
+interface: ApplicationDAL
+description: interface of data access layer for application
 */
 type ApplicationDAL interface {
 	GetStreamApplicationsCount(ctx context.Context) (int64, error)
+	GetStreamApplication(ctx context.Context) ([]StreamApplication, error)
 	GetStreamApplicationByID(ctx context.Context, applicationID string) (*StreamApplication, error)
 	GetStreamApplicationsOrderedByUpdateTime(ctx context.Context, listLength int, listID int) ([]*StreamApplication, error)
 	GetStreamApplicationsOrderedByName(ctx context.Context, listLength int, listID int) ([]*StreamApplication, error)
 	GetStreamApplicationsOrderedByUsageCount(ctx context.Context, listLength int, listID int) ([]*StreamApplication, error)
+	DeleteStreamApplicationByID(ctx context.Context, id string) error
+	UpdateStreamApplicationByID(ctx context.Context, info *StreamApplication) error
+	CreateStreamApplication(ctx context.Context, info *StreamApplication) error
 }

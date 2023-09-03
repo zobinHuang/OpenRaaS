@@ -9,7 +9,7 @@
 # 6. "app"/"game"
 # 7. screen width
 # 8. screen height 
-# 9. target host IP of the RTP protocal
+# 9. target host IP of the RTP protocol
 # 10. frame
 # 11. vcodec
 # 12.(optional) optional parameters to run the app/game

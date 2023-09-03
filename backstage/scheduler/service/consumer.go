@@ -13,8 +13,8 @@ import (
 )
 
 /*
-	@struct: ConsumerService
-	@description: service layer
+@struct: ConsumerService
+@description: service layer
 */
 type ConsumerService struct {
 	ICEServers          string
@@ -25,8 +25,8 @@ type ConsumerService struct {
 }
 
 /*
-	@struct: ConsumerServiceConfig
-	@description: used for config instance of struct ConsumerService
+@struct: ConsumerServiceConfig
+@description: used for config instance of struct ConsumerService
 */
 type ConsumerServiceConfig struct {
 	ICEServers          string
@@ -37,9 +37,10 @@ type ConsumerServiceConfig struct {
 }
 
 /*
-	@func: NewConsumerService
-	@description:
-		create, config and return an instance of struct ConsumerService
+@func: NewConsumerService
+@description:
+
+	create, config and return an instance of struct ConsumerService
 */
 func NewConsumerService(c *ConsumerServiceConfig) model.ConsumerService {
 	return &ConsumerService{
@@ -52,9 +53,10 @@ func NewConsumerService(c *ConsumerServiceConfig) model.ConsumerService {
 }
 
 /*
-	@func: CreateConsumer
-	@description:
-		create a new consumer instance and start to serve it
+@func: CreateConsumer
+@description:
+
+	create a new consumer instance and start to serve it
 */
 func (s *ConsumerService) CreateConsumer(ctx context.Context, ws *websocket.Conn) (*model.Consumer, error) {
 	// initialize client instance
@@ -97,9 +99,10 @@ func (s *ConsumerService) CreateConsumer(ctx context.Context, ws *websocket.Conn
 }
 
 /*
-	@func: InitRecvRoute
-	@description:
-		initialize receiving callback for consumer instance
+@func: InitRecvRoute
+@description:
+
+	initialize receiving callback for consumer instance
 */
 func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Consumer) {
 	/*
@@ -279,11 +282,11 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		reqToProvider := struct {
 			StreamInstance model.StreamInstance   `json:"stream_instance"`
 			DepositaryList []model.DepositaryCore `json:"depositary_list"`
-			FilestoreList  []model.FilestoreCore  `json:"filestore_list"`
+			FileStoreList  []model.FileStoreCore  `json:"filestore_list"`
 		}{
 			StreamInstance: *streamInstance, // metadata of application instance
 			DepositaryList: depositaryList,  // metadata of depositary nodes
-			FilestoreList:  filestoreList,   // metadata of filestore nodes
+			FileStoreList:  filestoreList,   // metadata of filestore nodes
 		}
 
 		// register instance room

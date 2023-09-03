@@ -2,14 +2,14 @@
 
 # Parameter
 # 1. vmid of target instance
-# 2. protocal
+# 2. protocol
 # 3. server address
 # 4. directory path
 # 5.(optional) username
 # 6.(optional) password
 
 # Notice
-# 1. The server address of webdav protocal should be `IP:Port`
+# 1. The server address of webdav protocol should be `IP:Port`
 # 2. The path is given in `/example/apps` format
 # 3. When execute this script, you should check your root directory (e.g. at the same dir of this script)
 # 4. Mount command asks for sudo privilege
@@ -19,7 +19,7 @@
 # sudo expect ./auto-mount.exp 1 davfs 192.168.10.189:7189 /public_hdd/game/PC/dcwine kb109 ******
 
 set container_id [lindex $argv 0]
-set protocal [lindex $argv 1]
+set protocol [lindex $argv 1]
 set server_addr [lindex $argv 2]
 set server_dir [lindex $argv 3]
 set username [lindex $argv 4]
@@ -37,7 +37,7 @@ if { [ file exists "../winetools/apps/${appdir_name}" ] == 0} {
 
 set mount_point "../winetools/apps/${appdir_name}"
 
-if { $protocal == "webdav" || $protocal == "davfs" } {
+if { $protocol == "webdav" || $protocol == "davfs" } {
   set timeout 10
   spawn mount -F -t davfs ${server_addr}${server_dir} ${mount_point}
   expect "Username:" { send "${username}\r" }

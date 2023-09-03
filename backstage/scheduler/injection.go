@@ -19,8 +19,8 @@ import (
 )
 
 /*
-	func: inject
-	description: build layer architecture
+func: inject
+description: build layer architecture
 */
 func inject(ds *dal.DataSource) (*gin.Engine, error) {
 	log.Info("Injecting data sources")
@@ -30,7 +30,7 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 	comsumerDAL := dal.NewConsumerDAL(&dal.ConsumerDALConfig{})
 	providerDAL := dal.NewProviderDAL(&dal.ProviderDALConfig{})
 	depositaryDAL := dal.NewDepositaryDAL(&dal.DepositaryDALConfig{})
-	filestoreDAL := dal.NewFilestoreDAL(&dal.FilestoreDALConfig{})
+	filestoreDAL := dal.NewFileStoreDAL(&dal.FileStoreDALConfig{})
 	instanceRoomDAL := dal.NewInstanceRoomDAL(&dal.InstanceRoomDALConfig{})
 	applicationDAL := dal.NewApplicationDAL(&dal.ApplicationDALConfig{
 		DB: ds.DB,
@@ -41,7 +41,7 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 		ConsumerDAL:     comsumerDAL,
 		ProviderDAL:     providerDAL,
 		DepositaryDAL:   depositaryDAL,
-		FilestoreDAL:    filestoreDAL,
+		FileStoreDAL:    filestoreDAL,
 		InstanceRoomDAL: instanceRoomDAL,
 	})
 

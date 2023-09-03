@@ -13,8 +13,8 @@ import (
 )
 
 /*
-	func: CreateInstance
-	description: handler for endpoint "/api/daemon/createinstance"
+func: CreateInstance
+description: handler for endpoint "/api/daemon/createinstance"
 */
 func (h *Handler) CreateInstance(c *gin.Context) {
 	instanceModel := &model.InstanceModel{}
@@ -38,8 +38,8 @@ func (h *Handler) CreateInstance(c *gin.Context) {
 }
 
 /*
-	func: CreateInstanceWithModel
-	description: use input instanceModel to create a new wine instance
+func: CreateInstanceWithModel
+description: use input instanceModel to create a new wine instance
 */
 func (h *Handler) CreateInstanceWithModel(ctx context.Context, instanceModel *model.InstanceModel) error {
 	// Return a tunnel to which you can pass a random parameter if you want to shut down the VM （done <- struct{}）
@@ -52,8 +52,8 @@ func (h *Handler) CreateInstanceWithModel(ctx context.Context, instanceModel *mo
 }
 
 /*
-	func: DeleteInstance
-	description: handler for endpoint "/api/daemon/deleteinstance"
+func: DeleteInstance
+description: handler for endpoint "/api/daemon/deleteinstance"
 */
 func (h *Handler) DeleteInstance(c *gin.Context) {
 	// bind request
@@ -76,8 +76,8 @@ func (h *Handler) DeleteInstance(c *gin.Context) {
 }
 
 /*
-	func: DeleteInstanceWithModel
-	description: use input deleteModel to delete the target wine instance
+func: DeleteInstanceWithModel
+description: use input deleteModel to delete the target wine instance
 */
 func (h *Handler) DeleteInstanceWithModel(ctx context.Context, deleteModel *model.DeleteInstanceModel) error {
 	var err error
@@ -97,8 +97,8 @@ func (h *Handler) DeleteInstanceWithModel(ctx context.Context, deleteModel *mode
 }
 
 /*
-	func: SelectFilestore
-	description: check network connection status between host and storage servers, and select one as schedule target
+func: SelectFilestore
+description: check network connection status between host and storage servers, and select one as schedule target
 */
 func (h *Handler) SelectFilestore(ctx context.Context, instanceModel *model.InstanceModel) error {
 	/* Test */
@@ -106,7 +106,7 @@ func (h *Handler) SelectFilestore(ctx context.Context, instanceModel *model.Inst
 
 	filestore.HostAddress = "kb109.dynv6.net"
 	filestore.Port = "7189"
-	filestore.Protocal = "davfs"
+	filestore.Protocol = "davfs"
 	filestore.Username = "kb109"
 	filestore.Password = "Xusir666!"
 	filestore.Directory = "/public_hdd/game/PC/dcwine"
@@ -120,8 +120,8 @@ func (h *Handler) SelectFilestore(ctx context.Context, instanceModel *model.Inst
 }
 
 /*
-	func: SelectDepository
-	description: check network connection status between host and depository servers, and select one as schedule target
+func: SelectDepository
+description: check network connection status between host and depository servers, and select one as schedule target
 */
 func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
 	/* Test */
@@ -139,8 +139,8 @@ func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.Ins
 }
 
 /*
-	func: MountFilestore
-	description: mount the target cloud storage directory
+func: MountFilestore
+description: mount the target cloud storage directory
 */
 func (h *Handler) MountFilestore(ctx context.Context, instanceModel *model.InstanceModel) error {
 	err := h.InstanceService.MountFilestore(ctx, instanceModel.VMID, instanceModel.TargetFilestore)
@@ -153,8 +153,8 @@ func (h *Handler) MountFilestore(ctx context.Context, instanceModel *model.Insta
 }
 
 /*
-	func: FetchDepositary
-	description: fetch the docker layer including some configuration of the app's installation from the target depositary server
+func: FetchDepositary
+description: fetch the docker layer including some configuration of the app's installation from the target depositary server
 */
 func (h *Handler) FetchDepositary(ctx context.Context, instanceModel *model.InstanceModel) error {
 	err := h.InstanceService.FetchLayerFromDepositary(ctx, instanceModel.VMID, instanceModel.TargetDepositary)

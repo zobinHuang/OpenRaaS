@@ -11,8 +11,8 @@ import (
 )
 
 /*
-	struct: Handler
-	description: handler layer
+struct: Handler
+description: handler layer
 */
 type Handler struct {
 	RDbService         model.RDbService
@@ -23,8 +23,8 @@ type Handler struct {
 }
 
 /*
-	struct: Config
-	description: used for config instance of struct Handler
+struct: Config
+description: used for config instance of struct Handler
 */
 type Config struct {
 	R                  *gin.Engine
@@ -38,8 +38,8 @@ type Config struct {
 }
 
 /*
-	func: NewHandler
-	description: define endpoints for handler, and map each endpoint to handler func
+func: NewHandler
+description: define endpoints for handler, and map each endpoint to handler func
 */
 func NewHandler(c *Config) {
 	h := &Handler{
@@ -65,6 +65,13 @@ func NewHandler(c *Config) {
 
 	// add timeout middleware
 	g.Use(middleware.Timeout(c.TimeoutDuration, apperrors.NewServiceUnavailable()))
+
+	// disable authentication for debug
+	// g.GET("/node_online", middleware.AuthUser(h.TokenService), h.NodeOnline)
+	g.POST("node_online", h.NodeOnline)
+
+	// g.GET("/application_online", middleware.AuthUser(h.TokenService), h.ApplicationOnline)
+	g.POST("application_online", h.ApplicationOnline)
 
 	// disable authentication for debug
 	// g.GET("/wsconnect", middleware.AuthUser(h.TokenService), h.WSConnect)

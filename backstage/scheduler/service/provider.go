@@ -13,8 +13,8 @@ import (
 )
 
 /*
-	@struct: ProviderService
-	@description: service layer
+@struct: ProviderService
+@description: service layer
 */
 type ProviderService struct {
 	InstanceRoomDAL model.InstanceRoomDAL
@@ -24,8 +24,8 @@ type ProviderService struct {
 }
 
 /*
-	@struct: ProviderServiceConfig
-	@description: used for config instance of struct ProviderService
+@struct: ProviderServiceConfig
+@description: used for config instance of struct ProviderService
 */
 type ProviderServiceConfig struct {
 	ICEServers      string
@@ -35,9 +35,10 @@ type ProviderServiceConfig struct {
 }
 
 /*
-	@func: NewProviderService
-	@description:
-		create, config and return an instance of struct ProviderService
+@func: NewProviderService
+@description:
+
+	create, config and return an instance of struct ProviderService
 */
 func NewProviderService(c *ProviderServiceConfig) model.ProviderService {
 	return &ProviderService{
@@ -49,9 +50,10 @@ func NewProviderService(c *ProviderServiceConfig) model.ProviderService {
 }
 
 /*
-	@func: CreateProvider
-	@description:
-		create a new provider instance and start to serve it
+@func: CreateProvider
+@description:
+
+	create a new provider instance and start to serve it
 */
 func (s *ProviderService) CreateProvider(ctx context.Context, ws *websocket.Conn) (*model.Provider, error) {
 	// initialize client instance
@@ -94,9 +96,10 @@ func (s *ProviderService) CreateProvider(ctx context.Context, ws *websocket.Conn
 }
 
 /*
-	@func: InitRecvRoute
-	@description:
-		initialize receiving callback for provider instance
+@func: InitRecvRoute
+@description:
+
+	initialize receiving callback for provider instance
 */
 func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Provider) {
 	/*
@@ -186,8 +189,8 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 		// define request format
 		var reqPacketData struct {
 			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepository model.DepositaryCore `json:"selected_depository"`
-			SelectedFilestore  model.FilestoreCore  `json:"selected_filestore"`
+			SelectedDepositary model.DepositaryCore `json:"selected_depositary"`
+			SelectedFileStore  model.FileStoreCore  `json:"selected_filestore"`
 		}
 
 		// parse request
@@ -203,17 +206,17 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 		log.WithFields(log.Fields{
 			"Stream Instance ID":  reqPacketData.StreamInstanceID,
-			"Selected Depository": fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.HostAddress, reqPacketData.SelectedDepository.Port),
-			"Selected Filestore":  fmt.Sprintf("%s:%s", reqPacketData.SelectedFilestore.HostAddress, reqPacketData.SelectedFilestore.Port),
+			"Selected Depositary": fmt.Sprintf("%s:%s", reqPacketData.SelectedDepositary.HostAddress, reqPacketData.SelectedDepositary.Port),
+			"Selected FileStore":  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.HostAddress, reqPacketData.SelectedFileStore.Port),
 		}).Info("Notification from daemon of successfully selecting storage node")
 
 		// construct responses to consumers
 		respToConsumers := struct {
-			TargetDepository string `json:"target_depository"`
-			TargetFilestore  string `json:"target_filestore"`
+			TargetDepositary string `json:"target_depositary"`
+			TargetFileStore  string `json:"target_filestore"`
 		}{
-			TargetDepository: fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.HostAddress, reqPacketData.SelectedDepository.Port),
-			TargetFilestore:  fmt.Sprintf("%s:%s", reqPacketData.SelectedFilestore.HostAddress, reqPacketData.SelectedFilestore.Port),
+			TargetDepositary: fmt.Sprintf("%s:%s", reqPacketData.SelectedDepositary.HostAddress, reqPacketData.SelectedDepositary.Port),
+			TargetFileStore:  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.HostAddress, reqPacketData.SelectedFileStore.Port),
 		}
 		respToConsumersString, err := json.Marshal(respToConsumers)
 		if err != nil {

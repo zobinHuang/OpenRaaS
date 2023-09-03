@@ -2,52 +2,66 @@ package dal
 
 import (
 	"context"
+	"gorm.io/gorm"
 
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 )
 
 /*
-	@struct: FilestoreDAL
-	@description: DAL layer
+@struct: FileStoreDAL
+@description: DAL layer
 */
-type FilestoreDAL struct {
-	FilestoreList map[string]*model.Filestore
+type FileStoreDAL struct {
+	DB *gorm.DB
 }
 
 /*
-	@struct: FilestoreDALConfig
-	@description: used for config instance of struct FilestoreDAL
+@struct: FileStoreDALConfig
+@description: used for config instance of struct FileStoreDAL
 */
-type FilestoreDALConfig struct {
+type FileStoreDALConfig struct {
+	DB *gorm.DB
 }
 
 /*
-	@func: NewFilestoreDAL
-	@description:
-		create, config and return an instance of struct FilestoreDAL
+@func: NewFileStoreDAL
+@description:
+
+	create, config and return an instance of struct FileStoreDAL
 */
-func NewFilestoreDAL(c *FilestoreDALConfig) model.FilestoreDAL {
-	ddal := &FilestoreDAL{}
-
-	ddal.FilestoreList = make(map[string]*model.Filestore)
-
-	return ddal
+func NewFileStoreDAL(c *FileStoreDALConfig) model.FileStoreDAL {
+	return &FileStoreDAL{
+		DB: c.DB,
+	}
 }
 
 /*
-	@func: CreateFilestore
-	@description:
-		insert a new filestore to Filestore list
+@func: CreateFileStore
+@description:
+
+	insert a new filestore to FileStore list
 */
-func (d *FilestoreDAL) CreateFilestore(ctx context.Context, filestore *model.Filestore) {
-	d.FilestoreList[filestore.ClientID] = filestore
+func (d *FileStoreDAL) CreateFileStore(ctx context.Context, info *model.FileStore) error {
+	// todo
+	return nil
 }
 
 /*
-	@func: DeleteFilestore
-	@description:
-		delete the specified filestore from Filestore list
+@func: DeleteFileStore
+@description:
+
+	delete the specified filestore from FileStore list
 */
-func (d *FilestoreDAL) DeleteFilestore(ctx context.Context, filestoreID string) {
-	delete(d.FilestoreList, filestoreID)
+func (d *FileStoreDAL) DeleteFileStoreByID(ctx context.Context, id string) error {
+	return nil
+}
+
+func (d *FileStoreDAL) GetFileStore(ctx context.Context) ([]model.FileStore, error) {
+	return nil, nil
+}
+func (d *FileStoreDAL) GetFileStoreByID(ctx context.Context, id string) (*model.FileStore, error) {
+	return nil, nil
+}
+func (d *FileStoreDAL) UpdateFileStoreByID(ctx context.Context, info *model.FileStore) error {
+	return nil
 }

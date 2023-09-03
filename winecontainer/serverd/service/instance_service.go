@@ -12,8 +12,8 @@ import (
 )
 
 /*
-	struct: InstanceService
-	description: visual machine instance service
+struct: InstanceService
+description: visual machine instance service
 */
 type InstanceService struct {
 	instances  map[int]*model.InstanceModel // store existed wine container, {vmid: InstanceModel}
@@ -21,15 +21,15 @@ type InstanceService struct {
 }
 
 /*
-	struct: InstanceServiceConfig
-	description: used for config instance of struct InstanceService
+struct: InstanceServiceConfig
+description: used for config instance of struct InstanceService
 */
 type InstanceServiceConfig struct {
 }
 
 /*
-	func: NewInstanceService
-	description: create, config and return an instance of struct InstanceService
+func: NewInstanceService
+description: create, config and return an instance of struct InstanceService
 */
 func NewInstanceService(c *InstanceServiceConfig) model.InstanceService {
 	instanceService := &InstanceService{}
@@ -61,8 +61,8 @@ func getClientIp() (string, error) {
 }
 
 /*
-	func: NewVMID
-	description: find a usable vmid
+func: NewVMID
+description: find a usable vmid
 */
 func (c *InstanceService) NewVMID(ctx context.Context, instanceModel *model.InstanceModel) error {
 	// find out an unused vm_id
@@ -80,8 +80,8 @@ func (c *InstanceService) NewVMID(ctx context.Context, instanceModel *model.Inst
 }
 
 /*
-	func: LaunchInstance
-	description: run a wine container on the host, and return a channel instance used for closing the container
+func: LaunchInstance
+description: run a wine container on the host, and return a channel instance used for closing the container
 */
 func (c *InstanceService) LaunchInstance(ctx context.Context, instanceModel *model.InstanceModel) chan struct{} {
 	/* The current version can only be deployed on Linux */
@@ -141,8 +141,8 @@ func (c *InstanceService) LaunchInstance(ctx context.Context, instanceModel *mod
 }
 
 /*
-	func: DeleteInstance
-	description: delete a target wine container with vmid
+func: DeleteInstance
+description: delete a target wine container with vmid
 */
 func (c *InstanceService) DeleteInstance(ctx context.Context, vmid int) error {
 	instanceModel, ok := c.instances[vmid]
@@ -189,8 +189,8 @@ func (c *InstanceService) DeleteInstance(ctx context.Context, vmid int) error {
 }
 
 /*
-	func: DeleteInstanceByInstanceid
-	description: delete a target wine container with Instanceid
+func: DeleteInstanceByInstanceid
+description: delete a target wine container with Instanceid
 */
 func (c *InstanceService) DeleteInstanceByInstanceid(ctx context.Context, Instanceid string) error {
 	vmid := -1
@@ -212,8 +212,8 @@ func (c *InstanceService) DeleteInstanceByInstanceid(ctx context.Context, Instan
 }
 
 /*
-	func: DeleteAllInstance
-	description: used when shutting down this daemon
+func: DeleteAllInstance
+description: used when shutting down this daemon
 */
 func (c *InstanceService) DeleteAllInstance(ctx context.Context) error {
 	fmt.Println("invoked(DeleteAllInstance)")
@@ -238,8 +238,8 @@ func (c *InstanceService) DeleteAllInstance(ctx context.Context) error {
 }
 
 /*
-	func: MountFilestore
-	description: mount the target cloud storage directory
+func: MountFilestore
+description: mount the target cloud storage directory
 */
 func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestore model.FilestoreCore) error {
 	/* The current version can only be deployed on Linux */
@@ -254,7 +254,7 @@ func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestor
 	// Add params
 	params = append(params, "../winetools/auto-mount.exp")
 	params = append(params, strconv.Itoa(vmid))
-	params = append(params, filestore.Protocal)
+	params = append(params, filestore.Protocol)
 	params = append(params, filestore.HostAddress+":"+filestore.Port)
 	params = append(params, filestore.Directory)
 	params = append(params, filestore.Username)
@@ -270,8 +270,8 @@ func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestor
 }
 
 /*
-	func: FetchLayerFromDepositary
-	description: fetch the docker layer including some configuration of the app's installation from the target depositary server
+func: FetchLayerFromDepositary
+description: fetch the docker layer including some configuration of the app's installation from the target depositary server
 */
 func (c *InstanceService) FetchLayerFromDepositary(ctx context.Context, vmid int, depositary model.DepositaryCore) error {
 	// TODO complete model.Depositary

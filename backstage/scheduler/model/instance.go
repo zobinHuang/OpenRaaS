@@ -1,9 +1,10 @@
 package model
 
 /*
-	@model: StreamInstance
-	@description:
-		represent an instance of stream application
+@model: StreamInstance
+@description:
+
+	represent an instance of stream application
 */
 type StreamInstance struct {
 	*StreamApplication
@@ -15,9 +16,10 @@ type StreamInstance struct {
 }
 
 /*
-	@model: StreamInstanceRoom
-	@description:
-		room of a initialized stream application instance
+@model: StreamInstanceRoom
+@description:
+
+	room of a initialized stream application instance
 */
 type StreamInstanceRoom struct {
 	*StreamInstance
@@ -28,6 +30,6 @@ type StreamInstanceRoom struct {
 	SelectedDepositary      *Depositary
 	PotentialDepositaryList map[string]*Depositary
 
-	SelectedFilestore      *Filestore
-	PotentialFilestoreList map[string]*Filestore
+	SelectedFileStore      *FileStore
+	PotentialFileStoreList map[string]*FileStore
 }

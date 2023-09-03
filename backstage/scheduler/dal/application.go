@@ -11,25 +11,26 @@ import (
 )
 
 /*
-	@struct: ApplicationDAL
-	@description: DAL layer
+@struct: ApplicationDAL
+@description: DAL layer
 */
 type ApplicationDAL struct {
 	DB *gorm.DB
 }
 
 /*
-	@struct: ApplicationDALConfig
-	@description: used for config instance of struct ApplicationDAL
+@struct: ApplicationDALConfig
+@description: used for config instance of struct ApplicationDAL
 */
 type ApplicationDALConfig struct {
 	DB *gorm.DB
 }
 
 /*
-	@func: NewApplicationDAL
-	@description:
-		create, config and return an instance of struct ApplicationDAL
+@func: NewApplicationDAL
+@description:
+
+	create, config and return an instance of struct ApplicationDAL
 */
 func NewApplicationDAL(c *ApplicationDALConfig) model.ApplicationDAL {
 	return &ApplicationDAL{
@@ -38,9 +39,10 @@ func NewApplicationDAL(c *ApplicationDALConfig) model.ApplicationDAL {
 }
 
 /*
-	@func: GetStreamApplicationByID
-	@description:
-		obtain stream application according to given application id
+@func: GetStreamApplicationByID
+@description:
+
+	obtain stream application according to given application id
 */
 func (d *ApplicationDAL) GetStreamApplicationByID(ctx context.Context, applicationID string) (*model.StreamApplication, error) {
 	// initialize context
@@ -61,9 +63,10 @@ func (d *ApplicationDAL) GetStreamApplicationByID(ctx context.Context, applicati
 }
 
 /*
-	@func: GetStreamApplicationsOrderedByUpdateTime
-	@description:
-		obtain stream application list, ordered by update time
+@func: GetStreamApplicationsOrderedByUpdateTime
+@description:
+
+	obtain stream application list, ordered by update time
 */
 func (d *ApplicationDAL) GetStreamApplicationsOrderedByUpdateTime(ctx context.Context, listLength int, listID int) ([]*model.StreamApplication, error) {
 	// initialize application list
@@ -86,9 +89,10 @@ func (d *ApplicationDAL) GetStreamApplicationsOrderedByUpdateTime(ctx context.Co
 }
 
 /*
-	@func: GetStreamApplicationsOrderedByName
-	@description:
-		obtain stream application list, ordered by application name
+@func: GetStreamApplicationsOrderedByName
+@description:
+
+	obtain stream application list, ordered by application name
 */
 func (d *ApplicationDAL) GetStreamApplicationsOrderedByName(ctx context.Context, listLength int, listID int) ([]*model.StreamApplication, error) {
 	// initialize application list
@@ -111,9 +115,10 @@ func (d *ApplicationDAL) GetStreamApplicationsOrderedByName(ctx context.Context,
 }
 
 /*
-	@func: GetStreamApplicationsOrderedByUsageCount
-	@description:
-		obtain stream application list, ordered by usage count
+@func: GetStreamApplicationsOrderedByUsageCount
+@description:
+
+	obtain stream application list, ordered by usage count
 */
 func (d *ApplicationDAL) GetStreamApplicationsOrderedByUsageCount(ctx context.Context, listLength int, listID int) ([]*model.StreamApplication, error) {
 	// initialize application list
@@ -136,9 +141,10 @@ func (d *ApplicationDAL) GetStreamApplicationsOrderedByUsageCount(ctx context.Co
 }
 
 /*
-	@func: GetStreamApplicationsCount
-	@description:
-		obtain total count of stream applications
+@func: GetStreamApplicationsCount
+@description:
+
+	obtain total count of stream applications
 */
 func (d *ApplicationDAL) GetStreamApplicationsCount(ctx context.Context) (int64, error) {
 	var count int64
@@ -155,4 +161,17 @@ func (d *ApplicationDAL) GetStreamApplicationsCount(ctx context.Context) (int64,
 	}
 
 	return count, nil
+}
+
+func (d *ApplicationDAL) GetStreamApplication(ctx context.Context) ([]model.StreamApplication, error) {
+	return nil, nil
+}
+func (d *ApplicationDAL) DeleteStreamApplicationByID(ctx context.Context, id string) error {
+	return nil
+}
+func (d *ApplicationDAL) UpdateStreamApplicationByID(ctx context.Context, info *model.StreamApplication) error {
+	return nil
+}
+func (d *ApplicationDAL) CreateStreamApplication(ctx context.Context, info *model.StreamApplication) error {
+	return nil
 }

@@ -8,67 +8,70 @@ import (
 )
 
 /*
-	@struct: ScheduleServiceCore
-	@description: service core layer
+@struct: ScheduleServiceCore
+@description: service core layer
 */
 type ScheduleServiceCore struct {
 	ConsumerDAL     model.ConsumerDAL
 	ProviderDAL     model.ProviderDAL
 	DepositaryDAL   model.DepositaryDAL
-	FilestoreDAL    model.FilestoreDAL
+	FileStoreDAL    model.FileStoreDAL
 	InstanceRoomDAL model.InstanceRoomDAL
 }
 
 /*
-	@struct: ScheduleServiceCoreConfig
-	@description: used for config instance of struct ScheduleServiceCore
+@struct: ScheduleServiceCoreConfig
+@description: used for config instance of struct ScheduleServiceCore
 */
 type ScheduleServiceCoreConfig struct {
 	ConsumerDAL     model.ConsumerDAL
 	ProviderDAL     model.ProviderDAL
 	DepositaryDAL   model.DepositaryDAL
-	FilestoreDAL    model.FilestoreDAL
+	FileStoreDAL    model.FileStoreDAL
 	InstanceRoomDAL model.InstanceRoomDAL
 }
 
 /*
-	@func: NewScheduleServiceCore
-	@description:
-		create, config and return an instance of struct ScheduleServiceCore
+@func: NewScheduleServiceCore
+@description:
+
+	create, config and return an instance of struct ScheduleServiceCore
 */
 func NewScheduleServiceCore(c *ScheduleServiceCoreConfig) model.ScheduleServiceCore {
 	return &ScheduleServiceCore{
 		ConsumerDAL:     c.ConsumerDAL,
 		ProviderDAL:     c.ProviderDAL,
 		DepositaryDAL:   c.DepositaryDAL,
-		FilestoreDAL:    c.FilestoreDAL,
+		FileStoreDAL:    c.FileStoreDAL,
 		InstanceRoomDAL: c.InstanceRoomDAL,
 	}
 }
 
 /*
-	@func: ScheduleStream
-	@description:
-		core logic of scheduling stream instance is here
+@func: ScheduleStream
+@description:
+
+	core logic of scheduling stream instance is here
 */
-func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstance *model.StreamInstance) (*model.Provider, []model.DepositaryCore, []model.FilestoreCore, error) {
+func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstance *model.StreamInstance) (*model.Provider, []model.DepositaryCore, []model.FileStoreCore, error) {
 
 	//TODO: schedule strategy
 
 	firstProvider := sc.ProviderDAL.GetFirstProvider(ctx)
 	if firstProvider != nil {
-		depositoryList := make([]model.DepositaryCore, 0, 0)
-		filestoreList := make([]model.FilestoreCore, 0, 0)
-		return firstProvider, depositoryList, filestoreList, nil
+		depositaryList := make([]model.DepositaryCore, 0, 0)
+		filestoreList := make([]model.FileStoreCore, 0, 0)
+		return firstProvider, depositaryList, filestoreList, nil
 	} else {
 		return nil, nil, nil, fmt.Errorf("no provider registered in shceudler")
 	}
 }
 
 /*
-	@func: CreateStreamInstanceRoom
-	@description:
-		create a room for the instance of stream instance
+@func: CreateStreamInstanceRoom
+@description:
+
+	create a room for the instance of stream instance
 */
 func (sc *ScheduleServiceCore) CreateStreamInstanceRoom(ctx context.Context, provider *model.Provider,
 	consumer *model.Consumer, streamInstance *model.StreamInstance) (*model.StreamInstanceRoom, error) {

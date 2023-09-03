@@ -18,9 +18,10 @@ var upGrader = websocket.Upgrader{
 }
 
 /*
-	@func: WSConnect
-	@description:
-		handler for endpoint "/api/scheduler/wsconnect"
+@func: WSConnect
+@description:
+
+	handler for endpoint "/api/scheduler/wsconnect"
 */
 func (h *Handler) WSConnect(c *gin.Context) {
 	// extract client type from url
@@ -85,4 +86,56 @@ func (h *Handler) WSConnect(c *gin.Context) {
 	default:
 		// leave empty
 	}
+}
+
+func (h *Handler) NodeOnline(c *gin.Context) {
+	nodeType, ok := c.GetQuery("type")
+	if !ok {
+		log.WithFields(
+			log.Fields{
+				"Node Address": c.Request.Host,
+			}).Warn("Failed to extract node type, invalid websocket connection request, abandoned")
+		return
+	}
+	if nodeType != model.CLIENT_TYPE_PROVIDER &&
+		nodeType != model.CLIENT_TYPE_DEPOSITARY &&
+		nodeType != model.CLIENT_TYPE_FILESTORE {
+		log.WithFields(log.Fields{
+			"Given Node Type": nodeType,
+			"Node Address":    c.Request.Host,
+		}).Warn("Unknown Node type, abandoned")
+		return
+	}
+
+	// upgrade to websocket connection
+	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Node Address": c.Request.Host,
+			"error":        err,
+		}).Warn("Failed to upgrade to websocket connection, abandoned")
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	switch nodeType {
+	case model.CLIENT_TYPE_PROVIDER:
+		var reqPacketData struct {
+			StreamInstanceID string `json:"stream_instance_id"`
+		}
+
+	case model.CLIENT_TYPE_DEPOSITARY:
+		// todo
+
+	case model.CLIENT_TYPE_FILESTORE:
+		// todo
+
+	default:
+		// leave empty
+	}
+}
+
+func (h *Handler) ApplicationOnline(c *gin.Context) {
+	// todo:
 }

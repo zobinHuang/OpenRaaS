@@ -1,8 +1,8 @@
 package model
 
 /*
-	model: InstanceModel
-	description: store attributes of a instance (inside a container)
+model: InstanceModel
+description: store attributes of a instance (inside a container)
 */
 type InstanceModel struct {
 	InstanceCore
@@ -24,8 +24,8 @@ type InstanceModel struct {
 }
 
 /*
-	model: InstanceConnection
-	description: store attributes of a connection between wine container (instance) and streamer
+model: InstanceConnection
+description: store attributes of a connection between wine container (instance) and streamer
 */
 type InstanceConnection struct {
 	InstanceIP   string `json:"instance_ip"`
@@ -35,16 +35,16 @@ type InstanceConnection struct {
 }
 
 /*
-	model: DeleteInstanceModel
-	description: store attributes of a instance which is ordered to shut down
+model: DeleteInstanceModel
+description: store attributes of a instance which is ordered to shut down
 */
 type DeleteInstanceModel struct {
 	InstanceCore
 }
 
 /*
-	model: InstanceCore
-	description: metadata for instance
+model: InstanceCore
+description: metadata for instance
 */
 type InstanceCore struct {
 	VMID       int    `json:"vmid"`
@@ -52,20 +52,21 @@ type InstanceCore struct {
 }
 
 /*
-	@model: Depositary
-	@description: depositary client
+@model: Depositary
+@description: depositary client
 */
 type Depositary struct {
 	DepositaryCore
 }
 
 /*
-	@model: DepositaryCore
-	@description: metadata for depositary client
-	@example:
-		depositary.HostAddress = "127.0.0.1"
-		depositary.Port = "5000"
-		depositary.Tag = "latest"
+@model: DepositaryCore
+@description: metadata for depositary client
+@example:
+
+	depositary.HostAddress = "127.0.0.1"
+	depositary.Port = "5000"
+	depositary.Tag = "latest"
 */
 type DepositaryCore struct {
 	HostAddress string `json:"host_address"`
@@ -74,28 +75,29 @@ type DepositaryCore struct {
 }
 
 /*
-	@model: Filestore
-	@description: filestore client
+@model: Filestore
+@description: filestore client
 */
 type Filestore struct {
 	FilestoreCore
 }
 
 /*
-	@model: FilestoreCore
-	@description: metadata for filestore client
-	@example:
-		HostAddress "192.168.10.189"
-		Port        "7189"
-		Protocal    "davfs"
-		Username    "kb109"
-		Password    "******"
-		Directory   "/public_hdd/game/PC/dcwine"
+@model: FilestoreCore
+@description: metadata for filestore client
+@example:
+
+	HostAddress "192.168.10.189"
+	Port        "7189"
+	Protocol    "davfs"
+	Username    "kb109"
+	Password    "******"
+	Directory   "/public_hdd/game/PC/dcwine"
 */
 type FilestoreCore struct {
 	HostAddress string `json:"host_address"`
 	Port        string `json:"port"`
-	Protocal    string `json:"protocal"`
+	Protocol    string `json:"protocol"`
 	Username    string `json:"username"`
 	Password    string `json:"password"`
 	Directory   string `json:"directory"`
