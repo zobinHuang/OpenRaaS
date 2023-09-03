@@ -50,7 +50,7 @@ func (c *StreamerService) RunStreamerContainer(ctx context.Context) error {
 
 	// Add Exec command
 	execCmd = "sh"
-	params = append(params, "../../provider/run-streamer.sh")
+	params = append(params, "../run-streamer.sh")
 
 	// Add params
 	done := utils.RunShell(execCmd, params)
@@ -82,7 +82,7 @@ func (c *StreamerService) KillStreamerContainer(ctx context.Context) error {
 
 	// Add Exec command
 	execCmd = "sh"
-	params = append(params, "../../provider/stop-streamer.sh")
+	params = append(params, "../stop-streamer.sh")
 
 	utils.RunShellWithReturn(execCmd, params)
 

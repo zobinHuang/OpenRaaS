@@ -1,0 +1,8 @@
+## Package requirements
+
+```
+pyyaml
+cheroot wsgidav
+json
+requests
+```

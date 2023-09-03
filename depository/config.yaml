@@ -1,0 +1,9 @@
+### 1. server info
+id: 57bc97b7-50d2-4d87-a0bf-511221ca468c    # device ID
+ip: 192.168.10.50    # device IP address
+
+### 2. depository info
+performance: low    # device performance: "high" or "low"
+
+### 3. registry info
+reg_port: 10988    # registry port

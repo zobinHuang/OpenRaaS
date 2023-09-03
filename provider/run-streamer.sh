@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
-cd ../../provider/
+# jump from ./serverd
+cd ..
 sudo docker-compose up -d

@@ -1,0 +1,12 @@
+### 1. server info
+id: 57bc97b7-50d2-4d87-a0bf-511221ca468c    # device ID
+ip: 192.168.10.50    # device IP address
+
+### 2. filestore info
+performance: low    # device performance: "high" or "low"
+
+### 3. file-sharing info
+fs_protocol: davfs  # protocol name (WebDav is "davfs")
+fs_port: 10980    # file_sharing port
+fs_user: kb109    # user
+fs_pwd: 123456    # password

@@ -1,0 +1,21 @@
+# Docker Version
+# version: "3.8"
+
+services:
+  registry:
+    image: registry:2
+    ports:
+    - "10988:5000"
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+    volumes:
+      - ./Storage:/data
+  
+  depository:
+    build:
+      context: .
+      target: builder
+    image: depository
+    environment:
+      - TZ=Asia/Shanghai
+    network_mode: "host"

@@ -20,6 +20,7 @@ import (
 func (s *WebsocketCommunicator) ConnectToScheduler(ctx context.Context, scheme string, hostname string, port string, path string) error {
 	// construct host name
 	completeHostname := fmt.Sprintf("%s:%s", hostname, port)
+	// TODO: RawQuery: "uuid={uuid}"
 	schedulerURL := url.URL{
 		Scheme:   scheme,
 		Host:     completeHostname,
