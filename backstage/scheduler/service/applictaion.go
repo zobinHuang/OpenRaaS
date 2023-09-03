@@ -7,25 +7,26 @@ import (
 )
 
 /*
-	@struct: ApplicationService
-	@description: service layer
+@struct: ApplicationService
+@description: service layer
 */
 type ApplicationService struct {
 	ApplicationDAL model.ApplicationDAL
 }
 
 /*
-	@struct: ApplicationServiceConfig
-	@description: used for config instance of struct ApplicationService
+@struct: ApplicationServiceConfig
+@description: used for config instance of struct ApplicationService
 */
 type ApplicationServiceConfig struct {
 	ApplicationDAL model.ApplicationDAL
 }
 
 /*
-	@func: NewApplicationService
-	@description:
-		create, config and return an instance of struct ApplicationService
+@func: NewApplicationService
+@description:
+
+	create, config and return an instance of struct ApplicationService
 */
 func NewApplicationService(c *ApplicationServiceConfig) model.ApplicationService {
 	return &ApplicationService{
@@ -34,27 +35,30 @@ func NewApplicationService(c *ApplicationServiceConfig) model.ApplicationService
 }
 
 /*
-	@func: GetStreamApplicationsCount
-	@description:
-		obtain amount of stream applications
+@func: GetStreamApplicationsCount
+@description:
+
+	obtain amount of stream applications
 */
 func (s *ApplicationService) GetStreamApplicationsCount(ctx context.Context) (int64, error) {
 	return s.ApplicationDAL.GetStreamApplicationsCount(ctx)
 }
 
 /*
-	@func: GetStreamApplicationDetails
-	@description:
-		obtain detail for specific application
+@func: GetStreamApplicationDetails
+@description:
+
+	obtain detail for specific application
 */
 func (s *ApplicationService) GetStreamApplicationDetails(ctx context.Context, applicationID string) (*model.StreamApplication, error) {
 	return s.ApplicationDAL.GetStreamApplicationByID(ctx, applicationID)
 }
 
 /*
-	@func: GetStreamApplications
-	@description:
-		obtain application
+@func: GetStreamApplications
+@description:
+
+	obtain application
 */
 func (s *ApplicationService) GetStreamApplications(ctx context.Context, pageNumber int, pageSize int, orderBy string) ([]*model.StreamApplication, error) {
 	if orderBy == model.ORDER_BY_NAME {
@@ -91,3 +95,8 @@ func (s *ApplicationService) GetStreamApplications(ctx context.Context, pageNumb
 	@description:
 		obtain amount of registered stream application
 */
+
+// CreateStreamApplication register app to rds
+func (s *ApplicationService) CreateStreamApplication(ctx context.Context, info *model.StreamApplication) error {
+	return s.ApplicationDAL.CreateStreamApplication(ctx, info)
+}

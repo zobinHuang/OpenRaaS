@@ -6,19 +6,20 @@ import (
 )
 
 /*
-@model: Depositary
+@model: Depository
 @description: depositary client
 */
-type Depositary struct {
-	DepositaryCore
+type Depository struct {
+	DepositoryCore
 	Client
 }
 
 /*
-@model: DepositaryCore
+@model: DepositoryCore
 @description: metadata for depositary client
+@param SupportApp: slice to json string
 */
-type DepositaryCore struct {
+type DepositoryCore struct {
 	CreateAt              time.Time      `json:"create_at"`
 	UpdatedAt             time.Time      `json:"updated_at"`
 	DeleteAt              gorm.DeletedAt `gorm:"index" json:"delete_at"`

@@ -17,6 +17,7 @@ type FileStore struct {
 /*
 @model: FileStoreCore
 @description: metadata for filestore client
+@param SupportApp: slice to json string
 */
 type FileStoreCore struct {
 	CreateAt              time.Time      `json:"create_at"`

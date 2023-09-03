@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -68,8 +69,15 @@ func (h *Handler) WSConnect(c *gin.Context) {
 		h.ConsumerService.InitRecvRoute(ctx, consumer)
 
 	case model.CLIENT_TYPE_PROVIDER:
+		uuid, ok := c.GetQuery("uuid")
+		if !ok {
+			log.WithFields(log.Fields{
+				"Client Address": c.Request.Host,
+			}).Error("Failed to extract uuid, invalid websocket connection request, abandoned")
+			return
+		}
 		// create provider instance and start to serve it
-		provider, err := h.ProviderService.CreateProvider(ctx, ws)
+		provider, err := h.ProviderService.CreateProvider(ctx, ws, uuid)
 		if err != nil {
 			return
 		}
@@ -78,16 +86,17 @@ func (h *Handler) WSConnect(c *gin.Context) {
 		h.ProviderService.InitRecvRoute(ctx, provider)
 
 	case model.CLIENT_TYPE_DEPOSITARY:
-		// todo
+		// not need now
 
 	case model.CLIENT_TYPE_FILESTORE:
-		// todo
+		// not need now
 
 	default:
 		// leave empty
 	}
 }
 
+// NodeOnline register node to rds
 func (h *Handler) NodeOnline(c *gin.Context) {
 	nodeType, ok := c.GetQuery("type")
 	if !ok {
@@ -107,35 +116,137 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		return
 	}
 
-	// upgrade to websocket connection
-	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"Node Address": c.Request.Host,
-			"error":        err,
-		}).Warn("Failed to upgrade to websocket connection, abandoned")
-		return
-	}
-
 	ctx := c.Request.Context()
 
 	switch nodeType {
 	case model.CLIENT_TYPE_PROVIDER:
-		var reqPacketData struct {
-			StreamInstanceID string `json:"stream_instance_id"`
+		var headerData model.ProviderCore
+		if err := c.BindJSON(&headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error": err.Error(),
+				}).Warn("Failed to extract provider json data")
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := h.ProviderService.CreateProviderInRDS(ctx, &headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to register provider to rds")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
 
 	case model.CLIENT_TYPE_DEPOSITARY:
-		// todo
+		var headerData model.DepositoryCore
+		if err := c.BindJSON(&headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error": err.Error(),
+				}).Warn("Failed to extract depository json data")
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := h.DepositoryService.CreateDepositoryInRDS(ctx, &headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to register depository to rds")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
 	case model.CLIENT_TYPE_FILESTORE:
-		// todo
+		var headerData model.FileStoreCore
+		if err := c.BindJSON(&headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error": err.Error(),
+				}).Warn("Failed to extract FileStore json data")
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := h.FileStoreService.CreateFileStoreInRDS(ctx, &headerData); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to register FileStore to rds")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
 	default:
 		// leave empty
 	}
 }
 
+// ApplicationOnline register application to rds
 func (h *Handler) ApplicationOnline(c *gin.Context) {
-	// todo:
+	ctx := c.Request.Context()
+	var headerData model.StreamApplication
+	if err := c.BindJSON(&headerData); err != nil {
+		log.WithFields(
+			log.Fields{
+				"error": err.Error(),
+			}).Warn("Failed to extract stream application json data")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.ApplicationService.CreateStreamApplication(ctx, &headerData); err != nil {
+		log.WithFields(
+			log.Fields{
+				"error":      err.Error(),
+				"headerData": headerData,
+			}).Warn("Failed to register stream application to rds")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if headerData.DepositoryList == "" {
+		log.WithFields(log.Fields{
+			"Client Address": c.Request.Host,
+			"header data":    headerData,
+		}).Warn("Failed to get depository list, abandoned")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "request reasonable depository list"})
+		return
+	}
+	var depositaryList []string
+	err := json.Unmarshal([]byte(headerData.DepositoryList), &depositaryList)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Client Address": c.Request.Host,
+			"error":          err,
+			"header data":    headerData,
+		}).Warn("Failed to unmarshal DepositoryList, abandoned")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "request reasonable depository list"})
+		return
+	}
+
+	if headerData.FileStoreList == "" {
+		log.WithFields(log.Fields{
+			"Client Address": c.Request.Host,
+			"header data":    headerData,
+		}).Warn("Failed to get FileStore list, abandoned")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "request reasonable FileStore list"})
+		return
+	}
+	var fileStoreList []string
+	err = json.Unmarshal([]byte(headerData.FileStoreList), &fileStoreList)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Client Address": c.Request.Host,
+			"error":          err,
+			"header data":    headerData,
+		}).Warn("Failed to unmarshal FileStoreList, abandoned")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "request reasonable FileStore list"})
+		return
+	}
+}
+
+func (h *Handler) Clear(c *gin.Context) {
+	h.ConsumerService.Clear()
 }

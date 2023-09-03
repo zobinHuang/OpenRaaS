@@ -29,7 +29,7 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 	rdbDAL := dal.NewRDbDAL(ds.DB)
 	comsumerDAL := dal.NewConsumerDAL(&dal.ConsumerDALConfig{})
 	providerDAL := dal.NewProviderDAL(&dal.ProviderDALConfig{})
-	depositaryDAL := dal.NewDepositaryDAL(&dal.DepositaryDALConfig{})
+	depositaryDAL := dal.NewDepositoryDAL(&dal.DepositoryDALConfig{})
 	filestoreDAL := dal.NewFileStoreDAL(&dal.FileStoreDALConfig{})
 	instanceRoomDAL := dal.NewInstanceRoomDAL(&dal.InstanceRoomDALConfig{})
 	applicationDAL := dal.NewApplicationDAL(&dal.ApplicationDALConfig{
@@ -40,9 +40,10 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 	scheduleServiceCore := servicecore.NewScheduleServiceCore(&servicecore.ScheduleServiceCoreConfig{
 		ConsumerDAL:     comsumerDAL,
 		ProviderDAL:     providerDAL,
-		DepositaryDAL:   depositaryDAL,
+		DepositoryDAL:   depositaryDAL,
 		FileStoreDAL:    filestoreDAL,
 		InstanceRoomDAL: instanceRoomDAL,
+		ApplicationDAL:  applicationDAL,
 	})
 
 	// --------------------- Service Layer --------------------------
@@ -114,6 +115,8 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 		TokenService:       tokenService,
 		ConsumerService:    consumerService,
 		ProviderService:    providerService,
+		DepositoryService:  depositaryDAL,
+		FileStoreService:   filestoreDAL,
 		ApplicationService: applicationService,
 		BaseURL:            baseURL,
 		TimeoutDuration:    time.Duration(time.Duration(ht) * time.Second),

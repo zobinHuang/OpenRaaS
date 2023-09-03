@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/gofrs/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 
@@ -49,15 +48,19 @@ func NewProviderService(c *ProviderServiceConfig) model.ProviderService {
 	}
 }
 
+// CreateProviderInRDS write Provider info to rds
+func (s *ProviderService) CreateProviderInRDS(ctx context.Context, provider *model.ProviderCore) error {
+	return s.ProviderDAL.CreateProviderInRDS(ctx, provider)
+}
+
 /*
 @func: CreateProvider
 @description:
 
 	create a new provider instance and start to serve it
 */
-func (s *ProviderService) CreateProvider(ctx context.Context, ws *websocket.Conn) (*model.Provider, error) {
+func (s *ProviderService) CreateProvider(ctx context.Context, ws *websocket.Conn, providerID string) (*model.Provider, error) {
 	// initialize client instance
-	providerID := uuid.Must(uuid.NewV4()).String()
 	sendCallbackList := map[string]func(model.WSPacket){}
 	recvCallbackList := map[string]func(model.WSPacket){}
 	newProvider := &model.Provider{
@@ -136,13 +139,6 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 			return model.EmptyPacket
 		}
 
-		// config provider type
-		provider.ProviderType = reqPacketData.ProviderType
-		log.WithFields(log.Fields{
-			"ProviderID":    provider.ClientID,
-			"Provider Type": reqPacketData.ProviderType,
-		}).Info("Set provider type")
-
 		// Notify ice servers list to stream provider
 		if reqPacketData.ProviderType == model.PROVIDER_TYPE_STREAM {
 			respPacketData := struct {
@@ -189,7 +185,7 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 		// define request format
 		var reqPacketData struct {
 			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepositary model.DepositaryCore `json:"selected_depositary"`
+			SelectedDepository model.DepositoryCore `json:"selected_depositary"`
 			SelectedFileStore  model.FileStoreCore  `json:"selected_filestore"`
 		}
 
@@ -206,17 +202,17 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 		log.WithFields(log.Fields{
 			"Stream Instance ID":  reqPacketData.StreamInstanceID,
-			"Selected Depositary": fmt.Sprintf("%s:%s", reqPacketData.SelectedDepositary.HostAddress, reqPacketData.SelectedDepositary.Port),
-			"Selected FileStore":  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.HostAddress, reqPacketData.SelectedFileStore.Port),
+			"Selected Depository": fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.IP, reqPacketData.SelectedDepository.Port),
+			"Selected FileStore":  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.IP, reqPacketData.SelectedFileStore.Port),
 		}).Info("Notification from daemon of successfully selecting storage node")
 
 		// construct responses to consumers
 		respToConsumers := struct {
-			TargetDepositary string `json:"target_depositary"`
+			TargetDepository string `json:"target_depositary"`
 			TargetFileStore  string `json:"target_filestore"`
 		}{
-			TargetDepositary: fmt.Sprintf("%s:%s", reqPacketData.SelectedDepositary.HostAddress, reqPacketData.SelectedDepositary.Port),
-			TargetFileStore:  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.HostAddress, reqPacketData.SelectedFileStore.Port),
+			TargetDepository: fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.IP, reqPacketData.SelectedDepository.Port),
+			TargetFileStore:  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.IP, reqPacketData.SelectedFileStore.Port),
 		}
 		respToConsumersString, err := json.Marshal(respToConsumers)
 		if err != nil {

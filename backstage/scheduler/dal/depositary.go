@@ -2,65 +2,167 @@ package dal
 
 import (
 	"context"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 )
 
 /*
-@struct: DepositaryDAL
+@struct: DepositoryDAL
 @description: DAL layer
 */
-type DepositaryDAL struct {
-	DB *gorm.DB
+type DepositoryDAL struct {
+	DB             *gorm.DB
+	DepositoryList map[string]*model.Depository
 }
 
 /*
-@struct: DepositaryDALConfig
-@description: used for config instance of struct DepositaryDAL
+@struct: DepositoryDALConfig
+@description: used for config instance of struct DepositoryDAL
 */
-type DepositaryDALConfig struct {
+type DepositoryDALConfig struct {
 	DB *gorm.DB
 }
 
 /*
-@func: NewDepositaryDAL
+@func: NewDepositoryDAL
 @description:
 
-	create, config and return an instance of struct DepositaryDAL
+	create, config and return an instance of struct DepositoryDAL
 */
-func NewDepositaryDAL(c *DepositaryDALConfig) model.DepositaryDAL {
-	return &DepositaryDAL{
-		DB: c.DB,
-	}
+func NewDepositoryDAL(c *DepositoryDALConfig) model.DepositoryDAL {
+	ddal := &DepositoryDAL{}
+
+	ddal.DepositoryList = make(map[string]*model.Depository)
+	ddal.DB = c.DB
+
+	return ddal
 }
 
 /*
-@func: CreateDepositary
+@func: CreateDepository
 @description:
 
 	insert a new depositary to depositary list
 */
-func (d *DepositaryDAL) CreateDepositary(ctx context.Context, info *model.Depositary) error {
-	return nil
+func (d *DepositoryDAL) CreateDepository(ctx context.Context, depositary *model.Depository) {
+	d.DepositoryList[depositary.ClientID] = depositary
 }
 
 /*
-@func: DeleteDepositary
+@func: DeleteDepository
 @description:
 
 	delete the specified depositary from depositary list
 */
-func (d *DepositaryDAL) DeleteDepositaryByID(ctx context.Context, id string) error {
+func (d *DepositoryDAL) DeleteDepository(ctx context.Context, depositaryID string) {
+	delete(d.DepositoryList, depositaryID)
+}
+
+// CreateDepositoryInRDS create depositary core info to rds
+func (d *DepositoryDAL) CreateDepositoryInRDS(ctx context.Context, info *model.DepositoryCore) error {
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("depositary_cores").Create(info).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"info":  info,
+		}).Warn("Failed to create depositary core info to rds")
+		return err
+	}
+
 	return nil
 }
 
-func (d *DepositaryDAL) GetDepositary(ctx context.Context) ([]model.Depositary, error) {
-	return nil, nil
-}
-func (d *DepositaryDAL) GetDepositaryByID(ctx context.Context, id string) (*model.Depositary, error) {
-	return nil, nil
-}
-func (d *DepositaryDAL) UpdateDepositaryByID(ctx context.Context, info *model.Depositary) error {
+// DeleteDepositoryInRDSByID delete depositary core info by id in rds
+func (d *DepositoryDAL) DeleteDepositoryInRDSByID(ctx context.Context, id string) error {
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("depositary_cores").Where("id=?", id).Delete(&model.DepositoryCore{}).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"id":    id,
+		}).Warn("Failed to delete depositary core info by id in rds")
+		return err
+	}
 	return nil
+}
+
+// GetDepositoryInRDS obtain all depositary core info from rds
+func (d *DepositoryDAL) GetDepositoryInRDS(ctx context.Context) ([]model.DepositoryCore, error) {
+	var infos []model.DepositoryCore
+
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("depositary_cores").Find(&infos).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Warn("Failed to obtain all depositary core info from rds")
+		return nil, err
+	}
+
+	return infos, nil
+}
+
+// GetDepositoryInRDSByID get depositary core info by id from rds
+func (d *DepositoryDAL) GetDepositoryInRDSByID(ctx context.Context, id string) (*model.DepositoryCore, error) {
+	var info model.DepositoryCore
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("depositary_cores").Where("id = ?", id).First(&info).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"id":    id,
+		}).Warn("Failed to get depositary core info by id from rds")
+		return nil, err
+	}
+	return &info, nil
+}
+
+// UpdateDepositoryInRDSByID update depositary core info by id in rds
+func (d *DepositoryDAL) UpdateDepositoryInRDSByID(ctx context.Context, info *model.DepositoryCore) error {
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("depositary_cores").Where("id=?", info.ID).Updates(info).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"id":    info.ID,
+		}).Warn("Failed to update depositary core info by id in rds")
+		return err
+	}
+	return nil
+}
+
+// GetDepositoryBetweenIDInRDS get depositary core info Between id from rds
+func (d *DepositoryDAL) GetDepositoryBetweenIDInRDS(ctx context.Context, ids []string) ([]model.DepositoryCore, error) {
+	var infos []model.DepositoryCore
+
+	// initialize context
+	tx := d.DB.WithContext(ctx)
+
+	// query in database
+	if err := tx.Table("depositary_cores").Where("id IN (?)", ids).Find(&infos).Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Warn("Failed to obtain all depositary core info from rds")
+		return nil, err
+	}
+
+	return infos, nil
+}
+
+// Clear delete all
+func (d *DepositoryDAL) Clear() {
+	d.DB.Delete(&model.DepositoryCore{})
 }
