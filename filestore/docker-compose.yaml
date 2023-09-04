@@ -1,0 +1,15 @@
+# Docker Version
+# version: "3.8"
+
+services:
+  filestore:
+    build:
+      context: ./daemon
+    image: filestore
+    volumes:
+      - ./storage:/daemon/storage
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "10980:10980"
+    entrypoint: python main.py

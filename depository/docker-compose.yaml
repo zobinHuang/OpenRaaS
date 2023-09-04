@@ -13,8 +13,7 @@ services:
   
   depository:
     build:
-      context: .
-      target: builder
+      context: ./daemon
     image: depository
     environment:
       - TZ=Asia/Shanghai
