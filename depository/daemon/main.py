@@ -1,5 +1,4 @@
 import requests
-import threading
 import json
 import time
 from config_reader import read_config
@@ -23,7 +22,7 @@ if __name__ == "__main__":
     interface = s_addr+s_conf['handler']
     print(time.ctime(time.time()), "The filestore worker node's info is sent to the scheduler's HTTP interface:", interface)
     
-    ret = requests.post(s_addr+s_conf['handler'], json_data)
-    # ret = 1
+    # ret = requests.post(s_addr+s_conf['handler'], json_data)
+    ret = 1
     if ret:
         print(time.ctime(time.time()), "Succeed in filestore worker node online with info:", json_data)

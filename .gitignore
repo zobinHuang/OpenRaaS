@@ -2,3 +2,4 @@ __pycache__
 .idea
 .vscode
 /depository/storage/docker
+/filestore/storage/apps

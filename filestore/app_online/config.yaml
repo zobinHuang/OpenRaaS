@@ -1,0 +1,17 @@
+# filestore info
+fs_id: 57bc97b7-50d2-4d87-a0bf-511221ca468c    # device ID, should be the same with that in the filestore's daemon
+
+app_num: 1
+
+# app1
+app1_id: 11e96b2c-c640-4fa8-bb94-c31adb68c239
+app1_name: CS1.6
+app1_path: ...
+app1_file: ...
+app1_hwkey: ...
+app1_os: ...
+app1_create_user: coolmoon327
+app1_description: A classic FPS game.
+app1_provider_performance: 1  # 1 for high, 0 for low
+app1_filestore_performance: 1  # 1 for high, 0 for low
+app1_depository_performance: 1  # 1 for high, 0 for low
