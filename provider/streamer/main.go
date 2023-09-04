@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,6 +27,21 @@ func main() {
 		Addr:    ":8080",
 		Handler: router,
 	}
+
+	// provider worker node online
+	addr := "http://" + os.Getenv("SCHEDULER_WS_HOSTNAME") + "/api/scheduler/node_online"
+	log.Println("The provider worker node's info is sent to the scheduler's HTTP interface: " + addr)
+	client := &http.Client{}
+	data := make(map[string]interface{})
+	data["id"] = os.Getenv("SERVER_ID")
+	data["ip"] = os.Getenv("SERVER_IP")
+	data["is_contain_gpu"] = os.Getenv("SERVER_PERFORMANCE")
+	bytesData, _ := json.Marshal(data)
+	req, _ := http.NewRequest("POST", addr, bytes.NewReader(bytesData))
+	resp, _ := client.Do(req)
+	log.Println("Succeed in filestore worker node online with info:", string(bytesData))
+	body, _ := ioutil.ReadAll(resp.Body)
+	log.Println("Get answer from the scheduler:", string(body))
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

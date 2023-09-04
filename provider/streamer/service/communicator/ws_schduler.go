@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -20,12 +21,12 @@ import (
 func (s *WebsocketCommunicator) ConnectToScheduler(ctx context.Context, scheme string, hostname string, port string, path string) error {
 	// construct host name
 	completeHostname := fmt.Sprintf("%s:%s", hostname, port)
-	// TODO: RawQuery: "uuid={uuid}"
+	uuid := os.Getenv("SERVER_ID")
 	schedulerURL := url.URL{
 		Scheme:   scheme,
 		Host:     completeHostname,
 		Path:     path,
-		RawQuery: "type=provider",
+		RawQuery: "type=provider&uuid=" + uuid,
 	}
 
 	if s.SchedulerWSConnection != nil {

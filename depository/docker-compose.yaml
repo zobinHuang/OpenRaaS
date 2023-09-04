@@ -5,17 +5,16 @@ services:
   registry:
     image: registry:2
     ports:
-    - "10988:5000"
+    - "10960:5000"
     environment:
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
     volumes:
-      - ./Storage:/data
+      - ./storage:/data
   
   depository:
     build:
-      context: .
-      target: builder
+      context: ./daemon
     image: depository
     environment:
       - TZ=Asia/Shanghai
-    network_mode: "host"
+    entrypoint: python main.py

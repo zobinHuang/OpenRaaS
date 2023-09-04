@@ -8,6 +8,7 @@ from config_reader import read_config
 
 
 def start_fs_server(conf):
+    print(time.ctime(time.time()), "Starting file-sharing setup...",)
     app = WsgiDAVApp(conf)
 
     server_args = {
@@ -16,6 +17,8 @@ def start_fs_server(conf):
     }
     server = wsgi.Server(**server_args)
 
+    print(time.ctime(time.time()), "The filestore microservice is setup successfully with config:", json.dumps(conf))
+    
     try:
         server.start()
     except KeyboardInterrupt:
@@ -34,7 +37,7 @@ if __name__ == "__main__":
     fs_conf["host"] = "0.0.0.0"
     fs_conf["port"] = config["fs_port"]
     fs_conf["provider_mapping"] = {
-            "/": "/Users/coolmoon/Code/Filestore/Storage",
+        config["fs_directory"]: "./storage",
     }
     fs_conf["http_authenticator"] = {
         "trusted_auth_header": None,
@@ -56,15 +59,27 @@ if __name__ == "__main__":
     }
     fs_conf["verbose"] = 1
 
-    print(time.ctime(time.time()), "The Filestore microservice is setup successfully with config:", json.dumps(fs_conf))
-
     t = threading.Thread(target=start_fs_server, args=(fs_conf,))
     t.start()
 
 
     # 3. send notificatioin to scheduler
-    dict_data = {}
+    dict_data = {
+        "id": config["id"],
+        "ip": config["ip"],
+        "port": config["fs_port"],
+        "protocol": config["fs_protocol"],
+        "directory": config["fs_directory"],
+        "username": config["fs_user"],
+        "password": config["fs_pwd"],
+        "is_contain_fast_netspeed": config["performance"],
+    }
     json_data = json.dumps(dict_data)
-    s_addr = "http://" + s_conf['ip']
+    s_addr = "http://" + s_conf["ip"]
+    interface = s_addr+s_conf['handler']
+    print(time.ctime(time.time()), "The filestore worker node's info is sent to the scheduler's HTTP interface:", interface)
     
     # ret = requests.post(s_addr+s_conf['handler'], json_data)
+    ret = 1
+    if ret:
+        print(time.ctime(time.time()), "Succeed in filestore worker node online with info:", json_data)
