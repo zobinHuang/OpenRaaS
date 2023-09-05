@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"gorm.io/gorm"
 
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 )
@@ -99,4 +102,32 @@ func (s *ApplicationService) GetStreamApplications(ctx context.Context, pageNumb
 // CreateStreamApplication register app to rds
 func (s *ApplicationService) CreateStreamApplication(ctx context.Context, info *model.StreamApplication) error {
 	return s.ApplicationDAL.CreateStreamApplication(ctx, info)
+}
+
+func (s *ApplicationService) AddFileStoreIDToAPPInRDS(ctx context.Context, info *model.StreamApplication, id string) error {
+	app, err := s.ApplicationDAL.GetStreamApplicationByID(ctx, info.ApplicationID)
+	if err == nil {
+		if app.FileStoreList == "" {
+			app.FileStoreList = "[" + id + "]"
+		} else {
+			var ids []string
+			if err := json.Unmarshal([]byte(app.FileStoreList), &ids); err != nil {
+				return err
+			}
+			ids = append(ids, id)
+			idsStr, err := json.Marshal(&ids)
+			if err != nil {
+				return err
+			}
+			app.FileStoreList = string(idsStr)
+		}
+		return s.ApplicationDAL.UpdateStreamApplicationByID(ctx, app)
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
+		err := s.CreateStreamApplication(ctx, info)
+		if err != nil {
+			return err
+		}
+		return s.AddFileStoreIDToAPPInRDS(ctx, info, id)
+	}
+	return err
 }

@@ -1,13 +1,11 @@
 package handler
 
 import (
-	"encoding/json"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
+	"net/http"
 )
 
 var upGrader = websocket.Upgrader{
@@ -187,7 +185,11 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 // ApplicationOnline register application to rds
 func (h *Handler) ApplicationOnline(c *gin.Context) {
 	ctx := c.Request.Context()
-	var headerData model.StreamApplication
+	type newReqData struct {
+		model.StreamApplication
+		NewFileStoreID string `json:"new_file_store_id"`
+	}
+	var headerData newReqData
 	if err := c.BindJSON(&headerData); err != nil {
 		log.WithFields(
 			log.Fields{
@@ -196,55 +198,48 @@ func (h *Handler) ApplicationOnline(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.ApplicationService.CreateStreamApplication(ctx, &headerData); err != nil {
-		log.WithFields(
-			log.Fields{
-				"error":      err.Error(),
-				"headerData": headerData,
-			}).Warn("Failed to register stream application to rds")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	appCore := model.StreamApplication{
+		StreamApplicationCore: model.StreamApplicationCore{},
+		ApplicationCore: model.ApplicationCore{
+			ApplicationName: headerData.ApplicationName,
+			ApplicationID:   headerData.ApplicationID,
+			ApplicationPath: headerData.ApplicationPath,
+			ApplicationFile: headerData.ApplicationFile,
+			HWKey:           headerData.HWKey,
+			OperatingSystem: headerData.OperatingSystem,
+			CreateUser:      headerData.CreateUser,
+			Description:     headerData.Description,
+			UsageCount:      headerData.UsageCount,
+		},
+		AppInfoAttach: model.AppInfoAttach{
+			FileStoreList:               headerData.FileStoreList,
+			IsProviderReqGPU:            headerData.IsProviderReqGPU,
+			IsFileStoreReqFastNetspeed:  headerData.IsFileStoreReqFastNetspeed,
+			IsDepositoryReqFastNetspeed: headerData.IsDepositoryReqFastNetspeed,
+		},
+	}
+	if headerData.NewFileStoreID == "" {
+		if err := h.ApplicationService.CreateStreamApplication(ctx, &appCore); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("CreateStreamApplication, Failed to register stream application to rds")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		if err := h.ApplicationService.AddFileStoreIDToAPPInRDS(ctx, &appCore, headerData.NewFileStoreID); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("AddFileStoreIDToAPPInRDS, Failed to register stream application to rds")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
-	if headerData.DepositoryList == "" {
-		log.WithFields(log.Fields{
-			"Client Address": c.Request.Host,
-			"header data":    headerData,
-		}).Warn("Failed to get depository list, abandoned")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "request reasonable depository list"})
-		return
-	}
-	var depositaryList []string
-	err := json.Unmarshal([]byte(headerData.DepositoryList), &depositaryList)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"Client Address": c.Request.Host,
-			"error":          err,
-			"header data":    headerData,
-		}).Warn("Failed to unmarshal DepositoryList, abandoned")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "request reasonable depository list"})
-		return
-	}
-
-	if headerData.FileStoreList == "" {
-		log.WithFields(log.Fields{
-			"Client Address": c.Request.Host,
-			"header data":    headerData,
-		}).Warn("Failed to get FileStore list, abandoned")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "request reasonable FileStore list"})
-		return
-	}
-	var fileStoreList []string
-	err = json.Unmarshal([]byte(headerData.FileStoreList), &fileStoreList)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"Client Address": c.Request.Host,
-			"error":          err,
-			"header data":    headerData,
-		}).Warn("Failed to unmarshal FileStoreList, abandoned")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "request reasonable FileStore list"})
-		return
-	}
 }
 
 func (h *Handler) Clear(c *gin.Context) {

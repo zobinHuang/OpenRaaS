@@ -43,6 +43,7 @@ type ApplicationService interface {
 	GetStreamApplicationDetails(ctx context.Context, applicationID string) (*StreamApplication, error)
 	GetStreamApplications(ctx context.Context, pageNumber int, pageSize int, orderBy string) ([]*StreamApplication, error)
 	CreateStreamApplication(ctx context.Context, info *StreamApplication) error
+	AddFileStoreIDToAPPInRDS(ctx context.Context, info *StreamApplication, id string) error
 }
 
 /*

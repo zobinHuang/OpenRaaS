@@ -74,8 +74,7 @@ type ApplicationCore struct {
 	request info of an application
 */
 type AppInfoAttach struct {
-	FileStoreList               string `gorm:"not null" json:"filestore_list"`
-	DepositoryList              string `gorm:"not null" json:"depositary_list"`
+	FileStoreList               string `json:"filestore_list"`
 	IsProviderReqGPU            bool   `gorm:"not null" json:"is_provider_req_gpu"`
 	IsFileStoreReqFastNetspeed  bool   `gorm:"not null" json:"is_filestore_req_fast_netspeed"`
 	IsDepositoryReqFastNetspeed bool   `gorm:"not null" json:"is_depositary_req_fast_netspeed"`

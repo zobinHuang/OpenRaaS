@@ -78,14 +78,6 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		return nil, nil, nil, fmt.Errorf("no provider can schedule")
 	}
 
-	if appInfo.DepositoryList == "" {
-		return nil, nil, nil, fmt.Errorf("scheduler DepositoryList is none streamInstance: %+v", streamInstance)
-	}
-	var depositaryStrList []string
-	if err := json.Unmarshal([]byte(appInfo.DepositoryList), &depositaryStrList); err != nil {
-		return nil, nil, nil, fmt.Errorf("scheduler unmarshal DepositoryList fail, err: %s, streamInstance: %+v", err.Error(), streamInstance)
-	}
-
 	if appInfo.FileStoreList == "" {
 		return nil, nil, nil, fmt.Errorf("scheduler FileStoreList is none streamInstance: %+v", streamInstance)
 	}
@@ -94,7 +86,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		return nil, nil, nil, fmt.Errorf("scheduler unmarshal FileStoreList fail, err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
-	depositaryList, err := sc.DepositoryDAL.GetDepositoryBetweenIDInRDS(ctx, depositaryStrList)
+	// todo: get depositaryList from image id
+	depositaryList, err := sc.DepositoryDAL.GetDepositoryInRDS(ctx)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetDepositoryInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
