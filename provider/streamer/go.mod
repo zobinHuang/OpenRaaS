@@ -1,4 +1,4 @@
-module github.com/zobinHuang/BrosCloud/provider/streamer
+module github.com/zobinHuang/OpenRaaS/provider/streamer
 
 go 1.17
 

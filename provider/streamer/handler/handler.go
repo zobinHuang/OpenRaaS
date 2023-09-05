@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/zobinHuang/BrosCloud/provider/streamer/handler/middleware"
-	"github.com/zobinHuang/BrosCloud/provider/streamer/model"
-	"github.com/zobinHuang/BrosCloud/provider/streamer/model/apperrors"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/handler/middleware"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/model"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/model/apperrors"
 )
 
 /*

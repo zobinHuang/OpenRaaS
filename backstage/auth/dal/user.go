@@ -5,8 +5,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/zobinHuang/BrosCloud/backstage/auth/model"
-	"github.com/zobinHuang/BrosCloud/backstage/auth/model/apperrors"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/model/apperrors"
 	"gorm.io/gorm"
 )
 

@@ -68,3 +68,7 @@
 192.168.0.1 - - [23/Aug/2023:07:11:13 +0000] "GET /api/scheduler/application_details?id=2381-3829-1290-4873&type=stream HTTP/1.1" 200 374 "http://localhost:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36" "-"
 192.168.0.1 - - [23/Aug/2023:09:30:25 +0000] "GET /api/scheduler/wsconnect?type=consumer HTTP/1.1" 101 668 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36" "-"
 192.168.0.1 - - [23/Aug/2023:11:14:31 +0000] "GET /api/scheduler/wsconnect?type=provider HTTP/1.1" 101 47308 "-" "Go-http-client/1.1" "-"
+192.168.0.109 - - [05/Sep/2023:02:50:49 +0000] "POST /api/scheduler/node_online HTTP/1.1" 502 157 "-" "Go-http-client/1.1" "-"
+192.168.0.1 - - [05/Sep/2023:02:50:50 +0000] "GET /api/scheduler/wsconnect?type=provider&uuid=ed5d96dc-e450-49fe-9f01-a1bcadbda0fd HTTP/1.1" 502 157 "-" "Go-http-client/1.1" "-"
+192.168.0.109 - - [05/Sep/2023:03:05:07 +0000] "POST /api/scheduler/node_online HTTP/1.1" 502 157 "-" "Go-http-client/1.1" "-"
+192.168.0.109 - - [05/Sep/2023:03:05:07 +0000] "GET /api/scheduler/wsconnect?type=provider&uuid=ed5d96dc-e450-49fe-9f01-a1bcadbda0fd HTTP/1.1" 502 157 "-" "Go-http-client/1.1" "-"

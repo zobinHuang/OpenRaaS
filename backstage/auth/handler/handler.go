@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/zobinHuang/BrosCloud/backstage/auth/handler/middleware"
-	"github.com/zobinHuang/BrosCloud/backstage/auth/model"
-	"github.com/zobinHuang/BrosCloud/backstage/auth/model/apperrors"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/handler/middleware"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/model/apperrors"
 )
 
 /*

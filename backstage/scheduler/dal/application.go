@@ -3,8 +3,8 @@ package dal
 import (
 	"context"
 
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model/apperrors"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model/apperrors"
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"

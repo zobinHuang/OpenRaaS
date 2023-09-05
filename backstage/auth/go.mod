@@ -1,4 +1,4 @@
-module github.com/zobinHuang/BrosCloud/backstage/auth
+module github.com/zobinHuang/OpenRaaS/backstage/auth
 
 go 1.17
 

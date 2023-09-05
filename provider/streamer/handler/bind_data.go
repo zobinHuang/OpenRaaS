@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 
-	"github.com/zobinHuang/BrosCloud/provider/streamer/model/apperrors"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/model/apperrors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"

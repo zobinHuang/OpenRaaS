@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/dal"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/handler"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/service"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/service/servicecore"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/dal"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/handler"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/service"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/service/servicecore"
 
 	log "github.com/sirupsen/logrus"
 

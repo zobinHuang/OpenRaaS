@@ -1,6 +1,6 @@
 package service
 
-import "github.com/zobinHuang/BrosCloud/provider/streamer/model"
+import "github.com/zobinHuang/OpenRaaS/provider/streamer/model"
 
 /*
 	@struct: InstanceService

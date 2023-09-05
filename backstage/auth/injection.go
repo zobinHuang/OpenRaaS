@@ -10,9 +10,9 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/zobinHuang/BrosCloud/backstage/auth/dal"
-	"github.com/zobinHuang/BrosCloud/backstage/auth/handler"
-	"github.com/zobinHuang/BrosCloud/backstage/auth/service"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/dal"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/handler"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/service"
 
 	"github.com/gin-gonic/gin"
 )
