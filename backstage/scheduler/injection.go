@@ -28,9 +28,15 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 	// --------------------- DAL Layer --------------------------
 	rdbDAL := dal.NewRDbDAL(ds.DB)
 	comsumerDAL := dal.NewConsumerDAL(&dal.ConsumerDALConfig{})
-	providerDAL := dal.NewProviderDAL(&dal.ProviderDALConfig{})
-	depositaryDAL := dal.NewDepositoryDAL(&dal.DepositoryDALConfig{})
-	filestoreDAL := dal.NewFileStoreDAL(&dal.FileStoreDALConfig{})
+	providerDAL := dal.NewProviderDAL(&dal.ProviderDALConfig{
+		DB: ds.DB,
+	})
+	depositaryDAL := dal.NewDepositoryDAL(&dal.DepositoryDALConfig{
+		DB: ds.DB,
+	})
+	filestoreDAL := dal.NewFileStoreDAL(&dal.FileStoreDALConfig{
+		DB: ds.DB,
+	})
 	instanceRoomDAL := dal.NewInstanceRoomDAL(&dal.InstanceRoomDALConfig{})
 	applicationDAL := dal.NewApplicationDAL(&dal.ApplicationDALConfig{
 		DB: ds.DB,

@@ -1,11 +1,12 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
-	"net/http"
 )
 
 var upGrader = websocket.Upgrader{
@@ -114,6 +115,8 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		return
 	}
 
+	log.Info("type: ", nodeType)
+
 	ctx := c.Request.Context()
 
 	switch nodeType {
@@ -123,7 +126,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 			log.WithFields(
 				log.Fields{
 					"error": err.Error(),
-				}).Warn("Failed to extract provider json data")
+				}).Error("Failed to extract provider json data")
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -132,7 +135,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 				log.Fields{
 					"error":      err.Error(),
 					"headerData": headerData,
-				}).Warn("Failed to register provider to rds")
+				}).Error("Failed to register provider to rds")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
