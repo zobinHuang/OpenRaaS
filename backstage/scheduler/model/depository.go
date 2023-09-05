@@ -28,5 +28,6 @@ type DepositoryCore struct {
 	IP                    string         `gorm:"not null" json:"ip"`
 	Port                  int            `gorm:"not null" json:"port"`
 	Tag                   string         `json:"tag"`
+	Mem                   float64        `json:"mem"`
 	IsContainFastNetspeed bool           `gorm:"not null" json:"is_contain_fast_netspeed"`
 }

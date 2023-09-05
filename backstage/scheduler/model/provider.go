@@ -26,5 +26,6 @@ type ProviderCore struct {
 	ID           string         `gorm:"unique,not null" json:"id"`
 	IP           string         `gorm:"unique,not null" json:"ip"`
 	Port         int            `json:"port"`
+	Processor    float64        `json:"processor"`
 	IsContainGPU bool           `gorm:"not null" json:"is_contain_gpu"`
 }
