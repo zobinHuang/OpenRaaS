@@ -7,9 +7,26 @@ services:
       context: ./daemon
     image: filestore
     volumes:
+      - ./daemon/main.py:/daemon/main.py
+      - ./daemon/config_reader.py:/daemon/config_reader.py
+      - ./daemon/config.yaml:/daemon/config.yaml
+      - ./daemon/scheduler_config.yaml:/daemon/scheduler_config.yaml
       - ./storage:/daemon/storage
     environment:
       - TZ=Asia/Shanghai
     ports:
       - "10950:10950"
+    entrypoint: python main.py
+  
+  app_online:
+    build:
+      context: ./app_online
+    image: app_online
+    volumes:
+      - ./app_online/main.py:/daemon/main.py
+      - ./app_online/config_reader.py:/daemon/config_reader.py
+      - ./app_online/config.yaml:/daemon/config.yaml
+      - ./app_online/scheduler_config.yaml:/daemon/scheduler_config.yaml
+    environment:
+      - TZ=Asia/Shanghai
     entrypoint: python main.py

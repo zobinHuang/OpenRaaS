@@ -1,9 +1,10 @@
 ### 1. server info
 id: 3e024294-2873-4e84-876b-d9ace5475d67   # device ID
-ip: 192.168.10.50    # device IP address
+ip: 192.168.0.109    # device IP address
 
 ### 2. depository info
 performance: false    # device performance: true for "high", or false for "low"
+mem: 10               # prepared storage memory for OpenRaaS
 
 ### 3. registry info
 reg_port: 10960    # registry port

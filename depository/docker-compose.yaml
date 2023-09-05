@@ -15,6 +15,11 @@ services:
     build:
       context: ./daemon
     image: depository
+    volumes:
+      - ./daemon/main.py:/daemon/main.py
+      - ./daemon/config_reader.py:/daemon/config_reader.py
+      - ./daemon/config.yaml:/daemon/config.yaml
+      - ./daemon/scheduler_config.yaml:/daemon/scheduler_config.yaml
     environment:
       - TZ=Asia/Shanghai
     entrypoint: python main.py

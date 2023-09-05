@@ -17,7 +17,7 @@ def start_fs_server(conf):
     }
     server = wsgi.Server(**server_args)
 
-    print(time.ctime(time.time()), "The filestore microservice is setup successfully with config:", json.dumps(conf))
+    print(time.ctime(time.time()), "Filestore microservice is setup successfully with config:", json.dumps(conf))
     
     try:
         server.start()
@@ -71,15 +71,18 @@ if __name__ == "__main__":
         "protocol": config["fs_protocol"],
         "directory": config["fs_directory"],
         "username": config["fs_user"],
-        "password": config["fs_pwd"],
+        "password": str(config["fs_pwd"]),
         "is_contain_fast_netspeed": config["performance"],
+        "mem": config["mem"],
     }
     json_data = json.dumps(dict_data)
-    s_addr = "http://" + s_conf["ip"] + ":" + s_conf["port"]
-    interface = s_addr+s_conf['handler']
-    print(time.ctime(time.time()), "The filestore worker node's info is sent to the scheduler's HTTP interface:", interface)
+    s_addr = "http://" + s_conf["ip"] + ":" + str(s_conf["port"])
+    interface = s_addr + s_conf["handler"]
+    headers = {
+        "type": "filestore",
+    }
+    print(time.ctime(time.time()), "Filestore worker node's info is sent to the scheduler's HTTP interface:", interface)
+    print(time.ctime(time.time()), "Filestore worker node online with info:", json_data)
     
-    # ret = requests.post(s_addr+s_conf['handler'], json_data)
-    ret = 1
-    if ret:
-        print(time.ctime(time.time()), "Succeed in filestore worker node online with info:", json_data)
+    ret = requests.post(interface, params = headers, data = json_data)
+    print(time.ctime(time.time()), "Get answer from the scheduler:", ret)

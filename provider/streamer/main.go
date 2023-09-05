@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -29,13 +30,14 @@ func main() {
 	}
 
 	// provider worker node online
-	addr := "http://" + os.Getenv("SCHEDULER_WS_HOSTNAME") + ":" + os.Getenv("SCHEDULER_WS_PORT") + "/api/scheduler/node_online"
+	addr := "http://" + os.Getenv("SCHEDULER_WS_HOSTNAME") + ":" + os.Getenv("SCHEDULER_WS_PORT") + "/api/scheduler/node_online" + "?type=provider"
 	log.Println("The provider worker node's info is sent to the scheduler's HTTP interface: " + addr)
 	client := &http.Client{}
 	data := make(map[string]interface{})
 	data["id"] = os.Getenv("SERVER_ID")
 	data["ip"] = os.Getenv("SERVER_IP")
-	data["is_contain_gpu"] = os.Getenv("SERVER_PERFORMANCE")
+	data["is_contain_gpu"], _ = strconv.ParseBool(os.Getenv("SERVER_PERFORMANCE"))
+	data["processor"] = os.Getenv("SERVER_PROCESSOR")
 	bytesData, _ := json.Marshal(data)
 	req, _ := http.NewRequest("POST", addr, bytes.NewReader(bytesData))
 	resp, _ := client.Do(req)
