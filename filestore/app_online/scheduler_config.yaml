@@ -1,2 +1,3 @@
-ip: 192.168.0.109
-handler: /api/scheduler/node_online
+ip: kb109.dynv6.net
+port: 52109
+handler: /api/scheduler/application_online

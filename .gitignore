@@ -3,3 +3,4 @@ __pycache__
 .vscode
 /depository/storage/docker
 /filestore/storage/apps
+.log

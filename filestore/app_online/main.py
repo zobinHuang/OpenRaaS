@@ -27,7 +27,7 @@ if __name__ == "__main__":
             "is_depositary_req_fast_netspeed": config[tag+"depository_performance"],
         }
         json_data = json.dumps(dict_data)
-        s_addr = "http://" + s_conf["ip"]
+        s_addr = "http://" + s_conf["ip"] + ":" + s_conf["port"]
         interface = s_addr+s_conf['handler']
         print(time.ctime(time.time()), "The APP info is sent to the scheduler's HTTP interface:", interface)
         

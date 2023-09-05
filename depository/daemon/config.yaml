@@ -3,7 +3,7 @@ id: 3e024294-2873-4e84-876b-d9ace5475d67   # device ID
 ip: 192.168.10.50    # device IP address
 
 ### 2. depository info
-performance: 0    # device performance: 1 for "high", or 0 for "low"
+performance: false    # device performance: true for "high", or false for "low"
 
 ### 3. registry info
 reg_port: 10960    # registry port

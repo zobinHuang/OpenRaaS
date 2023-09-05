@@ -18,8 +18,8 @@ if __name__ == "__main__":
         "is_contain_fast_netspeed": config["performance"],
     }
     json_data = json.dumps(dict_data)
-    s_addr = "http://" + s_conf['ip']
-    interface = s_addr+s_conf['handler']
+    s_addr = "http://" + s_conf["ip"] + ":" + s_conf["port"]
+    interface = s_addr+s_conf["handler"]
     print(time.ctime(time.time()), "The filestore worker node's info is sent to the scheduler's HTTP interface:", interface)
     
     # ret = requests.post(s_addr+s_conf['handler'], json_data)

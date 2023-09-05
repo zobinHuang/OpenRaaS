@@ -1,5 +1,5 @@
 [Scheduler]
 scheme=ws
-host=192.168.0.109
-port=80
+host=kb109.dynv6.net
+port=52109
 path=/api/scheduler/wsconnect

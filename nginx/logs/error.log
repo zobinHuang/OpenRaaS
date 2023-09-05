@@ -464,3 +464,179 @@
 2023/09/05 02:50:50 [error] 23#23: *3 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.0.1, server: kb109.dynv6.com, request: "GET /api/scheduler/wsconnect?type=provider&uuid=ed5d96dc-e450-49fe-9f01-a1bcadbda0fd HTTP/1.1", upstream: "http://192.168.0.109:81/api/scheduler/wsconnect?type=provider&uuid=ed5d96dc-e450-49fe-9f01-a1bcadbda0fd", host: "kb109.dynv6.net:52109"
 2023/09/05 03:05:07 [error] 25#25: *5 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.0.109, server: kb109.dynv6.com, request: "POST /api/scheduler/node_online HTTP/1.1", upstream: "http://192.168.0.109:81/api/scheduler/node_online", host: "192.168.0.109"
 2023/09/05 03:05:07 [error] 24#24: *6 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.0.109, server: kb109.dynv6.com, request: "GET /api/scheduler/wsconnect?type=provider&uuid=ed5d96dc-e450-49fe-9f01-a1bcadbda0fd HTTP/1.1", upstream: "http://192.168.0.109:81/api/scheduler/wsconnect?type=provider&uuid=ed5d96dc-e450-49fe-9f01-a1bcadbda0fd", host: "192.168.0.109:80"
+2023/09/05 07:34:31 [error] 34#34: *25 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.105.29, server: kb109.dynv6.com, request: "GET /favicon.ico HTTP/1.1", upstream: "http://192.168.0.109:3000/favicon.ico", host: "192.168.0.109", referrer: "http://192.168.0.109/api/scheduler/node_online"
+2023/09/05 07:34:35 [error] 34#34: *25 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.105.29, server: kb109.dynv6.com, request: "GET / HTTP/1.1", upstream: "http://192.168.0.109:3000/", host: "192.168.0.109"
+2023/09/05 07:34:35 [error] 34#34: *25 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.105.29, server: kb109.dynv6.com, request: "GET /favicon.ico HTTP/1.1", upstream: "http://192.168.0.109:3000/favicon.ico", host: "192.168.0.109", referrer: "http://192.168.0.109/"
+2023/09/05 07:34:39 [error] 34#34: *25 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.105.29, server: kb109.dynv6.com, request: "GET /favicon.ico HTTP/1.1", upstream: "http://192.168.0.109:3000/favicon.ico", host: "192.168.0.109", referrer: "http://192.168.0.109/api/scheduler"
+2023/09/05 07:35:38 [error] 37#37: *34 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.0.109, server: kb109.dynv6.com, request: "POST /api/scheduler/node_online HTTP/1.1", upstream: "http://192.168.0.109:81/api/scheduler/node_online", host: "192.168.0.109"
+2023/09/05 07:35:38 [error] 36#36: *33 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.0.109, server: kb109.dynv6.com, request: "GET /api/scheduler/wsconnect?type=provider&uuid=ed5d96dc-e450-49fe-9f01-a1bcadbda0fd HTTP/1.1", upstream: "http://192.168.0.109:81/api/scheduler/wsconnect?type=provider&uuid=ed5d96dc-e450-49fe-9f01-a1bcadbda0fd", host: "192.168.0.109:80"
+2023/09/05 07:37:25 [notice] 1#1: using the "epoll" event method
+2023/09/05 07:37:25 [notice] 1#1: nginx/1.21.6
+2023/09/05 07:37:25 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2023/09/05 07:37:25 [notice] 1#1: OS: Linux 5.15.0-79-generic
+2023/09/05 07:37:25 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2023/09/05 07:37:25 [notice] 1#1: start worker processes
+2023/09/05 07:37:25 [notice] 1#1: start worker process 22
+2023/09/05 07:37:25 [notice] 1#1: start worker process 23
+2023/09/05 07:37:25 [notice] 1#1: start worker process 24
+2023/09/05 07:37:25 [notice] 1#1: start worker process 25
+2023/09/05 07:37:25 [notice] 1#1: start worker process 26
+2023/09/05 07:37:25 [notice] 1#1: start worker process 27
+2023/09/05 07:37:25 [notice] 1#1: start worker process 28
+2023/09/05 07:37:25 [notice] 1#1: start worker process 29
+2023/09/05 07:37:25 [notice] 1#1: start worker process 30
+2023/09/05 07:37:25 [notice] 1#1: start worker process 31
+2023/09/05 07:37:25 [notice] 1#1: start worker process 32
+2023/09/05 07:37:25 [notice] 1#1: start worker process 33
+2023/09/05 07:37:25 [notice] 1#1: start worker process 34
+2023/09/05 07:37:25 [notice] 1#1: start worker process 35
+2023/09/05 07:37:25 [notice] 1#1: start worker process 36
+2023/09/05 07:37:25 [notice] 1#1: start worker process 37
+2023/09/05 07:37:25 [notice] 1#1: start worker process 38
+2023/09/05 07:37:25 [notice] 1#1: start worker process 39
+2023/09/05 07:37:25 [notice] 1#1: start worker process 40
+2023/09/05 07:37:25 [notice] 1#1: start worker process 41
+2023/09/05 07:37:25 [notice] 1#1: start worker process 42
+2023/09/05 07:37:25 [notice] 1#1: start worker process 43
+2023/09/05 07:37:25 [notice] 1#1: start worker process 44
+2023/09/05 07:37:25 [notice] 1#1: start worker process 45
+2023/09/05 07:37:25 [notice] 1#1: start worker process 46
+2023/09/05 07:37:25 [notice] 1#1: start worker process 47
+2023/09/05 07:37:25 [notice] 1#1: start worker process 48
+2023/09/05 07:37:25 [notice] 1#1: start worker process 49
+2023/09/05 07:37:25 [notice] 1#1: start worker process 50
+2023/09/05 07:37:25 [notice] 1#1: start worker process 51
+2023/09/05 07:37:25 [notice] 1#1: start worker process 52
+2023/09/05 07:37:25 [notice] 1#1: start worker process 53
+2023/09/05 07:37:25 [notice] 1#1: start worker process 54
+2023/09/05 07:37:25 [notice] 1#1: start worker process 55
+2023/09/05 07:37:25 [notice] 1#1: start worker process 56
+2023/09/05 07:37:25 [notice] 1#1: start worker process 57
+2023/09/05 07:40:00 [notice] 1#1: using the "epoll" event method
+2023/09/05 07:40:00 [notice] 1#1: nginx/1.21.6
+2023/09/05 07:40:00 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2023/09/05 07:40:00 [notice] 1#1: OS: Linux 5.15.0-79-generic
+2023/09/05 07:40:00 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2023/09/05 07:40:00 [notice] 1#1: start worker processes
+2023/09/05 07:40:00 [notice] 1#1: start worker process 22
+2023/09/05 07:40:00 [notice] 1#1: start worker process 23
+2023/09/05 07:40:00 [notice] 1#1: start worker process 24
+2023/09/05 07:40:00 [notice] 1#1: start worker process 25
+2023/09/05 07:40:00 [notice] 1#1: start worker process 26
+2023/09/05 07:40:00 [notice] 1#1: start worker process 27
+2023/09/05 07:40:00 [notice] 1#1: start worker process 28
+2023/09/05 07:40:00 [notice] 1#1: start worker process 29
+2023/09/05 07:40:00 [notice] 1#1: start worker process 30
+2023/09/05 07:40:00 [notice] 1#1: start worker process 31
+2023/09/05 07:40:00 [notice] 1#1: start worker process 32
+2023/09/05 07:40:00 [notice] 1#1: start worker process 33
+2023/09/05 07:40:00 [notice] 1#1: start worker process 34
+2023/09/05 07:40:00 [notice] 1#1: start worker process 35
+2023/09/05 07:40:00 [notice] 1#1: start worker process 36
+2023/09/05 07:40:00 [notice] 1#1: start worker process 37
+2023/09/05 07:40:00 [notice] 1#1: start worker process 38
+2023/09/05 07:40:00 [notice] 1#1: start worker process 39
+2023/09/05 07:40:00 [notice] 1#1: start worker process 40
+2023/09/05 07:40:00 [notice] 1#1: start worker process 41
+2023/09/05 07:40:00 [notice] 1#1: start worker process 42
+2023/09/05 07:40:00 [notice] 1#1: start worker process 43
+2023/09/05 07:40:00 [notice] 1#1: start worker process 44
+2023/09/05 07:40:00 [notice] 1#1: start worker process 45
+2023/09/05 07:40:00 [notice] 1#1: start worker process 46
+2023/09/05 07:40:00 [notice] 1#1: start worker process 47
+2023/09/05 07:40:00 [notice] 1#1: start worker process 48
+2023/09/05 07:40:00 [notice] 1#1: start worker process 49
+2023/09/05 07:40:00 [notice] 1#1: start worker process 50
+2023/09/05 07:40:00 [notice] 1#1: start worker process 51
+2023/09/05 07:40:00 [notice] 1#1: start worker process 52
+2023/09/05 07:40:00 [notice] 1#1: start worker process 53
+2023/09/05 07:40:00 [notice] 1#1: start worker process 54
+2023/09/05 07:40:00 [notice] 1#1: start worker process 55
+2023/09/05 07:40:00 [notice] 1#1: start worker process 56
+2023/09/05 07:40:00 [notice] 1#1: start worker process 57
+2023/09/05 07:41:54 [notice] 1#1: using the "epoll" event method
+2023/09/05 07:41:54 [notice] 1#1: nginx/1.21.6
+2023/09/05 07:41:54 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2023/09/05 07:41:54 [notice] 1#1: OS: Linux 5.15.0-79-generic
+2023/09/05 07:41:54 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2023/09/05 07:41:54 [notice] 1#1: start worker processes
+2023/09/05 07:41:54 [notice] 1#1: start worker process 22
+2023/09/05 07:41:54 [notice] 1#1: start worker process 23
+2023/09/05 07:41:54 [notice] 1#1: start worker process 24
+2023/09/05 07:41:54 [notice] 1#1: start worker process 25
+2023/09/05 07:41:54 [notice] 1#1: start worker process 26
+2023/09/05 07:41:54 [notice] 1#1: start worker process 27
+2023/09/05 07:41:54 [notice] 1#1: start worker process 28
+2023/09/05 07:41:54 [notice] 1#1: start worker process 29
+2023/09/05 07:41:54 [notice] 1#1: start worker process 30
+2023/09/05 07:41:54 [notice] 1#1: start worker process 31
+2023/09/05 07:41:54 [notice] 1#1: start worker process 32
+2023/09/05 07:41:54 [notice] 1#1: start worker process 33
+2023/09/05 07:41:54 [notice] 1#1: start worker process 34
+2023/09/05 07:41:54 [notice] 1#1: start worker process 35
+2023/09/05 07:41:54 [notice] 1#1: start worker process 36
+2023/09/05 07:41:54 [notice] 1#1: start worker process 37
+2023/09/05 07:41:54 [notice] 1#1: start worker process 38
+2023/09/05 07:41:54 [notice] 1#1: start worker process 39
+2023/09/05 07:41:54 [notice] 1#1: start worker process 40
+2023/09/05 07:41:54 [notice] 1#1: start worker process 41
+2023/09/05 07:41:54 [notice] 1#1: start worker process 42
+2023/09/05 07:41:54 [notice] 1#1: start worker process 43
+2023/09/05 07:41:54 [notice] 1#1: start worker process 44
+2023/09/05 07:41:54 [notice] 1#1: start worker process 45
+2023/09/05 07:41:54 [notice] 1#1: start worker process 46
+2023/09/05 07:41:54 [notice] 1#1: start worker process 47
+2023/09/05 07:41:54 [notice] 1#1: start worker process 48
+2023/09/05 07:41:54 [notice] 1#1: start worker process 49
+2023/09/05 07:41:54 [notice] 1#1: start worker process 50
+2023/09/05 07:41:54 [notice] 1#1: start worker process 51
+2023/09/05 07:41:54 [notice] 1#1: start worker process 52
+2023/09/05 07:41:54 [notice] 1#1: start worker process 53
+2023/09/05 07:41:54 [notice] 1#1: start worker process 54
+2023/09/05 07:41:54 [notice] 1#1: start worker process 55
+2023/09/05 07:41:54 [notice] 1#1: start worker process 56
+2023/09/05 07:41:54 [notice] 1#1: start worker process 57
+2023/09/05 07:43:05 [notice] 1#1: using the "epoll" event method
+2023/09/05 07:43:05 [notice] 1#1: nginx/1.21.6
+2023/09/05 07:43:05 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2023/09/05 07:43:05 [notice] 1#1: OS: Linux 5.15.0-79-generic
+2023/09/05 07:43:05 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2023/09/05 07:43:05 [notice] 1#1: start worker processes
+2023/09/05 07:43:05 [notice] 1#1: start worker process 22
+2023/09/05 07:43:05 [notice] 1#1: start worker process 23
+2023/09/05 07:43:05 [notice] 1#1: start worker process 24
+2023/09/05 07:43:05 [notice] 1#1: start worker process 25
+2023/09/05 07:43:05 [notice] 1#1: start worker process 26
+2023/09/05 07:43:05 [notice] 1#1: start worker process 27
+2023/09/05 07:43:05 [notice] 1#1: start worker process 28
+2023/09/05 07:43:05 [notice] 1#1: start worker process 29
+2023/09/05 07:43:05 [notice] 1#1: start worker process 30
+2023/09/05 07:43:05 [notice] 1#1: start worker process 31
+2023/09/05 07:43:05 [notice] 1#1: start worker process 32
+2023/09/05 07:43:05 [notice] 1#1: start worker process 33
+2023/09/05 07:43:05 [notice] 1#1: start worker process 34
+2023/09/05 07:43:05 [notice] 1#1: start worker process 35
+2023/09/05 07:43:05 [notice] 1#1: start worker process 36
+2023/09/05 07:43:05 [notice] 1#1: start worker process 37
+2023/09/05 07:43:05 [notice] 1#1: start worker process 38
+2023/09/05 07:43:05 [notice] 1#1: start worker process 39
+2023/09/05 07:43:05 [notice] 1#1: start worker process 40
+2023/09/05 07:43:05 [notice] 1#1: start worker process 41
+2023/09/05 07:43:05 [notice] 1#1: start worker process 42
+2023/09/05 07:43:05 [notice] 1#1: start worker process 43
+2023/09/05 07:43:05 [notice] 1#1: start worker process 44
+2023/09/05 07:43:05 [notice] 1#1: start worker process 45
+2023/09/05 07:43:05 [notice] 1#1: start worker process 46
+2023/09/05 07:43:05 [notice] 1#1: start worker process 47
+2023/09/05 07:43:05 [notice] 1#1: start worker process 48
+2023/09/05 07:43:05 [notice] 1#1: start worker process 49
+2023/09/05 07:43:05 [notice] 1#1: start worker process 50
+2023/09/05 07:43:05 [notice] 1#1: start worker process 51
+2023/09/05 07:43:05 [notice] 1#1: start worker process 52
+2023/09/05 07:43:05 [notice] 1#1: start worker process 53
+2023/09/05 07:43:05 [notice] 1#1: start worker process 54
+2023/09/05 07:43:05 [notice] 1#1: start worker process 55
+2023/09/05 07:43:05 [notice] 1#1: start worker process 56
+2023/09/05 07:43:05 [notice] 1#1: start worker process 57
+2023/09/05 08:38:48 [error] 53#53: *61 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.10.212, server: kb109.dynv6.net, request: "GET / HTTP/1.1", upstream: "http://192.168.0.109:3000/", host: "192.168.0.109"
+2023/09/05 08:38:48 [error] 53#53: *61 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.10.212, server: kb109.dynv6.net, request: "GET /favicon.ico HTTP/1.1", upstream: "http://192.168.0.109:3000/favicon.ico", host: "192.168.0.109", referrer: "http://192.168.0.109/"

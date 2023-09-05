@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// provider worker node online
-	addr := "http://" + os.Getenv("SCHEDULER_WS_HOSTNAME") + "/api/scheduler/node_online"
+	addr := "http://" + os.Getenv("SCHEDULER_WS_HOSTNAME") + ":" + os.Getenv("SCHEDULER_WS_PORT") + "/api/scheduler/node_online"
 	log.Println("The provider worker node's info is sent to the scheduler's HTTP interface: " + addr)
 	client := &http.Client{}
 	data := make(map[string]interface{})
@@ -39,7 +39,7 @@ func main() {
 	bytesData, _ := json.Marshal(data)
 	req, _ := http.NewRequest("POST", addr, bytes.NewReader(bytesData))
 	resp, _ := client.Do(req)
-	log.Println("Succeed in filestore worker node online with info:", string(bytesData))
+	log.Println("Sent provider worker node online with info:", string(bytesData))
 	body, _ := ioutil.ReadAll(resp.Body)
 	log.Println("Get answer from the scheduler:", string(body))
 
