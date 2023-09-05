@@ -18,9 +18,9 @@ type InstanceModel struct {
 	FPS              int              `json:"fps"`
 	VCodec           string           `json:"vcodec"`
 	FilestoreList    []FilestoreCore  `json:"filestore_list"`  // list of ip address
-	DepositaryList   []DepositaryCore `json:"depositary_list"` // list of ip address
+	DepositoryList   []DepositoryCore `json:"depository_list"` // list of ip address
 	TargetFilestore  FilestoreCore    `json:"target_filestore"`
-	TargetDepositary DepositaryCore   `json:"target_depositary"`
+	TargetDepository DepositoryCore   `json:"target_depository"`
 }
 
 /*
@@ -52,23 +52,23 @@ type InstanceCore struct {
 }
 
 /*
-@model: Depositary
-@description: depositary client
+@model: Depository
+@description: depository client
 */
-type Depositary struct {
-	DepositaryCore
+type Depository struct {
+	DepositoryCore
 }
 
 /*
-@model: DepositaryCore
-@description: metadata for depositary client
+@model: DepositoryCore
+@description: metadata for depository client
 @example:
 
-	depositary.HostAddress = "127.0.0.1"
-	depositary.Port = "5000"
-	depositary.Tag = "latest"
+	depository.HostAddress = "127.0.0.1"
+	depository.Port = "5000"
+	depository.Tag = "latest"
 */
-type DepositaryCore struct {
+type DepositoryCore struct {
 	HostAddress string `json:"host_address"`
 	Port        string `json:"port"`
 	Tag         string `json:"tag"`

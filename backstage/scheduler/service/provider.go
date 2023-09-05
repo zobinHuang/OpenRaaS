@@ -185,7 +185,7 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 		// define request format
 		var reqPacketData struct {
 			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepository model.DepositoryCore `json:"selected_depositary"`
+			SelectedDepository model.DepositoryCore `json:"selected_depository"`
 			SelectedFileStore  model.FileStoreCore  `json:"selected_filestore"`
 		}
 
@@ -208,7 +208,7 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 		// construct responses to consumers
 		respToConsumers := struct {
-			TargetDepository string `json:"target_depositary"`
+			TargetDepository string `json:"target_depository"`
 			TargetFileStore  string `json:"target_filestore"`
 		}{
 			TargetDepository: fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.IP, reqPacketData.SelectedDepository.Port),

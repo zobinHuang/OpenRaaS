@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 )
 
@@ -86,8 +87,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		return nil, nil, nil, fmt.Errorf("scheduler unmarshal FileStoreList fail, err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
-	// todo: get depositaryList from image id
-	depositaryList, err := sc.DepositoryDAL.GetDepositoryInRDS(ctx)
+	// todo: get depositoryList from image id
+	depositoryList, err := sc.DepositoryDAL.GetDepositoryInRDS(ctx)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetDepositoryInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
@@ -97,7 +98,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
-	return candidatesGPU[0], depositaryList, filestoreList, nil
+	return candidatesGPU[0], depositoryList, filestoreList, nil
 }
 
 /*

@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -117,11 +118,11 @@ type ProviderDAL interface {
 
 /*
 interface: DepositoryDAL
-description: interface of data access layer for depositary
+description: interface of data access layer for depository
 */
 type DepositoryDAL interface {
-	CreateDepository(ctx context.Context, depositary *Depository)
-	DeleteDepository(ctx context.Context, depositaryID string)
+	CreateDepository(ctx context.Context, depository *Depository)
+	DeleteDepository(ctx context.Context, depositoryID string)
 	GetDepositoryInRDS(ctx context.Context) ([]DepositoryCore, error)
 	GetDepositoryBetweenIDInRDS(ctx context.Context, ids []string) ([]DepositoryCore, error)
 	GetDepositoryInRDSByID(ctx context.Context, id string) (*DepositoryCore, error)

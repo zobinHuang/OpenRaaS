@@ -19,7 +19,7 @@ const (
 	CLIENT_TYPE_UNKNOWN    string = "unknown"
 	CLIENT_TYPE_PROVIDER   string = "provider"
 	CLIENT_TYPE_CONSUMER   string = "consumer"
-	CLIENT_TYPE_DEPOSITARY string = "depositary"
+	CLIENT_TYPE_DEPOSITARY string = "depository"
 	CLIENT_TYPE_FILESTORE  string = "filestore"
 )
 

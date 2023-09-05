@@ -34,7 +34,7 @@ type InstanceService interface {
 	DeleteInstanceByInstanceid(ctx context.Context, Instanceid string) error
 	DeleteAllInstance(ctx context.Context) error
 	MountFilestore(ctx context.Context, vmid int, filestore FilestoreCore) error
-	FetchLayerFromDepositary(ctx context.Context, vmid int, depositary DepositaryCore) error
+	FetchLayerFromDepository(ctx context.Context, vmid int, depository DepositoryCore) error
 }
 
 /*

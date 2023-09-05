@@ -2,6 +2,7 @@ package dal
 
 import (
 	"context"
+
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -165,5 +166,9 @@ func (d *FileStoreDAL) GetFileStoreInRDSBetweenID(ctx context.Context, ids []str
 
 // Clear delete all
 func (d *FileStoreDAL) Clear() {
-	d.DB.Delete(&model.FileStoreCore{})
+	if err := d.DB.Exec("DELETE FROM public.file_store_cores").Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Fail to clear file_store_cores table")
+	}
 }

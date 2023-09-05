@@ -125,13 +125,13 @@ description: check network connection status between host and depository servers
 */
 func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
 	/* Test */
-	var depositary model.DepositaryCore
+	var depository model.DepositoryCore
 
-	depositary.HostAddress = "127.0.0.1"
-	depositary.Port = "5000"
-	depositary.Tag = "latest"
+	depository.HostAddress = "127.0.0.1"
+	depository.Port = "5000"
+	depository.Tag = "latest"
 
-	instanceModel.TargetDepositary = depositary
+	instanceModel.TargetDepository = depository
 
 	// TODO: complete depository schedule process
 
@@ -153,11 +153,11 @@ func (h *Handler) MountFilestore(ctx context.Context, instanceModel *model.Insta
 }
 
 /*
-func: FetchDepositary
-description: fetch the docker layer including some configuration of the app's installation from the target depositary server
+func: FetchDepository
+description: fetch the docker layer including some configuration of the app's installation from the target depository server
 */
-func (h *Handler) FetchDepositary(ctx context.Context, instanceModel *model.InstanceModel) error {
-	err := h.InstanceService.FetchLayerFromDepositary(ctx, instanceModel.VMID, instanceModel.TargetDepositary)
+func (h *Handler) FetchDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
+	err := h.InstanceService.FetchLayerFromDepository(ctx, instanceModel.VMID, instanceModel.TargetDepository)
 
 	if err != nil {
 		log.Printf("Failed to fetch layer: %v\n", err.Error())

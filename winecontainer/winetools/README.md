@@ -20,7 +20,7 @@ winecounter 核心功能组件，用于 wine 容器的配置与启动
     a.  挂载方法示例：`sudo expect ./auto-mount.exp 1 davfs ip:port /games username pwd`
     b.  取消挂载：`sudo umount ./apps`
 3. 运行容器：`sudo sh run-wine.sh image_name container_id apppath appfile appname hwkey screenwidth screenheight targethost wineoptions`
-    1. image_name: dcwine 的容器名称，通过设置 `ip:port/dcwine:tag` 指定不同的 depositary
+    1. image_name: dcwine 的容器名称，通过设置 `ip:port/dcwine:tag` 指定不同的 depository
     2. container_id: 容器编号
     3. apppath: 应用目录在 `./apps` 目录下的相对路径
     4. appfile: 应用目录中的可执行文件名
@@ -76,6 +76,6 @@ xx 表示容器编号，如：appvm1->01 appvm23->23
 2. synvinput 针对 app 和 game 有不同的键盘输入模式，鼠标的输入都一样
    1. app 使用 virtual-key code
    2. game 使用 hardware scan code
-3. 指定 docker depositary 时，需要将镜像名改为 ip:port/dcwine:latest，并且 depositary 最好提供 https，否则需要修改 docker 的配置文件
+3. 指定 docker depository 时，需要将镜像名改为 ip:port/dcwine:latest，并且 depository 最好提供 https，否则需要修改 docker 的配置文件
    1. 编辑 `/etc/docker/daemon.json`，添加 `"insecure-registries":["IP:Port"] `
    2. 重启 docker：`systemctl daemon-reload`，`systemctl restart docker`

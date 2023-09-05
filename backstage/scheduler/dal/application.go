@@ -2,6 +2,7 @@ package dal
 
 import (
 	"context"
+
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model/apperrors"
 
@@ -231,5 +232,9 @@ func (d *ApplicationDAL) CreateStreamApplication(ctx context.Context, info *mode
 
 // Clear delete all
 func (d *ApplicationDAL) Clear() {
-	d.DB.Delete(&model.StreamApplication{})
+	if err := d.DB.Exec("DELETE FROM public.stream_applications").Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Fail to clear stream_applications table")
+	}
 }

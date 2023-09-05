@@ -1,13 +1,14 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 /*
 @model: Depository
-@description: depositary client
+@description: depository client
 */
 type Depository struct {
 	DepositoryCore
@@ -16,7 +17,7 @@ type Depository struct {
 
 /*
 @model: DepositoryCore
-@description: metadata for depositary client
+@description: metadata for depository client
 @param SupportApp: slice to json string
 */
 type DepositoryCore struct {

@@ -156,5 +156,9 @@ func (d *ProviderDAL) UpdateProviderInRDSByID(ctx context.Context, provider *mod
 
 // Clear delete all
 func (d *ProviderDAL) Clear() {
-	d.DB.Delete(&model.ProviderCore{})
+	if err := d.DB.Exec("DELETE FROM public.provider_cores").Error; err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Fail to clear provider_cores table")
+	}
 }
