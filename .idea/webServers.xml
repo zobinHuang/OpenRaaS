@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="a47f3ef5-1468-4c7a-8666-d7361badcf33" name="gpu1" url="http://192.168.0.109">
+        <fileTransfer rootFolder="/home/broscloud" accessType="SFTP" host="192.168.0.109" port="22" sshConfigId="b20e44df-f76a-4ed7-8a92-ac969872defc" sshConfig="broscloud@192.168.0.109:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

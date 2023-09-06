@@ -139,6 +139,8 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		h.ProviderService.ShowEnterInfo(ctx, &headerData)
+		h.ProviderService.ShowAllInfo(ctx)
 
 	case model.CLIENT_TYPE_DEPOSITARY:
 		var headerData model.DepositoryCore
@@ -159,6 +161,8 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		h.DepositoryService.ShowEnterInfo(ctx, &headerData)
+		h.DepositoryService.ShowAllInfo(ctx)
 
 	case model.CLIENT_TYPE_FILESTORE:
 		var headerData model.FileStoreCore
@@ -179,6 +183,8 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		h.FileStoreService.ShowEnterInfo(ctx, &headerData)
+		h.FileStoreService.ShowAllInfo(ctx)
 
 	default:
 		// leave empty
@@ -242,7 +248,8 @@ func (h *Handler) ApplicationOnline(c *gin.Context) {
 			return
 		}
 	}
-
+	h.ApplicationService.ShowEnterInfo(ctx, &appCore, headerData.NewFileStoreID)
+	h.ApplicationService.ShowAllInfo(ctx)
 }
 
 func (h *Handler) Clear(c *gin.Context) {

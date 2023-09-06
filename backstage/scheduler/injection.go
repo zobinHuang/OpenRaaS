@@ -74,6 +74,8 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 
 	applicationService := service.NewApplicationService(&service.ApplicationServiceConfig{
 		ApplicationDAL: applicationDAL,
+		DepositoryDAL:  depositoryDAL,
+		FileStoreDAL:   filestoreDAL,
 	})
 
 	// load RSA Private key

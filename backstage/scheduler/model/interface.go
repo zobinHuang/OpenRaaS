@@ -2,7 +2,6 @@ package model
 
 import (
 	"context"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -45,6 +44,8 @@ type ApplicationService interface {
 	GetStreamApplications(ctx context.Context, pageNumber int, pageSize int, orderBy string) ([]*StreamApplication, error)
 	CreateStreamApplication(ctx context.Context, info *StreamApplication) error
 	AddFileStoreIDToAPPInRDS(ctx context.Context, info *StreamApplication, id string) error
+	ShowEnterInfo(ctx context.Context, app *StreamApplication, nodeId string)
+	ShowAllInfo(ctx context.Context)
 }
 
 /*
@@ -55,6 +56,8 @@ type ProviderService interface {
 	CreateProvider(ctx context.Context, ws *websocket.Conn, uuid string) (*Provider, error)
 	InitRecvRoute(ctx context.Context, provider *Provider)
 	CreateProviderInRDS(ctx context.Context, provider *ProviderCore) error
+	ShowEnterInfo(ctx context.Context, provider *ProviderCore)
+	ShowAllInfo(ctx context.Context)
 }
 
 /*
@@ -63,6 +66,8 @@ description: interface of FileStore service
 */
 type FileStoreService interface {
 	CreateFileStoreInRDS(ctx context.Context, info *FileStoreCore) error
+	ShowEnterInfo(ctx context.Context, fileStore *FileStoreCore)
+	ShowAllInfo(ctx context.Context)
 }
 
 /*
@@ -71,6 +76,8 @@ description: interface of Depository service
 */
 type DepositoryService interface {
 	CreateDepositoryInRDS(ctx context.Context, info *DepositoryCore) error
+	ShowEnterInfo(ctx context.Context, depository *DepositoryCore)
+	ShowAllInfo(ctx context.Context)
 }
 
 // --------- Service Core Layer Interface ---------

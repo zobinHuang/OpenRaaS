@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	log "github.com/sirupsen/logrus"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
 )
 
 /*
@@ -27,6 +29,46 @@ func NewFileStoreService(f *FileStoreServiceConfig) model.FileStoreService {
 	}
 }
 
-func (f *FileStoreService) CreateFileStoreInRDS(ctx context.Context, info *model.FileStoreCore) error {
-	return f.FileStoreDAL.CreateFileStoreInRDS(ctx, info)
+func (s *FileStoreService) CreateFileStoreInRDS(ctx context.Context, info *model.FileStoreCore) error {
+	return s.FileStoreDAL.CreateFileStoreInRDS(ctx, info)
+}
+
+func (s *FileStoreService) ShowEnterInfo(ctx context.Context, fileStore *model.FileStoreCore) {
+	log.Info("%s, allow new fileStore enter, id: %s", utils.GetCurrentTime(), fileStore.ID)
+	performance := "normal"
+	if fileStore.IsContainFastNetspeed {
+		performance = "powerful"
+	}
+	log.Info("%s, New fileStore id: %s, ip: %s, mem: %f GB, type: %s",
+		utils.GetCurrentTime(), fileStore.ID, fileStore.IP, fileStore.Mem, performance)
+}
+
+func (s *FileStoreService) ShowAllInfo(ctx context.Context) {
+	fileStores, err := s.FileStoreDAL.GetFileStoreInRDS(ctx)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error("FileStoreService ShowAllInfo GetFileStoreInRDS error")
+	}
+	totalMem := 0.0
+	powerNum := 0
+	normalNum := 0
+	for _, f := range fileStores {
+		if f.IsContainFastNetspeed {
+			powerNum += 1
+		} else {
+			normalNum += 1
+		}
+		totalMem += f.Mem
+	}
+	log.Info("%s, FileStores Info, Total: %d nodes, %f GB MEM, %d powerful node, %d normal node",
+		utils.GetCurrentTime(), len(fileStores), totalMem, powerNum, normalNum)
+	for _, f := range fileStores {
+		performance := "normal"
+		if f.IsContainFastNetspeed {
+			performance = "powerful"
+		}
+		log.Info("%s, New fileStore id: %s, ip: %s, mem: %f GB, type: %s",
+			utils.GetCurrentTime(), f.ID, f.IP, f.Mem, performance)
+	}
 }

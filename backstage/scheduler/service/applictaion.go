@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"gorm.io/gorm"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
+	"gorm.io/gorm"
 )
 
 /*
@@ -15,6 +16,8 @@ import (
 */
 type ApplicationService struct {
 	ApplicationDAL model.ApplicationDAL
+	FileStoreDAL   model.FileStoreDAL
+	DepositoryDAL  model.DepositoryDAL
 }
 
 /*
@@ -23,6 +26,8 @@ type ApplicationService struct {
 */
 type ApplicationServiceConfig struct {
 	ApplicationDAL model.ApplicationDAL
+	FileStoreDAL   model.FileStoreDAL
+	DepositoryDAL  model.DepositoryDAL
 }
 
 /*
@@ -34,6 +39,8 @@ type ApplicationServiceConfig struct {
 func NewApplicationService(c *ApplicationServiceConfig) model.ApplicationService {
 	return &ApplicationService{
 		ApplicationDAL: c.ApplicationDAL,
+		FileStoreDAL:   c.FileStoreDAL,
+		DepositoryDAL:  c.DepositoryDAL,
 	}
 }
 
@@ -108,7 +115,7 @@ func (s *ApplicationService) AddFileStoreIDToAPPInRDS(ctx context.Context, info 
 	app, err := s.ApplicationDAL.GetStreamApplicationByID(ctx, info.ApplicationID)
 	if err == nil {
 		if app.FileStoreList == "" {
-			app.FileStoreList = "[" + id + "]"
+			app.FileStoreList = "[\"" + id + "\"]"
 		} else {
 			var ids []string
 			if err := json.Unmarshal([]byte(app.FileStoreList), &ids); err != nil {
@@ -122,7 +129,8 @@ func (s *ApplicationService) AddFileStoreIDToAPPInRDS(ctx context.Context, info 
 			app.FileStoreList = string(idsStr)
 		}
 		return s.ApplicationDAL.UpdateStreamApplicationByID(ctx, app)
-	} else if errors.Is(err, gorm.ErrRecordNotFound) {
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err := s.CreateStreamApplication(ctx, info)
 		if err != nil {
 			return err
@@ -130,4 +138,71 @@ func (s *ApplicationService) AddFileStoreIDToAPPInRDS(ctx context.Context, info 
 		return s.AddFileStoreIDToAPPInRDS(ctx, info, id)
 	}
 	return err
+}
+
+func (s *ApplicationService) ShowEnterInfo(ctx context.Context, app *model.StreamApplication, nodeId string) {
+	log.Info("%s, allow new application enter, id: %s", utils.GetCurrentTime(), app.ApplicationID)
+	req1 := "normal"
+	if app.IsProviderReqGPU {
+		req1 = "powerful"
+	}
+	req2 := "normal"
+	if app.IsProviderReqGPU {
+		req2 = "powerful"
+	}
+	req3 := "normal"
+	if app.IsProviderReqGPU {
+		req3 = "powerful"
+	}
+	log.Info("%s, new application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, launch nodes: %s, "+
+		"provider request: %s, depository request: %s, fileStore request: %s",
+		utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description, nodeId, req1, req2, req3)
+}
+
+func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
+	apps, err := s.ApplicationDAL.GetStreamApplication(ctx)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error("DepositoryService ShowAllInfo GetDepositoryInRDS error")
+	}
+	fileStores, err := s.FileStoreDAL.GetFileStoreInRDS(ctx)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error("ApplicationService ShowAllInfo GetFileStoreInRDS error")
+	}
+	depositories, err := s.DepositoryDAL.GetDepositoryInRDS(ctx)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error("ApplicationService ShowAllInfo GetDepositoryInRDS error")
+	}
+	log.Info("%s, Applications Total Info, app amount: %d, launch fileStore amount: %d, launch depository amount: %d, served image amount: 1",
+		utils.GetCurrentTime(), len(apps), len(fileStores), len(depositories))
+
+	depositoriesIds := make([]string, 0, 0)
+	for _, d := range depositories {
+		depositoriesIds = append(depositoriesIds, d.ID)
+	}
+	depositoriesIdsStr, _ := json.Marshal(depositoriesIds)
+
+	for _, app := range apps {
+		req1 := "normal"
+		if app.IsProviderReqGPU {
+			req1 = "powerful"
+		}
+		req2 := "normal"
+		if app.IsProviderReqGPU {
+			req2 = "powerful"
+		}
+		req3 := "normal"
+		if app.IsProviderReqGPU {
+			req3 = "powerful"
+		}
+		log.Info("%s, new application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, "+
+			"launch fileStores: %s, launch depositories: %s, provider request: %s, depository request: %s, fileStore request: %s",
+			utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description,
+			app.FileStoreList, depositoriesIdsStr, req1, req2, req3)
+	}
 }

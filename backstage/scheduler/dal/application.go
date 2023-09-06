@@ -3,10 +3,8 @@ package dal
 import (
 	"context"
 
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model/apperrors"
-
 	log "github.com/sirupsen/logrus"
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 	"gorm.io/gorm"
 )
 
@@ -56,7 +54,7 @@ func (d *ApplicationDAL) GetStreamApplicationByID(ctx context.Context, applicati
 		log.WithFields(log.Fields{
 			"Given Application ID": applicationID,
 		}).Warn("Unable to obtain stream application with given application id")
-		return nil, apperrors.NewNotFound("application_id", applicationID)
+		return nil, err
 	}
 
 	return streamApplication, nil

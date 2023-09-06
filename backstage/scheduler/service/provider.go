@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
 
 	"github.com/gorilla/websocket"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
@@ -621,4 +622,45 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 		return model.EmptyPacket
 	})
+}
+
+// ShowEnterInfo show info when register a new provider
+func (s *ProviderService) ShowEnterInfo(ctx context.Context, provider *model.ProviderCore) {
+	log.Info("%s, allow new provider enter, id: %s", utils.GetCurrentTime(), provider.ID)
+	performance := "normal"
+	if provider.IsContainGPU {
+		performance = "powerful"
+	}
+	log.Info("%s, New provider id: %s, ip: %s, processor: %f GF, type: %s",
+		utils.GetCurrentTime(), provider.ID, provider.IP, provider.Processor, performance)
+}
+
+func (s *ProviderService) ShowAllInfo(ctx context.Context) {
+	providers, err := s.ProviderDAL.GetProviderInRDS(ctx)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error("ProviderService ShowAllInfo GetProviderInRDS error")
+	}
+	totalProcessor := 0.0
+	powerNum := 0
+	normalNum := 0
+	for _, p := range providers {
+		if p.IsContainGPU {
+			powerNum += 1
+		} else {
+			normalNum += 1
+		}
+		totalProcessor += p.Processor
+	}
+	log.Info("%s, Providers Info, Total: %d nodes, %f GF, %d powerful node, %d normal node",
+		utils.GetCurrentTime(), len(providers), totalProcessor, powerNum, normalNum)
+	for _, p := range providers {
+		performance := "normal"
+		if p.IsContainGPU {
+			performance = "powerful"
+		}
+		log.Info("%s, provider id: %s, ip: %s, processor: %f GF, performance: %s",
+			utils.GetCurrentTime(), p.ID, p.IP, p.Processor, performance)
+	}
 }
