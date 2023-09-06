@@ -68,7 +68,7 @@ func (s *DepositoryService) ShowAllInfo(ctx context.Context) {
 		if d.IsContainFastNetspeed {
 			performance = "powerful"
 		}
-		log.Infof("%s, New depository id: %s, ip: %s, mem: %f GB, type: %s",
+		log.Infof("%s, depository id: %s, ip: %s, mem: %f GB, type: %s",
 			utils.GetCurrentTime(), d.ID, d.IP, d.Mem, performance)
 	}
 }

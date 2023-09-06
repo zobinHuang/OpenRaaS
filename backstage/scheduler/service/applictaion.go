@@ -155,7 +155,7 @@ func (s *ApplicationService) ShowEnterInfo(ctx context.Context, app *model.Strea
 		req3 = "powerful"
 	}
 	log.Infof("%s, new application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, launch nodes: %s, "+
-		"provider request: %s, depository request: %s, fileStore request: %s",
+		"provider request: %s, depository request: %s, filestore request: %s",
 		utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description, nodeId, req1, req2, req3)
 }
 
@@ -178,7 +178,7 @@ func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
 			"error": err.Error(),
 		}).Error("ApplicationService ShowAllInfo GetDepositoryInRDS error")
 	}
-	log.Infof("%s, Applications Total Info, app amount: %d, launch fileStore amount: %d, launch depository amount: %d, served image amount: 1",
+	log.Infof("%s, Applications Total Info, app amount: %d, launch filestore amount: %d, launch depository amount: %d, served image amount: 1",
 		utils.GetCurrentTime(), len(apps), len(fileStores), len(depositories))
 
 	depositoriesIds := make([]string, 0, 0)
@@ -200,8 +200,8 @@ func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
 		if app.IsProviderReqGPU {
 			req3 = "powerful"
 		}
-		log.Infof("%s, new application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, "+
-			"launch fileStores: %s, launch depositories: %s, provider request: %s, depository request: %s, fileStore request: %s",
+		log.Infof("%s, application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, "+
+			"launch filestores: %s, launch depositories: %s, provider request: %s, depository request: %s, filestore request: %s",
 			utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description,
 			app.FileStoreList, depositoriesIdsStr, req1, req2, req3)
 	}
