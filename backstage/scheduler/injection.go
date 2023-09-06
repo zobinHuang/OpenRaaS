@@ -72,6 +72,14 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 		ConsumerDAL:     comsumerDAL,
 	})
 
+	depositoryService := service.NewDepositoryService(&service.DepositoryServiceConfig{
+		DepositoryDAL: depositoryDAL,
+	})
+
+	fileStoreService := service.NewFileStoreService(&service.FileStoreServiceConfig{
+		FileStoreDAL: filestoreDAL,
+	})
+
 	applicationService := service.NewApplicationService(&service.ApplicationServiceConfig{
 		ApplicationDAL: applicationDAL,
 		DepositoryDAL:  depositoryDAL,
@@ -123,8 +131,8 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 		TokenService:       tokenService,
 		ConsumerService:    consumerService,
 		ProviderService:    providerService,
-		DepositoryService:  depositoryDAL,
-		FileStoreService:   filestoreDAL,
+		DepositoryService:  depositoryService,
+		FileStoreService:   fileStoreService,
 		ApplicationService: applicationService,
 		BaseURL:            baseURL,
 		TimeoutDuration:    time.Duration(time.Duration(ht) * time.Second),

@@ -141,7 +141,7 @@ func (s *ApplicationService) AddFileStoreIDToAPPInRDS(ctx context.Context, info 
 }
 
 func (s *ApplicationService) ShowEnterInfo(ctx context.Context, app *model.StreamApplication, nodeId string) {
-	log.Info("%s, allow new application enter, id: %s", utils.GetCurrentTime(), app.ApplicationID)
+	log.Infof("%s, allow new application enter, id: %s", utils.GetCurrentTime(), app.ApplicationID)
 	req1 := "normal"
 	if app.IsProviderReqGPU {
 		req1 = "powerful"
@@ -154,7 +154,7 @@ func (s *ApplicationService) ShowEnterInfo(ctx context.Context, app *model.Strea
 	if app.IsProviderReqGPU {
 		req3 = "powerful"
 	}
-	log.Info("%s, new application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, launch nodes: %s, "+
+	log.Infof("%s, new application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, launch nodes: %s, "+
 		"provider request: %s, depository request: %s, fileStore request: %s",
 		utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description, nodeId, req1, req2, req3)
 }
@@ -178,7 +178,7 @@ func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
 			"error": err.Error(),
 		}).Error("ApplicationService ShowAllInfo GetDepositoryInRDS error")
 	}
-	log.Info("%s, Applications Total Info, app amount: %d, launch fileStore amount: %d, launch depository amount: %d, served image amount: 1",
+	log.Infof("%s, Applications Total Info, app amount: %d, launch fileStore amount: %d, launch depository amount: %d, served image amount: 1",
 		utils.GetCurrentTime(), len(apps), len(fileStores), len(depositories))
 
 	depositoriesIds := make([]string, 0, 0)
@@ -200,7 +200,7 @@ func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
 		if app.IsProviderReqGPU {
 			req3 = "powerful"
 		}
-		log.Info("%s, new application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, "+
+		log.Infof("%s, new application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, "+
 			"launch fileStores: %s, launch depositories: %s, provider request: %s, depository request: %s, fileStore request: %s",
 			utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description,
 			app.FileStoreList, depositoriesIdsStr, req1, req2, req3)

@@ -34,12 +34,12 @@ func (s *FileStoreService) CreateFileStoreInRDS(ctx context.Context, info *model
 }
 
 func (s *FileStoreService) ShowEnterInfo(ctx context.Context, fileStore *model.FileStoreCore) {
-	log.Info("%s, allow new fileStore enter, id: %s", utils.GetCurrentTime(), fileStore.ID)
+	log.Infof("%s, allow new fileStore enter, id: %s", utils.GetCurrentTime(), fileStore.ID)
 	performance := "normal"
 	if fileStore.IsContainFastNetspeed {
 		performance = "powerful"
 	}
-	log.Info("%s, New fileStore id: %s, ip: %s, mem: %f GB, type: %s",
+	log.Infof("%s, New fileStore id: %s, ip: %s, mem: %f GB, type: %s",
 		utils.GetCurrentTime(), fileStore.ID, fileStore.IP, fileStore.Mem, performance)
 }
 
@@ -61,14 +61,14 @@ func (s *FileStoreService) ShowAllInfo(ctx context.Context) {
 		}
 		totalMem += f.Mem
 	}
-	log.Info("%s, FileStores Info, Total: %d nodes, %f GB MEM, %d powerful node, %d normal node",
+	log.Infof("%s, FileStores Info, Total: %d nodes, %f GB MEM, %d powerful node, %d normal node",
 		utils.GetCurrentTime(), len(fileStores), totalMem, powerNum, normalNum)
 	for _, f := range fileStores {
 		performance := "normal"
 		if f.IsContainFastNetspeed {
 			performance = "powerful"
 		}
-		log.Info("%s, New fileStore id: %s, ip: %s, mem: %f GB, type: %s",
+		log.Infof("%s, New fileStore id: %s, ip: %s, mem: %f GB, type: %s",
 			utils.GetCurrentTime(), f.ID, f.IP, f.Mem, performance)
 	}
 }

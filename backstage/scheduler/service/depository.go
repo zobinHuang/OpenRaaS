@@ -34,12 +34,12 @@ func (s *DepositoryService) CreateDepositoryInRDS(ctx context.Context, info *mod
 }
 
 func (s *DepositoryService) ShowEnterInfo(ctx context.Context, depository *model.DepositoryCore) {
-	log.Info("%s, allow new depository enter, id: %s", utils.GetCurrentTime(), depository.ID)
+	log.Infof("%s, allow new depository enter, id: %s", utils.GetCurrentTime(), depository.ID)
 	performance := "normal"
 	if depository.IsContainFastNetspeed {
 		performance = "powerful"
 	}
-	log.Info("%s, New depository id: %s, ip: %s, mem: %f GB, type: %s",
+	log.Infof("%s, New depository id: %s, ip: %s, mem: %f GB, type: %s",
 		utils.GetCurrentTime(), depository.ID, depository.IP, depository.Mem, performance)
 }
 
@@ -61,14 +61,14 @@ func (s *DepositoryService) ShowAllInfo(ctx context.Context) {
 		}
 		totalMem += d.Mem
 	}
-	log.Info("%s, Depositories Info, Total: %d nodes, %f GB MEM, %d powerful node, %d normal node",
+	log.Infof("%s, Depositories Info, Total: %d nodes, %f GB MEM, %d powerful node, %d normal node",
 		utils.GetCurrentTime(), len(depositories), totalMem, powerNum, normalNum)
 	for _, d := range depositories {
 		performance := "normal"
 		if d.IsContainFastNetspeed {
 			performance = "powerful"
 		}
-		log.Info("%s, New depository id: %s, ip: %s, mem: %f GB, type: %s",
+		log.Infof("%s, New depository id: %s, ip: %s, mem: %f GB, type: %s",
 			utils.GetCurrentTime(), d.ID, d.IP, d.Mem, performance)
 	}
 }
