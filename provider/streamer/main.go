@@ -37,7 +37,7 @@ func main() {
 	data["id"] = os.Getenv("SERVER_ID")
 	data["ip"] = os.Getenv("SERVER_IP")
 	data["is_contain_gpu"], _ = strconv.ParseBool(os.Getenv("SERVER_PERFORMANCE"))
-	data["processor"] = os.Getenv("SERVER_PROCESSOR")
+	data["processor"], _ = strconv.ParseFloat(os.Getenv("SERVER_PROCESSOR"), 64)
 	bytesData, _ := json.Marshal(data)
 	req, _ := http.NewRequest("POST", addr, bytes.NewReader(bytesData))
 	resp, _ := client.Do(req)

@@ -11,7 +11,7 @@ app1_file: sol.exe
 app1_hwkey: game
 app1_os: windows
 app1_create_user: coolmoon327
-app1_description: A classic FPS game.
-app1_provider_performance: true    # device performance: true for "high", or false for "low"
-app1_filestore_performance: true    # device performance: true for "high", or false for "low"
-app1_depository_performance: true    # device performance: true for "high", or false for "low"
+app1_description: 传统卡牌游戏
+app1_provider_performance: false    # device performance: true for "high", or false for "low"
+app1_filestore_performance: false    # device performance: true for "high", or false for "low"
+app1_depository_performance: false    # device performance: true for "high", or false for "low"
