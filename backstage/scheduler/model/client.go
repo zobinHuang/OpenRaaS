@@ -12,20 +12,20 @@ import (
 )
 
 /*
-	@enum
-	@description: client type
+@enum
+@description: client type
 */
 const (
 	CLIENT_TYPE_UNKNOWN    string = "unknown"
 	CLIENT_TYPE_PROVIDER   string = "provider"
 	CLIENT_TYPE_CONSUMER   string = "consumer"
-	CLIENT_TYPE_DEPOSITARY string = "depositary"
+	CLIENT_TYPE_DEPOSITARY string = "depository"
 	CLIENT_TYPE_FILESTORE  string = "filestore"
 )
 
 /*
-	@enum
-	@description: consumer type
+@enum
+@description: consumer type
 */
 const (
 	CONSUMER_TYPE_STREAM   string = "stream"
@@ -33,8 +33,8 @@ const (
 )
 
 /*
-	@enum
-	@description: provider type
+@enum
+@description: provider type
 */
 const (
 	PROVIDER_TYPE_STREAM   string = "stream"
@@ -42,8 +42,8 @@ const (
 )
 
 /*
-	@model: Consumer
-	@description: consumer client
+@model: Consumer
+@description: consumer client
 */
 type Consumer struct {
 	ConsumerCore
@@ -51,69 +51,16 @@ type Consumer struct {
 }
 
 /*
-	@model: ConsumerCore
-	@description: metadata for consumer client
+@model: ConsumerCore
+@description: metadata for consumer client
 */
 type ConsumerCore struct {
 	ConsumerType string
 }
 
 /*
-	@model: Provider
-	@description: provider client
-*/
-type Provider struct {
-	ProviderCore
-	Client
-}
-
-/*
-	@model: ProviderCore
-	@description: metadata for provider client
-*/
-type ProviderCore struct {
-	ProviderType string
-}
-
-/*
-	@model: Depositary
-	@description: depositary client
-*/
-type Depositary struct {
-	DepositaryCore
-	Client
-}
-
-/*
-	@model: DepositaryCore
-	@description: metadata for depositary client
-*/
-type DepositaryCore struct {
-	HostAddress string `json:"host_address"`
-	Port        string `json:"port"`
-}
-
-/*
-	@model: Filestore
-	@description: filestore client
-*/
-type Filestore struct {
-	FilestoreCore
-	Client
-}
-
-/*
-	@model: FilestoreCore
-	@description: metadata for filestore client
-*/
-type FilestoreCore struct {
-	HostAddress string `json:"host_address"`
-	Port        string `json:"port"`
-}
-
-/*
-	@model: Client
-	@description: client core for websocket communication
+@model: Client
+@description: client core for websocket communication
 */
 type Client struct {
 	// client meta data
@@ -132,10 +79,11 @@ type Client struct {
 }
 
 /*
-	@func: Send
-	@description:
-		[1] send websocket packet
-		[2] register send callback (optional)
+@func: Send
+@description:
+
+	[1] send websocket packet
+	[2] register send callback (optional)
 */
 func (c *Client) Send(request WSPacket, callback func(response WSPacket)) {
 	// generate packet id
@@ -180,9 +128,10 @@ func (c *Client) Send(request WSPacket, callback func(response WSPacket)) {
 }
 
 /*
-	@func: Receive
-	@description:
-		register receive callback based on packet type
+@func: Receive
+@description:
+
+	register receive callback based on packet type
 */
 func (c *Client) Receive(packetType string, callback func(request WSPacket) (response WSPacket)) {
 	c.RecvCallbackList[packetType] = func(request WSPacket) {
@@ -216,9 +165,10 @@ func (c *Client) Receive(packetType string, callback func(request WSPacket) (res
 }
 
 /*
-	@func: Listen
-	@description:
-		listen loop for the client
+@func: Listen
+@description:
+
+	listen loop for the client
 */
 func (c *Client) Listen() {
 	for {
@@ -268,9 +218,10 @@ func (c *Client) Listen() {
 }
 
 /*
-	@func: Close
-	@description:
-		close websocket connection
+@func: Close
+@description:
+
+	close websocket connection
 */
 func (c *Client) Close() {
 	if c == nil || c.WebsocketConnection == nil {
