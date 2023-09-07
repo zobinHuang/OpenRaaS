@@ -26,7 +26,7 @@ type DepositoryCore struct {
 	DeleteAt              gorm.DeletedAt `gorm:"index" json:"delete_at"`
 	ID                    string         `gorm:"unique,not null" json:"id"`
 	IP                    string         `gorm:"not null" json:"ip"`
-	Port                  int            `gorm:"not null" json:"port"`
+	Port                  string         `gorm:"not null" json:"port"`
 	Tag                   string         `json:"tag"`
 	Mem                   float64        `json:"mem"`
 	IsContainFastNetspeed bool           `gorm:"not null" json:"is_contain_fast_netspeed"`

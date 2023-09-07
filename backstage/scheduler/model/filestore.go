@@ -26,7 +26,7 @@ type FileStoreCore struct {
 	DeleteAt              gorm.DeletedAt `gorm:"index" json:"delete_at"`
 	ID                    string         `gorm:"unique,not null" json:"id"`
 	IP                    string         `gorm:"not null" json:"ip"`
-	Port                  int            `gorm:"not null" json:"port"`
+	Port                  string         `gorm:"not null" json:"port"`
 	Protocol              string         `gorm:"not null" json:"protocol"`
 	Directory             string         `gorm:"not null" json:"directory"`
 	Username              string         `json:"username"`
