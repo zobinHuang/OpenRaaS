@@ -135,20 +135,20 @@ func (h *Handler) SelectFilestore(ctx context.Context, instanceModel *model.Inst
 func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
 	/* Test */
 
-	list_len := len(instanceModel.DepositaryList)
+	list_len := len(instanceModel.DepositoryList)
 
 	if list_len == 0 {
 		log.Printf("Empty depository list!")
 
-		var depositary model.DepositaryCore
-		depositary.HostAddress = "127.0.0.1"
-		depositary.Port = "5000"
-		depositary.Tag = "latest"
+		var depository model.DepositoryCore
+		depository.HostAddress = "127.0.0.1"
+		depository.Port = "5000"
+		depository.Tag = "latest"
 
-		instanceModel.TargetDepositary = depositary
+		instanceModel.TargetDepository = depository
 	} else {
 		randomIndex := rand.Intn(list_len)
-		instanceModel.TargetDepositary = instanceModel.DepositaryList[randomIndex]
+		instanceModel.TargetDepository = instanceModel.DepositoryList[randomIndex]
 	}
 
 	// TODO: complete depository schedule process
@@ -171,11 +171,11 @@ func (h *Handler) MountFilestore(ctx context.Context, instanceModel *model.Insta
 }
 
 /*
-	func: FetchDepositary
-	description: fetch the docker layer including some configuration of the app's installation from the target depositary server
+	func: FetchDepository
+	description: fetch the docker layer including some configuration of the app's installation from the target depository server
 */
-func (h *Handler) FetchDepositary(ctx context.Context, instanceModel *model.InstanceModel) error {
-	err := h.InstanceService.FetchLayerFromDepositary(ctx, instanceModel.VMID, instanceModel.TargetDepositary)
+func (h *Handler) FetchDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
+	err := h.InstanceService.FetchLayerFromDepository(ctx, instanceModel.VMID, instanceModel.TargetDepository)
 
 	if err != nil {
 		log.Printf("Failed to fetch layer: %v\n", err.Error())

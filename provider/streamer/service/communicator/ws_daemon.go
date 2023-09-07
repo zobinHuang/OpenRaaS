@@ -157,7 +157,7 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 		// define request format
 		var reqPacketData struct {
 			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepository model.DepositaryCore `json:"selected_depository"`
+			SelectedDepository model.DepositoryCore `json:"selected_depository"`
 			SelectedFilestore  model.FilestoreCore  `json:"selected_filestore"`
 		}
 
@@ -181,7 +181,7 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 		// construct websocket packet to scheduler
 		reqToScheduler := struct {
 			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepository model.DepositaryCore `json:"selected_depository"`
+			SelectedDepository model.DepositoryCore `json:"selected_depository"`
 			SelectedFilestore  model.FilestoreCore  `json:"selected_filestore"`
 		}{
 			StreamInstanceID:   reqPacketData.StreamInstanceID,

@@ -24,7 +24,7 @@ if __name__ == "__main__":
             "new_file_store_id": config["fs_id"],
             "is_provider_req_gpu": config[tag+"provider_performance"],
             "is_filestore_req_fast_netspeed": config[tag+"filestore_performance"],
-            "is_depositary_req_fast_netspeed": config[tag+"depository_performance"],
+            "is_depository_req_fast_netspeed": config[tag+"depository_performance"],
         }
         json_data = json.dumps(dict_data)
         s_addr = "http://" + s_conf["ip"] + ":" + str(s_conf["port"])

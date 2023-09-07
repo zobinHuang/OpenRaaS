@@ -1,8 +1,8 @@
 package model
 
 /*
-	@model: DepositaryCore
-	@description: metadata for depositary client
+	@model: DepositoryCore
+	@description: metadata for depository client
 */
 type DepositoryCore struct {
 	HostAddress string `json:"IP"`

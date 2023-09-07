@@ -17,9 +17,9 @@ type StreamInstanceDaemonModel struct {
 	FPS              int              `json:"fps"`
 	VCodec           string           `json:"vcodec"`
 	FilestoreList    []FilestoreCore  `json:"filestore_list"`
-	DepositaryList   []DepositoryCore `json:"depository_list"`
+	DepositoryList   []DepositoryCore `json:"depository_list"`
 	TargetFilestore  FilestoreCore    `json:"target_filestore"`
-	TargetDepositary DepositoryCore   `json:"target_depository"`
+	TargetDepository DepositoryCore   `json:"target_depository"`
 }
 
 /*

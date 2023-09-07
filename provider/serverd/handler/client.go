@@ -95,7 +95,7 @@ func (h *Handler) InitRecvRoute(ctx context.Context) error {
 				"Warn Type":        "Recv Callback Error",
 				"Recv Packet Type": "add_wine_instance",
 				"error":            err,
-			}).Warn("Failed to select depositary.")
+			}).Warn("Failed to select depository.")
 			h.StreamerService.SendErrorMsg(ctx, streamer, model.ERROR_TYPE_STORAGE, instanceModel.Instanceid)
 			return model.EmptyPacket
 		}
@@ -127,13 +127,13 @@ func (h *Handler) InitRecvRoute(ctx context.Context) error {
 			return model.EmptyPacket
 		}
 
-		err = h.FetchDepositary(ctx, instanceModel)
+		err = h.FetchDepository(ctx, instanceModel)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"Warn Type":        "Recv Callback Error",
 				"Recv Packet Type": "add_wine_instance",
 				"error":            err,
-			}).Warn("Failed to fetch depositary.")
+			}).Warn("Failed to fetch depository.")
 			// cannot run instance, but already select storage, so use ERROR_TYPE_INSTANCE
 			h.StreamerService.SendErrorMsg(ctx, streamer, model.ERROR_TYPE_INSTANCE, instanceModel.Instanceid)
 			return model.EmptyPacket

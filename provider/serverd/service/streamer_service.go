@@ -181,11 +181,11 @@ func (c *StreamerService) StateSelectedStorage(ctx context.Context, streamer *mo
 	reqData := struct {
 		StreamInstanceID string               `json:"stream_instance_id"`
 		TargetFilestore  model.FilestoreCore  `json:"selected_filestore"`
-		TargetDepositary model.DepositaryCore `json:"selected_depositary"`
+		TargetDepository model.DepositoryCore `json:"selected_depository"`
 	}{
 		StreamInstanceID: instanceModel.Instanceid,
 		TargetFilestore:  instanceModel.TargetFilestore,
-		TargetDepositary: instanceModel.TargetDepositary,
+		TargetDepository: instanceModel.TargetDepository,
 	}
 
 	// marshal request data of websocket packet into json string

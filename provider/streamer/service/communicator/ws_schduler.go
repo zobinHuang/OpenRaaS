@@ -155,7 +155,7 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 		// define request format
 		var reqPacketData struct {
 			StreamInstance model.StreamInstance   `json:"stream_instance"`
-			DepositaryList []model.DepositaryCore `json:"depositary_list"`
+			DepositoryList []model.DepositoryCore `json:"depository_list"`
 			FilestoreList  []model.FilestoreCore  `json:"filestore_list"`
 		}
 
@@ -189,7 +189,7 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			FPS:            reqPacketData.StreamInstance.FPS,
 			VCodec:         reqPacketData.StreamInstance.VCodec,
 			FilestoreList:  reqPacketData.FilestoreList,
-			DepositaryList: reqPacketData.DepositaryList,
+			DepositoryList: reqPacketData.DepositoryList,
 			InstanceCore: model.InstanceCore{
 				Instanceid: reqPacketData.StreamInstance.InstanceID,
 			},

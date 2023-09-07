@@ -59,7 +59,7 @@ docker run -d --privileged --rm --name ${container_name} \
 --mount type=bind,source="$(pwd)"/../winetools/"${appdir_name}",target=/apps \
 --mount type=bind,source=${conf},target=/etc/supervisor/conf.d/supervisord.conf  \
 --env "vmid=${container_id}" \
---env "apppath=${apppath}"  \
+--env "apppath=/apps/${apppath}"  \
 --env "appfile=${appfile}" \
 --env "appname=${appname}" \
 --env "hwkey=${hwkey}" \
