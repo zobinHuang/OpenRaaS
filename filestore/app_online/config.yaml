@@ -1,7 +1,7 @@
 # filestore info
 fs_id: 57bc97b7-50d2-4d87-a0bf-511221ca468c    # device ID, should be the same with that in the filestore's daemon
 
-app_num: 1
+app_num: 3
 
 # app1
 app1_id: 11e96b2c-c640-4fa8-bb94-c31adb68c239
@@ -15,3 +15,29 @@ app1_description: 传统卡牌游戏
 app1_provider_performance: false    # device performance: true for "high", or false for "low"
 app1_filestore_performance: false    # device performance: true for "high", or false for "low"
 app1_depository_performance: false    # device performance: true for "high", or false for "low"
+
+# app2
+app2_id: b14cb341-8b5c-45c6-88fa-852b0ab6b5e1
+app2_name: 反恐精英1.6
+app2_path: "/cs1.6"
+app2_file: 启动游戏.exe
+app2_hwkey: game
+app2_os: windows
+app2_create_user: coolmoon327
+app2_description: 经典射击游戏
+app2_provider_performance: true  
+app2_filestore_performance: true   
+app2_depository_performance: true  
+
+# app3
+app3_id: 642c6cd8-81a0-4247-ba1d-2f42a4d0d644
+app3_name: DevCpp
+app3_path: "/devcpp"
+app3_file: devcpp.exe
+app3_hwkey: app
+app3_os: windows
+app3_create_user: coolmoon327
+app3_description: C与C++的轻量化IDE
+app3_provider_performance: false  
+app3_filestore_performance: true  
+app3_depository_performance: false  
