@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 )
@@ -97,6 +98,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
+
+	log.Info("select info, provider: %+v, depositoryList: %+v, filestoreList: %+v")
 
 	return candidatesGPU[0], depositoryList, filestoreList, nil
 }
