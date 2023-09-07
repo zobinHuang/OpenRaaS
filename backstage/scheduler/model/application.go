@@ -7,8 +7,8 @@ import (
 )
 
 /*
-	@enum
-	@description: application type
+@enum
+@description: application type
 */
 const (
 	APPLICATIOON_TYPE_STREAM  string = "stream"
@@ -16,8 +16,8 @@ const (
 )
 
 /*
-	@enum
-	@description: order scheme (used by database searching)
+@enum
+@description: order scheme (used by database searching)
 */
 const (
 	ORDER_BY_UPDATE_TIME string = "orderByUpdateTime"
@@ -26,27 +26,31 @@ const (
 )
 
 /*
-	@model: StreamApplication
-	@description:
-		represent an stream application
+@model: StreamApplication
+@description:
+
+	represent an stream application
 */
 type StreamApplication struct {
 	StreamApplicationCore
 	ApplicationCore
+	AppInfoAttach
 }
 
 /*
-	@model: StreamApplicationCore
-	@description:
-		metadata for stream application
+@model: StreamApplicationCore
+@description:
+
+	metadata for stream application
 */
 type StreamApplicationCore struct {
 }
 
 /*
-	@model: Application
-	@description:
-		common meta data of an application
+@model: Application
+@description:
+
+	common meta data of an application
 */
 type ApplicationCore struct {
 	CreateAt        time.Time      `json:"create_at"`
@@ -61,4 +65,17 @@ type ApplicationCore struct {
 	CreateUser      string         `gorm:"not null" json:"create_user"`
 	Description     string         `json:"description"`
 	UsageCount      int64          `json:"usage_count"`
+}
+
+/*
+@model: Application
+@description:
+
+	request info of an application
+*/
+type AppInfoAttach struct {
+	FileStoreList               string `json:"filestore_list"`
+	IsProviderReqGPU            bool   `gorm:"not null" json:"is_provider_req_gpu"`
+	IsFileStoreReqFastNetspeed  bool   `gorm:"not null" json:"is_filestore_req_fast_netspeed"`
+	IsDepositoryReqFastNetspeed bool   `gorm:"not null" json:"is_depository_req_fast_netspeed"`
 }

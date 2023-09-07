@@ -2,73 +2,110 @@ package servicecore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
-	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 )
 
 /*
-	@struct: ScheduleServiceCore
-	@description: service core layer
+@struct: ScheduleServiceCore
+@description: service core layer
 */
 type ScheduleServiceCore struct {
 	ConsumerDAL     model.ConsumerDAL
 	ProviderDAL     model.ProviderDAL
-	DepositaryDAL   model.DepositaryDAL
-	FilestoreDAL    model.FilestoreDAL
+	DepositoryDAL   model.DepositoryDAL
+	FileStoreDAL    model.FileStoreDAL
 	InstanceRoomDAL model.InstanceRoomDAL
+	ApplicationDAL  model.ApplicationDAL
 }
 
 /*
-	@struct: ScheduleServiceCoreConfig
-	@description: used for config instance of struct ScheduleServiceCore
+@struct: ScheduleServiceCoreConfig
+@description: used for config instance of struct ScheduleServiceCore
 */
 type ScheduleServiceCoreConfig struct {
 	ConsumerDAL     model.ConsumerDAL
 	ProviderDAL     model.ProviderDAL
-	DepositaryDAL   model.DepositaryDAL
-	FilestoreDAL    model.FilestoreDAL
+	DepositoryDAL   model.DepositoryDAL
+	FileStoreDAL    model.FileStoreDAL
 	InstanceRoomDAL model.InstanceRoomDAL
+	ApplicationDAL  model.ApplicationDAL
 }
 
 /*
-	@func: NewScheduleServiceCore
-	@description:
-		create, config and return an instance of struct ScheduleServiceCore
+@func: NewScheduleServiceCore
+@description:
+
+	create, config and return an instance of struct ScheduleServiceCore
 */
 func NewScheduleServiceCore(c *ScheduleServiceCoreConfig) model.ScheduleServiceCore {
 	return &ScheduleServiceCore{
 		ConsumerDAL:     c.ConsumerDAL,
 		ProviderDAL:     c.ProviderDAL,
-		DepositaryDAL:   c.DepositaryDAL,
-		FilestoreDAL:    c.FilestoreDAL,
+		DepositoryDAL:   c.DepositoryDAL,
+		FileStoreDAL:    c.FileStoreDAL,
 		InstanceRoomDAL: c.InstanceRoomDAL,
+		ApplicationDAL:  c.ApplicationDAL,
 	}
 }
 
 /*
-	@func: ScheduleStream
-	@description:
-		core logic of scheduling stream instance is here
+@func: ScheduleStream
+@description:
+
+	core logic of scheduling stream instance is here
 */
-func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstance *model.StreamInstance) (*model.Provider, []model.DepositaryCore, []model.FilestoreCore, error) {
-
-	//TODO: schedule strategy
-
-	firstProvider := sc.ProviderDAL.GetFirstProvider(ctx)
-	if firstProvider != nil {
-		depositoryList := make([]model.DepositaryCore, 0, 0)
-		filestoreList := make([]model.FilestoreCore, 0, 0)
-		return firstProvider, depositoryList, filestoreList, nil
-	} else {
-		return nil, nil, nil, fmt.Errorf("no provider registered in shceudler")
+func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstance *model.StreamInstance) (*model.Provider, []model.DepositoryCore, []model.FileStoreCore, error) {
+	providers := sc.ProviderDAL.GetProvider()
+	appInfo, err := sc.ApplicationDAL.GetStreamApplicationByID(ctx, streamInstance.ApplicationID)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("scheduler GetStreamApplicationByID err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
+
+	candidatesGPU := make([]*model.Provider, 0, 0)
+	if appInfo.IsProviderReqGPU {
+		for _, p := range providers {
+			if p.IsContainGPU {
+				candidatesGPU = append(candidatesGPU, p)
+			}
+		}
+	} else {
+		candidatesGPU = providers
+	}
+
+	if len(candidatesGPU) <= 0 {
+		return nil, nil, nil, fmt.Errorf("no provider can schedule")
+	}
+
+	if appInfo.FileStoreList == "" {
+		return nil, nil, nil, fmt.Errorf("scheduler FileStoreList is none streamInstance: %+v", streamInstance)
+	}
+	var fileStoreStrList []string
+	if err := json.Unmarshal([]byte(appInfo.FileStoreList), &fileStoreStrList); err != nil {
+		return nil, nil, nil, fmt.Errorf("scheduler unmarshal FileStoreList fail, err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+
+	// todo: get depositoryList from image id
+	depositoryList, err := sc.DepositoryDAL.GetDepositoryInRDS(ctx)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("scheduler GetDepositoryInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+
+	filestoreList, err := sc.FileStoreDAL.GetFileStoreInRDSBetweenID(ctx, fileStoreStrList)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+
+	return candidatesGPU[0], depositoryList, filestoreList, nil
 }
 
 /*
-	@func: CreateStreamInstanceRoom
-	@description:
-		create a room for the instance of stream instance
+@func: CreateStreamInstanceRoom
+@description:
+
+	create a room for the instance of stream instance
 */
 func (sc *ScheduleServiceCore) CreateStreamInstanceRoom(ctx context.Context, provider *model.Provider,
 	consumer *model.Consumer, streamInstance *model.StreamInstance) (*model.StreamInstanceRoom, error) {
@@ -86,4 +123,14 @@ func (sc *ScheduleServiceCore) CreateStreamInstanceRoom(ctx context.Context, pro
 	sc.InstanceRoomDAL.CreateStreamInstanceRoom(ctx, streamInstanceRoom)
 
 	return streamInstanceRoom, nil
+}
+
+// Clear delete all
+func (sc *ScheduleServiceCore) Clear() {
+	sc.ConsumerDAL.Clear()
+	sc.ProviderDAL.Clear()
+	sc.DepositoryDAL.Clear()
+	sc.FileStoreDAL.Clear()
+	sc.InstanceRoomDAL.Clear()
+	sc.ApplicationDAL.Clear()
 }

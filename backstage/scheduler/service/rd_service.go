@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 )
 
 /*

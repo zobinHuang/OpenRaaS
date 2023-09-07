@@ -3,7 +3,7 @@ package dal
 import (
 	"context"
 
-	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
 	"gorm.io/gorm"
 )
 
