@@ -14,9 +14,10 @@ import (
 )
 
 /*
-	@func: ConnectToScheduler
-	@description:
-		connect to scheduler node
+@func: ConnectToScheduler
+@description:
+
+	connect to scheduler node
 */
 func (s *WebsocketCommunicator) ConnectToScheduler(ctx context.Context, scheme string, hostname string, port string, path string) error {
 	// construct host name
@@ -72,9 +73,10 @@ func (s *WebsocketCommunicator) ConnectToScheduler(ctx context.Context, scheme s
 }
 
 /*
-	@func: KeepSchedulerConnAlive
-	@description:
-		keep alive routine
+@func: KeepSchedulerConnAlive
+@description:
+
+	keep alive routine
 */
 func (s *WebsocketCommunicator) KeepSchedulerConnAlive(ctx context.Context) {
 	go func() {
@@ -91,9 +93,10 @@ func (s *WebsocketCommunicator) KeepSchedulerConnAlive(ctx context.Context) {
 }
 
 /*
-	@func: InitSchedulerRecvRoute
-	@description:
-		initialize receiving callback
+@func: InitSchedulerRecvRoute
+@description:
+
+	initialize receiving callback
 */
 func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 	/*

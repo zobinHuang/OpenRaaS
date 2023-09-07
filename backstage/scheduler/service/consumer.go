@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
 	"strconv"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/websocket"
@@ -275,6 +277,10 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			}
 		}
 
+		consumer.EndScheduleTime = time.Now()
+		log.Infof("%s, 调度完成", consumer.EndScheduleTime.Format(utils.TIME_LAYOUT), consumer.EndScheduleTime.Sub(consumer.StartScheduleTime))
+		log.Infof("%s, 调配响应时长：%s", consumer.EndScheduleTime.Format(utils.TIME_LAYOUT), consumer.EndScheduleTime.Sub(consumer.StartScheduleTime))
+
 		// generate instance index
 		streamInstance.InstanceID = uuid.Must(uuid.NewV4()).String()
 
@@ -421,6 +427,10 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			"Instance ID":        reqPacketData.InstanceID,
 			"Target Provider ID": provider.ClientID,
 		}).Info("Receive start streaming request from consumer, nofity provider")
+
+		consumer.StartStreamTime = time.Now()
+		log.Infof("%s, 开始打流, ID: %s", consumer.StartStreamTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
+		log.Infof("%s, 服务个性化定制时长：%s", consumer.StartStreamTime.Format(utils.TIME_LAYOUT), consumer.StartStreamTime.Sub(consumer.StartScheduleTime))
 
 		return model.EmptyPacket
 	})

@@ -55,7 +55,10 @@ type Consumer struct {
 @description: metadata for consumer client
 */
 type ConsumerCore struct {
-	ConsumerType string
+	ConsumerType      string
+	StartScheduleTime time.Time
+	EndScheduleTime   time.Time
+	StartStreamTime   time.Time
 }
 
 /*

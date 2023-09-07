@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -24,7 +26,7 @@ var upGrader = websocket.Upgrader{
 	handler for endpoint "/api/scheduler/wsconnect"
 */
 func (h *Handler) WSConnect(c *gin.Context) {
-	// todo: consumer create time
+	startScheduleTime := time.Now()
 	// extract client type from url
 	clientType, ok := c.GetQuery("type")
 	if !ok {
@@ -64,6 +66,8 @@ func (h *Handler) WSConnect(c *gin.Context) {
 		if err != nil {
 			return
 		}
+		consumer.StartScheduleTime = startScheduleTime
+		log.Infof("%s, 开始调度, ID: %s", startScheduleTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
 
 		// register receive callbacks based on websocket type
 		h.ConsumerService.InitRecvRoute(ctx, consumer)
