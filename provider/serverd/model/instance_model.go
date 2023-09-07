@@ -68,7 +68,7 @@ type Depositary struct {
 		depositary.Tag = "latest"
 */
 type DepositaryCore struct {
-	HostAddress string `json:"host_address"`
+	HostAddress string `json:"IP"`
 	Port        string `json:"port"`
 	Tag         string `json:"tag"`
 }
@@ -87,15 +87,15 @@ type Filestore struct {
 	@example:
 		HostAddress "192.168.10.189"
 		Port        "7189"
-		Protocal    "davfs"
+		Protocol    "davfs"
 		Username    "kb109"
 		Password    "******"
 		Directory   "/public_hdd/game/PC/dcwine"
 */
 type FilestoreCore struct {
-	HostAddress string `json:"host_address"`
+	HostAddress string `json:"IP"`
 	Port        string `json:"port"`
-	Protocal    string `json:"protocal"`
+	Protocol    string `json:"protocol"`
 	Username    string `json:"username"`
 	Password    string `json:"password"`
 	Directory   string `json:"directory"`

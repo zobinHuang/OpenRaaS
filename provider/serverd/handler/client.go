@@ -63,8 +63,10 @@ func (h *Handler) InitRecvRoute(ctx context.Context) error {
 	streamer.Receive("add_wine_instance", func(req model.WSPacket) (resp model.WSPacket) {
 		instanceModel := &model.InstanceModel{}
 
+		log.Printf("%+v", req.Data)
 		// 1. parse request
 		err := json.Unmarshal([]byte(req.Data), &instanceModel)
+		log.Printf("%+v", instanceModel)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"Warn Type":        "Recv Callback Error",

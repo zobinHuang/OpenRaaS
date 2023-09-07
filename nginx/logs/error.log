@@ -872,3 +872,5 @@
 2023/09/06 11:16:01 [notice] 1#1: start worker process 56
 2023/09/06 11:16:01 [notice] 1#1: start worker process 57
 2023/09/06 11:27:24 [error] 25#25: *9 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.0.1, server: kb109.dynv6.net, request: "POST /api/scheduler/clear HTTP/1.1", upstream: "http://192.168.0.109:81/api/scheduler/clear", host: "kb109.dynv6.net:52109"
+2023/09/07 11:30:40 [error] 25#25: *199 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.0.1, server: kb109.dynv6.net, request: "POST /api/scheduler/node_online?type=provider HTTP/1.1", upstream: "http://192.168.0.109:81/api/scheduler/node_online?type=provider", host: "kb109.dynv6.net:52109"
+2023/09/07 11:30:40 [error] 25#25: *200 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.0.1, server: kb109.dynv6.net, request: "GET /api/scheduler/wsconnect?type=provider&uuid=ed5d96dc-e450-49fe-9f01-a1bcadbda0fd HTTP/1.1", upstream: "http://192.168.0.109:81/api/scheduler/wsconnect?type=provider&uuid=ed5d96dc-e450-49fe-9f01-a1bcadbda0fd", host: "kb109.dynv6.net:52109"

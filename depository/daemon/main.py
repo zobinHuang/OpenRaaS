@@ -13,7 +13,7 @@ if __name__ == "__main__":
     dict_data = {"id": config["id"],
         "type": "depository",
         "ip": config["ip"],
-        "port": config["reg_port"],
+        "port": str(config["reg_port"]),
         "tag": "latest",
         "is_contain_fast_netspeed": config["performance"],
         "mem": config["mem"],

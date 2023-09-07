@@ -67,7 +67,7 @@ if __name__ == "__main__":
     dict_data = {
         "id": config["id"],
         "ip": config["ip"],
-        "port": config["fs_port"],
+        "port": str(config["fs_port"]),
         "protocol": config["fs_protocol"],
         "directory": config["fs_directory"],
         "username": config["fs_user"],

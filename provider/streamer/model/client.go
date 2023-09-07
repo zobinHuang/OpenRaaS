@@ -4,9 +4,10 @@ package model
 	@model: DepositaryCore
 	@description: metadata for depositary client
 */
-type DepositaryCore struct {
-	HostAddress string `json:"host_address"`
+type DepositoryCore struct {
+	HostAddress string `json:"IP"`
 	Port        string `json:"port"`
+	Tag         string `json:"tag"`
 }
 
 /*
@@ -14,6 +15,10 @@ type DepositaryCore struct {
 	@description: metadata for filestore client
 */
 type FilestoreCore struct {
-	HostAddress string `json:"host_address"`
+	HostAddress string `json:"IP"`
 	Port        string `json:"port"`
+	Protocol    string `json:"protocol"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	Directory   string `json:"directory"`
 }

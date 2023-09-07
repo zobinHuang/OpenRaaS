@@ -126,7 +126,7 @@ func (c *InstanceService) LaunchInstance(ctx context.Context, instanceModel *mod
 	}
 	params = append(params, vcodec)
 
-	// TODO 等后台完善 option
+	// TODO: 等后台完善 option
 	// instanceModel.WineOption = "test.flv"
 	params = append(params, instanceModel.WineOption)
 
@@ -254,7 +254,7 @@ func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestor
 	// Add params
 	params = append(params, "../winetools/auto-mount.exp")
 	params = append(params, strconv.Itoa(vmid))
-	params = append(params, filestore.Protocal)
+	params = append(params, filestore.Protocol)
 	params = append(params, filestore.HostAddress+":"+filestore.Port)
 	params = append(params, filestore.Directory)
 	params = append(params, filestore.Username)
@@ -274,7 +274,7 @@ func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestor
 	description: fetch the docker layer including some configuration of the app's installation from the target depositary server
 */
 func (c *InstanceService) FetchLayerFromDepositary(ctx context.Context, vmid int, depositary model.DepositaryCore) error {
-	// TODO complete model.Depositary
+	// TODO: complete model.Depositary
 
 	var execCmd string
 	var params []string
@@ -284,7 +284,7 @@ func (c *InstanceService) FetchLayerFromDepositary(ctx context.Context, vmid int
 
 	c.image_name = depositary.HostAddress + ":" + depositary.Port + "/dcwine"
 	if depositary.Tag != "" {
-		// TODO check this
+		// TODO: check this
 		c.image_name = c.image_name + ":" + depositary.Tag
 	}
 	params = append(params, c.image_name)

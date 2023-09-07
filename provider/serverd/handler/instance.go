@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"serverd/model"
 	"serverd/model/apperrors"
@@ -102,17 +103,25 @@ func (h *Handler) DeleteInstanceWithModel(ctx context.Context, deleteModel *mode
 */
 func (h *Handler) SelectFilestore(ctx context.Context, instanceModel *model.InstanceModel) error {
 	/* Test */
-	var filestore model.FilestoreCore
+	list_len := len(instanceModel.FilestoreList)
 
-	filestore.HostAddress = "kb109.dynv6.net"
-	filestore.Port = "7189"
-	filestore.Protocal = "davfs"
-	filestore.Username = "kb109"
-	filestore.Password = "Xusir666!"
-	filestore.Directory = "/public_hdd/game/PC/dcwine"
-	// filestore.Directory = "/storage_ssd/6G/dcwine"
+	if list_len == 0 {
+		log.Printf("Empty filestore list!")
 
-	instanceModel.TargetFilestore = filestore
+		var filestore model.FilestoreCore
+		filestore.HostAddress = "kb109.dynv6.net"
+		filestore.Port = "7189"
+		filestore.Protocol = "davfs"
+		filestore.Username = "kb109"
+		filestore.Password = "Xusir666!"
+		filestore.Directory = "/public_hdd/game/PC/dcwine"
+		// filestore.Directory = "/storage_ssd/6G/dcwine"
+
+		instanceModel.TargetFilestore = filestore
+	} else {
+		randomIndex := rand.Intn(list_len)
+		instanceModel.TargetFilestore = instanceModel.FilestoreList[randomIndex]
+	}
 
 	// TODO: complete filestore schedule process
 
@@ -125,13 +134,22 @@ func (h *Handler) SelectFilestore(ctx context.Context, instanceModel *model.Inst
 */
 func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
 	/* Test */
-	var depositary model.DepositaryCore
 
-	depositary.HostAddress = "127.0.0.1"
-	depositary.Port = "5000"
-	depositary.Tag = "latest"
+	list_len := len(instanceModel.DepositaryList)
 
-	instanceModel.TargetDepositary = depositary
+	if list_len == 0 {
+		log.Printf("Empty depository list!")
+
+		var depositary model.DepositaryCore
+		depositary.HostAddress = "127.0.0.1"
+		depositary.Port = "5000"
+		depositary.Tag = "latest"
+
+		instanceModel.TargetDepositary = depositary
+	} else {
+		randomIndex := rand.Intn(list_len)
+		instanceModel.TargetDepositary = instanceModel.DepositaryList[randomIndex]
+	}
 
 	// TODO: complete depository schedule process
 
