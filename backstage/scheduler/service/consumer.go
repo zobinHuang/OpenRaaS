@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
 	"strconv"
 	"time"
+
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/websocket"
@@ -330,9 +331,13 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 
 		// construct ws packet to consumer
 		respToConsumer := struct {
-			ProviderID string `json:"provider_id"`
+			ProviderID   string `json:"provider_id"`
+			ProviderIP   string `json:"provider_ip"`
+			IsContainGPU bool   `json:"provider_is_powerful"`
 		}{
-			ProviderID: provider.ClientID,
+			ProviderID:   provider.ClientID,
+			ProviderIP:   provider.IP,
+			IsContainGPU: provider.IsContainGPU,
 		}
 		respToConsumerString, err := json.Marshal(respToConsumer)
 		if err != nil {

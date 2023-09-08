@@ -419,7 +419,7 @@ const WebsocketCallback = (props) => {
             "terminal_key": `${payload.TerminalKey}`,
             "log_priority": "SUCCESS",
             "log_time": GetTimestamp(),
-            "log_content": `scheduler has found one provider to serve, provider id: ${payload.WSPacket.data.provider_id}`,
+            "log_content": `scheduler has found one provider to serve, provider id: ${payload.WSPacket.data.provider_id}, ip: ${payload.WSPacket.data.provider_ip}, is powerfull: ${payload.WSPacket.data.provider_is_powerful}`,
         }))
 
         // change current step
@@ -474,8 +474,17 @@ const WebsocketCallback = (props) => {
             "terminal_key": `${payload.TerminalKey}`,
             "log_priority": "SUCCESS",
             "log_time": GetTimestamp(),
-            "log_content": `provider has found proper storage nodes: depository address ${payload.WSPacket.data.target_depository}, filestore address ${payload.WSPacket.data.target_filestore}`,
+            "log_content": `provider has found proper depository worker node: address ${payload.WSPacket.data.target_depository}, `,
         }))
+
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "SUCCESS",
+            "log_time": GetTimestamp(),
+            "log_content": `provider has found proper filestore worker node: address ${payload.WSPacket.data.target_filestore}, `,
+        }))
+
 
         // change current step
         dispatch(TerminalActions.updateTerminal({

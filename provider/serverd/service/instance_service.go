@@ -274,7 +274,6 @@ func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestor
 	description: fetch the docker layer including some configuration of the app's installation from the target depository server
 */
 func (c *InstanceService) FetchLayerFromDepository(ctx context.Context, vmid int, depository model.DepositoryCore) error {
-	// TODO: complete model.Depository
 
 	var execCmd string
 	var params []string
@@ -284,7 +283,6 @@ func (c *InstanceService) FetchLayerFromDepository(ctx context.Context, vmid int
 
 	c.image_name = depository.HostAddress + ":" + depository.Port + "/dcwine"
 	if depository.Tag != "" {
-		// TODO: check this
 		c.image_name = c.image_name + ":" + depository.Tag
 	}
 	params = append(params, c.image_name)

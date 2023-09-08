@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"serverd/model"
 	"serverd/model/apperrors"
@@ -119,11 +118,10 @@ func (h *Handler) SelectFilestore(ctx context.Context, instanceModel *model.Inst
 
 		instanceModel.TargetFilestore = filestore
 	} else {
-		randomIndex := rand.Intn(list_len)
-		instanceModel.TargetFilestore = instanceModel.FilestoreList[randomIndex]
+		// index := rand.Intn(list_len)
+		index := 0
+		instanceModel.TargetFilestore = instanceModel.FilestoreList[index]
 	}
-
-	// TODO: complete filestore schedule process
 
 	return nil
 }
@@ -147,11 +145,10 @@ func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.Ins
 
 		instanceModel.TargetDepository = depository
 	} else {
-		randomIndex := rand.Intn(list_len)
-		instanceModel.TargetDepository = instanceModel.DepositoryList[randomIndex]
+		// index := rand.Intn(list_len)
+		index := 0
+		instanceModel.TargetDepository = instanceModel.DepositoryList[index]
 	}
-
-	// TODO: complete depository schedule process
 
 	return nil
 }

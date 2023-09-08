@@ -3,7 +3,7 @@ id: 57bc97b7-50d2-4d87-a0bf-511221ca468c    # device ID
 ip: 192.168.0.109    # device IP address
 
 ### 2. filestore info
-performance: false    # device performance: true for "high", or false for "low"
+performance: true    # device performance: true for "high", or false for "low"
 mem: 10               # prepared storage memory for OpenRaaS
 
 ### 3. file-sharing info

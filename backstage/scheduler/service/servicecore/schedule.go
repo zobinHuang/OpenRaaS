@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
+
 	log "github.com/sirupsen/logrus"
 
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
@@ -100,6 +102,17 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 	}
 
 	log.Info("select info, provider: %+v, depositoryList: %+v, filestoreList: %+v")
+
+	// Use Fisher-Yates algorithm to shuffle slices
+	for i := len(filestoreList) - 1; i > 0; i-- {
+		j := rand.Intn(i + 1)
+		filestoreList[i], filestoreList[j] = filestoreList[j], filestoreList[i]
+	}
+
+	for i := len(depositoryList) - 1; i > 0; i-- {
+		j := rand.Intn(i + 1)
+		depositoryList[i], depositoryList[j] = depositoryList[j], depositoryList[i]
+	}
 
 	return candidatesGPU[0], depositoryList, filestoreList, nil
 }
