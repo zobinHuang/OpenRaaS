@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
 
 	"github.com/gorilla/websocket"
@@ -209,11 +210,15 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 		// construct responses to consumers
 		respToConsumers := struct {
-			TargetDepository string `json:"target_depository"`
-			TargetFileStore  string `json:"target_filestore"`
+			DepositoryAddress    string `json:"depository_address"`
+			DepositoryIsPowerful bool   `json:"depository_is_powerful"`
+			FileStoreAddress     string `json:"filestore_address"`
+			FileStoreIsPowerful  bool   `json:"filestore_is_powerful"`
 		}{
-			TargetDepository: fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.IP, reqPacketData.SelectedDepository.Port),
-			TargetFileStore:  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.IP, reqPacketData.SelectedFileStore.Port),
+			DepositoryAddress:    fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.IP, reqPacketData.SelectedDepository.Port),
+			DepositoryIsPowerful: reqPacketData.SelectedDepository.IsContainFastNetspeed,
+			FileStoreAddress:     fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.IP, reqPacketData.SelectedFileStore.Port),
+			FileStoreIsPowerful:  reqPacketData.SelectedFileStore.IsContainFastNetspeed,
 		}
 		respToConsumersString, err := json.Marshal(respToConsumers)
 		if err != nil {
