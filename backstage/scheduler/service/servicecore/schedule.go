@@ -62,6 +62,18 @@ func NewScheduleServiceCore(c *ScheduleServiceCoreConfig) model.ScheduleServiceC
 */
 func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstance *model.StreamInstance) (*model.Provider, []model.DepositoryCore, []model.FileStoreCore, error) {
 	providers := sc.ProviderDAL.GetProvider()
+	for i, p := range providers {
+		pInfo, err := sc.ProviderDAL.GetProviderInRDSByID(ctx, p.ID)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("scheduler GetProviderInRDSByID err: %s, streamInstance: %+v", err.Error(), streamInstance)
+		}
+		providers[i].ID = p.ClientID
+		providers[i].IP = pInfo.IP
+		providers[i].Port = pInfo.Port
+		providers[i].Processor = pInfo.Processor
+		providers[i].IsContainGPU = pInfo.IsContainGPU
+	}
+
 	appInfo, err := sc.ApplicationDAL.GetStreamApplicationByID(ctx, streamInstance.ApplicationID)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetStreamApplicationByID err: %s, streamInstance: %+v", err.Error(), streamInstance)
@@ -101,7 +113,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
-	log.Info("select info, provider: %+v, depositoryList: %+v, filestoreList: %+v", candidatesGPU[0], depositoryList, filestoreList)
+	log.Infof("select info, provider: %+v, depositoryList: %+v, filestoreList: %+v", candidatesGPU[0], depositoryList, filestoreList)
 
 	// Use Fisher-Yates algorithm to shuffle slices
 	for i := len(filestoreList) - 1; i > 0; i-- {

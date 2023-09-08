@@ -178,6 +178,10 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			}
 		}
 
+		// todo: move to right position
+		consumer.StartScheduleTime = time.Now()
+		log.Infof("%s, 开始调度, ID: %s", consumer.StartScheduleTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
+
 		return model.EmptyPacket
 	})
 
@@ -199,8 +203,6 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			select stream application
 	*/
 	consumer.Receive("select_stream_application", func(req model.WSPacket) (resp model.WSPacket) {
-		consumer.StartScheduleTime = time.Now()
-		log.Infof("%s, 开始调度, ID: %s", consumer.StartScheduleTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
 		// define request format
 		var reqPacketData struct {
 			ApplicationID  string `json:"application_id"`
