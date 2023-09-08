@@ -474,7 +474,7 @@ const WebsocketCallback = (props) => {
             "terminal_key": `${payload.TerminalKey}`,
             "log_priority": "SUCCESS",
             "log_time": GetTimestamp(),
-            "log_content": `provider has found proper depository worker node: address ${payload.WSPacket.data.target_depository}, `,
+            "log_content": `provider has found proper depository worker node: address ${payload.WSPacket.data.depository_address}, is fast-speed: ${payload.WSPacket.data.depository_is_powerful}`,
         }))
 
         dispatch(TerminalActions.updateTerminal({
@@ -482,7 +482,7 @@ const WebsocketCallback = (props) => {
             "terminal_key": `${payload.TerminalKey}`,
             "log_priority": "SUCCESS",
             "log_time": GetTimestamp(),
-            "log_content": `provider has found proper filestore worker node: address ${payload.WSPacket.data.target_filestore}, `,
+            "log_content": `provider has found proper filestore worker node: address ${payload.WSPacket.data.filestore_address}, is fast-speed: ${payload.WSPacket.data.filestore_is_powerful}`,
         }))
 
 
