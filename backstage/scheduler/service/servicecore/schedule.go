@@ -63,7 +63,7 @@ func NewScheduleServiceCore(c *ScheduleServiceCoreConfig) model.ScheduleServiceC
 func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstance *model.StreamInstance) (*model.Provider, []model.DepositoryCore, []model.FileStoreCore, error) {
 	providers := sc.ProviderDAL.GetProvider()
 	for i, p := range providers {
-		pInfo, err := sc.ProviderDAL.GetProviderInRDSByID(ctx, p.ID)
+		pInfo, err := sc.ProviderDAL.GetProviderInRDSByID(ctx, p.ClientID)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("scheduler GetProviderInRDSByID err: %s, streamInstance: %+v", err.Error(), streamInstance)
 		}
