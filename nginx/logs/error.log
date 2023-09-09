@@ -1921,3 +1921,99 @@
 2023/09/09 08:12:26 [notice] 1#1: start worker process 55
 2023/09/09 08:12:26 [notice] 1#1: start worker process 56
 2023/09/09 08:12:26 [notice] 1#1: start worker process 57
+2023/09/09 11:46:40 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2023/09/09 11:46:40 [notice] 22#22: gracefully shutting down
+2023/09/09 11:46:40 [notice] 24#24: gracefully shutting down
+2023/09/09 11:46:40 [notice] 25#25: gracefully shutting down
+2023/09/09 11:46:40 [notice] 28#28: gracefully shutting down
+2023/09/09 11:46:40 [notice] 31#31: gracefully shutting down
+2023/09/09 11:46:40 [notice] 33#33: grace2023/09/09 11:46:40 [notice] 1#1: signal 17 (SIGCHLD) received from 48
+2023/09/09 11:46:40 [notice] 1#1: worker process 48 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: signal 29 (SIGIO) received
+2023/09/09 11:46:40 [notice] 1#1: signal 17 (SIGCHLD) received from 47
+2023/09/09 11:46:40 [notice] 1#1: worker process 22 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 25 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 26 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 31 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 28 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 32 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 27 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 29 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 30 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 33 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 34 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 37 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 39 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 40 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 43 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 44 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 45 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 46 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 47 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 49 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 50 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 52 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 53 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 54 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 55 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 56 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: signal 29 (SIGIO) received
+2023/09/09 11:46:40 [notice] 1#1: signal 17 (SIGCHLD) received from 50
+2023/09/09 11:46:40 [notice] 1#1: signal 17 (SIGCHLD) received from 23
+2023/09/09 11:46:40 [notice] 1#1: worker process 23 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 35 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 24 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 41 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 42 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 38 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: signal 29 (SIGIO) received
+2023/09/09 11:46:40 [notice] 1#1: signal 17 (SIGCHLD) received from 35
+2023/09/09 11:46:40 [notice] 1#1: signal 17 (SIGCHLD) received from 51
+2023/09/09 11:46:40 [notice] 1#1: worker process 51 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: signal 29 (SIGIO) received
+2023/09/09 11:46:40 [notice] 1#1: signal 17 (SIGCHLD) received from 57
+2023/09/09 11:46:40 [notice] 1#1: worker process 36 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: worker process 57 exited with code 0
+2023/09/09 11:46:40 [notice] 1#1: exit
+2023/09/09 11:46:49 [notice] 1#1: using the "epoll" event method
+2023/09/09 11:46:49 [notice] 1#1: nginx/1.21.6
+2023/09/09 11:46:49 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2023/09/09 11:46:49 [notice] 1#1: OS: Linux 5.15.0-83-generic
+2023/09/09 11:46:49 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2023/09/09 11:46:49 [notice] 1#1: start worker processes
+2023/09/09 11:46:49 [notice] 1#1: start worker process 22
+2023/09/09 11:46:49 [notice] 1#1: start worker process 23
+2023/09/09 11:46:49 [notice] 1#1: start worker process 24
+2023/09/09 11:46:49 [notice] 1#1: start worker process 25
+2023/09/09 11:46:49 [notice] 1#1: start worker process 26
+2023/09/09 11:46:49 [notice] 1#1: start worker process 27
+2023/09/09 11:46:49 [notice] 1#1: start worker process 28
+2023/09/09 11:46:49 [notice] 1#1: start worker process 29
+2023/09/09 11:46:49 [notice] 1#1: start worker process 30
+2023/09/09 11:46:49 [notice] 1#1: start worker process 31
+2023/09/09 11:46:49 [notice] 1#1: start worker process 32
+2023/09/09 11:46:49 [notice] 1#1: start worker process 33
+2023/09/09 11:46:49 [notice] 1#1: start worker process 34
+2023/09/09 11:46:49 [notice] 1#1: start worker process 35
+2023/09/09 11:46:49 [notice] 1#1: start worker process 36
+2023/09/09 11:46:49 [notice] 1#1: start worker process 37
+2023/09/09 11:46:49 [notice] 1#1: start worker process 38
+2023/09/09 11:46:49 [notice] 1#1: start worker process 39
+2023/09/09 11:46:49 [notice] 1#1: start worker process 40
+2023/09/09 11:46:49 [notice] 1#1: start worker process 41
+2023/09/09 11:46:49 [notice] 1#1: start worker process 42
+2023/09/09 11:46:49 [notice] 1#1: start worker process 43
+2023/09/09 11:46:49 [notice] 1#1: start worker process 44
+2023/09/09 11:46:49 [notice] 1#1: start worker process 45
+2023/09/09 11:46:49 [notice] 1#1: start worker process 46
+2023/09/09 11:46:49 [notice] 1#1: start worker process 47
+2023/09/09 11:46:49 [notice] 1#1: start worker process 48
+2023/09/09 11:46:49 [notice] 1#1: start worker process 49
+2023/09/09 11:46:49 [notice] 1#1: start worker process 50
+2023/09/09 11:46:49 [notice] 1#1: start worker process 51
+2023/09/09 11:46:49 [notice] 1#1: start worker process 52
+2023/09/09 11:46:49 [notice] 1#1: start worker process 53
+2023/09/09 11:46:49 [notice] 1#1: start worker process 54
+2023/09/09 11:46:49 [notice] 1#1: start worker process 55
+2023/09/09 11:46:49 [notice] 1#1: start worker process 56
+2023/09/09 11:46:49 [notice] 1#1: start worker process 57
