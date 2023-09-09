@@ -5,9 +5,10 @@ package model
 	@description: metadata for depository client
 */
 type DepositoryCore struct {
-	HostAddress string `json:"IP"`
-	Port        string `json:"port"`
-	Tag         string `json:"tag"`
+	HostAddress           string `json:"IP"`
+	Port                  string `json:"port"`
+	Tag                   string `json:"tag"`
+	IsContainFastNetspeed bool   `json:"is_contain_fast_netspeed"`
 }
 
 /*
@@ -15,10 +16,11 @@ type DepositoryCore struct {
 	@description: metadata for filestore client
 */
 type FilestoreCore struct {
-	HostAddress string `json:"IP"`
-	Port        string `json:"port"`
-	Protocol    string `json:"protocol"`
-	Username    string `json:"username"`
-	Password    string `json:"password"`
-	Directory   string `json:"directory"`
+	HostAddress           string `json:"IP"`
+	Port                  string `json:"port"`
+	Protocol              string `json:"protocol"`
+	Username              string `json:"username"`
+	Password              string `json:"password"`
+	Directory             string `json:"directory"`
+	IsContainFastNetspeed bool   `json:"is_contain_fast_netspeed"`
 }
