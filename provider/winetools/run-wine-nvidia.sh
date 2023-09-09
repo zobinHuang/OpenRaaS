@@ -55,6 +55,7 @@ appdir_name="apps/point${container_id}"
 
 docker run -d --privileged --rm --name ${container_name} \
 -v /etc/localtime:/etc/localtime:ro \
+--gpus all \
 --mount type=bind,source="$(pwd)"/../winetools/"${appdir_name}",target=/apps \
 --mount type=bind,source=${conf},target=/etc/supervisor/conf.d/supervisord.conf  \
 --env "vmid=${container_id}" \
