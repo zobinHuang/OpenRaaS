@@ -73,6 +73,10 @@ func NewHandler(c *Config) {
 	g.Use(middleware.Timeout(c.TimeoutDuration, apperrors.NewServiceUnavailable()))
 
 	// disable authentication for debug
+	// g.GET("/network_learn", middleware.AuthUser(h.TokenService), h.LearnNetWork)
+	g.GET("network_learn", h.LearnNetWork)
+
+	// disable authentication for debug
 	// g.GET("/clear", middleware.AuthUser(h.TokenService), h.Clear)
 	g.POST("clear", h.Clear)
 

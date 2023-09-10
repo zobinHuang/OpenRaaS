@@ -178,10 +178,6 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			}
 		}
 
-		// todo: move to right position
-		consumer.StartScheduleTime = time.Now()
-		log.Infof("%s, 开始调度, ID: %s", consumer.StartScheduleTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
-
 		return model.EmptyPacket
 	})
 
@@ -203,6 +199,9 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			select stream application
 	*/
 	consumer.Receive("select_stream_application", func(req model.WSPacket) (resp model.WSPacket) {
+		consumer.StartScheduleTime = time.Now()
+		log.Infof("%s, 开始调度, ID: %s", consumer.StartScheduleTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
+
 		// define request format
 		var reqPacketData struct {
 			ApplicationID  string `json:"application_id"`
@@ -437,10 +436,6 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			"Target Provider ID": provider.ClientID,
 		}).Info("Receive start streaming request from consumer, nofity provider")
 
-		consumer.StartStreamTime = time.Now()
-		log.Infof("%s, 开始打流, ID: %s", consumer.StartStreamTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
-		log.Infof("%s, 服务个性化定制时长：%s", consumer.StartStreamTime.Format(utils.TIME_LAYOUT), consumer.StartStreamTime.Sub(consumer.StartScheduleTime))
-
 		return model.EmptyPacket
 	})
 
@@ -588,4 +583,9 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 // Clear
 func (s *ConsumerService) Clear() {
 	s.ScheduleServiceCore.Clear()
+}
+
+// GetScheduleServiceCore
+func (s *ConsumerService) GetScheduleServiceCore() *model.ScheduleServiceCore {
+	return &s.ScheduleServiceCore
 }

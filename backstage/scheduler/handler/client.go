@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
@@ -253,4 +254,56 @@ func (h *Handler) ApplicationOnline(c *gin.Context) {
 
 func (h *Handler) Clear(c *gin.Context) {
 	h.ConsumerService.Clear()
+}
+
+func (h *Handler) LearnNetWork(c *gin.Context) {
+	var scheduleServiceCore model.ScheduleServiceCore
+	scheduleServiceCore = *h.ConsumerService.GetScheduleServiceCore()
+	ctx := c.Request.Context()
+	appID, ok := c.GetQuery("app_id")
+	if !ok {
+		log.WithFields(log.Fields{
+			"Client Address": c.Request.Host,
+		}).Error("Failed to extract app_id, invalid http connection request, abandoned")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need app_id"})
+		return
+	}
+	provider, depositoryList, filestoreList, err := scheduleServiceCore.ScheduleStream(ctx, &model.StreamInstance{
+		StreamApplication: &model.StreamApplication{
+			ApplicationCore: model.ApplicationCore{
+				ApplicationID: appID,
+			},
+		},
+	})
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Client Address": c.Request.Host,
+			"error":          err.Error(),
+		}).Error("Failed to ScheduleStream, abandoned")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	req := struct {
+		ProviderCore   model.ProviderCore     `json:"provider_core"`
+		DepositoryList []model.DepositoryCore `json:"depository_list"`
+		FileStoreList  []model.FileStoreCore  `json:"filestore_list"`
+	}{
+		ProviderCore:   provider.ProviderCore,
+		DepositoryList: depositoryList,
+		FileStoreList:  filestoreList,
+	}
+	reqStr, err := json.Marshal(&req)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Client Address": c.Request.Host,
+			"error":          err.Error(),
+		}).Error("Failed to Marshal, abandoned")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"info": reqStr,
+	})
+	return
 }

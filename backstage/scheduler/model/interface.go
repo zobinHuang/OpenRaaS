@@ -32,6 +32,7 @@ type ConsumerService interface {
 	CreateConsumer(ctx context.Context, ws *websocket.Conn) (*Consumer, error)
 	InitRecvRoute(ctx context.Context, consumer *Consumer)
 	Clear()
+	GetScheduleServiceCore() *ScheduleServiceCore
 }
 
 /*

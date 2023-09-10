@@ -154,9 +154,9 @@ func (s *ApplicationService) ShowEnterInfo(ctx context.Context, app *model.Strea
 	if app.IsProviderReqGPU {
 		req3 = "powerful"
 	}
-	log.Infof("%s, new application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, launch nodes: %s, "+
+	log.Infof("%s, new application id: %s, name: %s, type: %s, description: %s, image Name: %s, launch nodes: %s, "+
 		"provider request: %s, depository request: %s, filestore request: %s",
-		utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description, nodeId, req1, req2, req3)
+		utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description, app.ImageName, nodeId, req1, req2, req3)
 }
 
 func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
@@ -200,9 +200,9 @@ func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
 		if app.IsProviderReqGPU {
 			req3 = "powerful"
 		}
-		log.Infof("%s, application id: %s, name: %s, type: %s, description: %s, image id: 50fbb73b-1979-4938-8bbe-41dd6fe066a9, "+
+		log.Infof("%s, application id: %s, name: %s, type: %s, description: %s, image Name: %s, "+
 			"launch filestores: %s, launch depositories: %s, provider request: %s, depository request: %s, filestore request: %s",
-			utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description,
+			utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description, app.ImageName,
 			app.FileStoreList, depositoriesIdsStr, req1, req2, req3)
 	}
 }

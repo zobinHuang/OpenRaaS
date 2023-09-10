@@ -75,6 +75,7 @@ type ApplicationCore struct {
 */
 type AppInfoAttach struct {
 	FileStoreList               string `json:"filestore_list"`
+	ImageName                   string `json:"image_name"`
 	IsProviderReqGPU            bool   `gorm:"not null" json:"is_provider_req_gpu"`
 	IsFileStoreReqFastNetspeed  bool   `gorm:"not null" json:"is_filestore_req_fast_netspeed"`
 	IsDepositoryReqFastNetspeed bool   `gorm:"not null" json:"is_depository_req_fast_netspeed"`

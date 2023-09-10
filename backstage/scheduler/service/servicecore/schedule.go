@@ -22,6 +22,7 @@ type ScheduleServiceCore struct {
 	FileStoreDAL    model.FileStoreDAL
 	InstanceRoomDAL model.InstanceRoomDAL
 	ApplicationDAL  model.ApplicationDAL
+	Counter         int
 }
 
 /*
@@ -51,6 +52,7 @@ func NewScheduleServiceCore(c *ScheduleServiceCoreConfig) model.ScheduleServiceC
 		FileStoreDAL:    c.FileStoreDAL,
 		InstanceRoomDAL: c.InstanceRoomDAL,
 		ApplicationDAL:  c.ApplicationDAL,
+		Counter:         0,
 	}
 }
 
@@ -113,6 +115,24 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
+	if sc.Counter < 5 {
+		newDopositoryList := make([]model.DepositoryCore, 0)
+		for _, d := range depositoryList {
+			if d.IsContainFastNetspeed {
+				newDopositoryList = append(newDopositoryList, d)
+			}
+		}
+		depositoryList = newDopositoryList
+
+		newFilestoreList := make([]model.FileStoreCore, 0)
+		for _, f := range filestoreList {
+			if f.IsContainFastNetspeed {
+				newFilestoreList = append(newFilestoreList, f)
+			}
+		}
+		filestoreList = newFilestoreList
+	}
+
 	log.Infof("select info, provider: %+v, depositoryList: %+v, filestoreList: %+v", candidatesGPU[0], depositoryList, filestoreList)
 
 	// Use Fisher-Yates algorithm to shuffle slices
@@ -125,6 +145,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		j := rand.Intn(i + 1)
 		depositoryList[i], depositoryList[j] = depositoryList[j], depositoryList[i]
 	}
+
+	sc.Counter += 1
 
 	return candidatesGPU[0], depositoryList, filestoreList, nil
 }
@@ -161,4 +183,5 @@ func (sc *ScheduleServiceCore) Clear() {
 	sc.FileStoreDAL.Clear()
 	sc.InstanceRoomDAL.Clear()
 	sc.ApplicationDAL.Clear()
+	sc.Counter = 0
 }

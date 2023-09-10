@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
@@ -368,6 +368,10 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 		// notify every consumer in this instance room
 		for consumerID := range consumerMap {
+			consumer := consumerMap[consumerID]
+			consumer.StartStreamTime = time.Now()
+			log.Infof("%s, 开始打流, ID: %s", consumer.StartStreamTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
+			log.Infof("%s, 服务个性化定制时长：%s", consumer.StartStreamTime.Format(utils.TIME_LAYOUT), consumer.StartStreamTime.Sub(consumer.StartScheduleTime))
 			consumerMap[consumerID].Send(model.WSPacket{
 				PacketType: "state_run_instance",
 				Data:       string(respToConsumersString),
