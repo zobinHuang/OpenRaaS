@@ -116,21 +116,24 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 	}
 
 	if sc.Counter < 5 {
-		newDopositoryList := make([]model.DepositoryCore, 0)
-		for _, d := range depositoryList {
-			if d.IsContainFastNetspeed {
-				newDopositoryList = append(newDopositoryList, d)
+		if appInfo.IsDepositoryReqFastNetspeed {
+			newDopositoryList := make([]model.DepositoryCore, 0)
+			for _, d := range depositoryList {
+				if d.IsContainFastNetspeed {
+					newDopositoryList = append(newDopositoryList, d)
+				}
 			}
+			depositoryList = newDopositoryList
 		}
-		depositoryList = newDopositoryList
-
-		newFilestoreList := make([]model.FileStoreCore, 0)
-		for _, f := range filestoreList {
-			if f.IsContainFastNetspeed {
-				newFilestoreList = append(newFilestoreList, f)
+		if appInfo.IsFileStoreReqFastNetspeed {
+			newFilestoreList := make([]model.FileStoreCore, 0)
+			for _, f := range filestoreList {
+				if f.IsContainFastNetspeed {
+					newFilestoreList = append(newFilestoreList, f)
+				}
 			}
+			filestoreList = newFilestoreList
 		}
-		filestoreList = newFilestoreList
 	}
 
 	log.Infof("select info, provider: %+v, depositoryList: %+v, filestoreList: %+v", candidatesGPU[0], depositoryList, filestoreList)
