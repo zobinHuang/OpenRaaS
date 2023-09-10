@@ -162,6 +162,8 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 		fmt.Printf("start schedule vcodec\n")
 		fmt.Printf("%s\n", reqPacketData.StreamInstance.VCodec)
 
+		fmt.Printf("%s", req.Data)
+
 		// parse request
 		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
 		if err != nil {

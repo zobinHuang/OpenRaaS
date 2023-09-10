@@ -20,7 +20,7 @@ app1_depository_performance: false    # device performance: true for "high", or 
 app2_id: b14cb341-8b5c-45c6-88fa-852b0ab6b5e1
 app2_name: 反恐精英1.6
 app2_path: "/cs1.6"
-app2_file: 启动游戏.exe
+app2_file: cstrike.exe
 app2_hwkey: game
 app2_os: windows
 app2_create_user: coolmoon327
