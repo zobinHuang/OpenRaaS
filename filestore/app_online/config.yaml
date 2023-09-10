@@ -1,7 +1,7 @@
 # filestore info
 fs_id: 57bc97b7-50d2-4d87-a0bf-511221ca468c    # device ID, should be the same with that in the filestore's daemon
 
-app_num: 3
+app_num: 5
 
 # app1
 app1_id: 11e96b2c-c640-4fa8-bb94-c31adb68c239
@@ -41,3 +41,29 @@ app3_description: C与C++的轻量化IDE
 app3_provider_performance: false  
 app3_filestore_performance: true  
 app3_depository_performance: false  
+
+# app4
+app4_id: 6cc0823a-fbba-4131-9403-093612895082
+app4_name: 扫雷
+app4_path: "/winmine"
+app4_file: Minesweeper.exe
+app4_hwkey: app
+app4_os: windows
+app4_create_user: coolmoon327
+app4_description: Windows经典扫雷游戏
+app4_provider_performance: false  
+app4_filestore_performance: false  
+app4_depository_performance: false  
+
+# app5
+app5_id: abb6c924-55f2-4cc1-bac3-3a00c313bc29
+app5_name: 植物大战僵尸
+app5_path: "/PVZ"
+app5_file: PVZ.exe
+app5_hwkey: app
+app5_os: windows
+app5_create_user: coolmoon327
+app5_description: 经典策略游戏
+app5_provider_performance: true  
+app5_filestore_performance: true  
+app5_depository_performance: true  

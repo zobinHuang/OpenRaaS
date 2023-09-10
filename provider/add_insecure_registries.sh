@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 指定要添加的不安全 Registry 地址，将它们存储在数组中
-INSECURE_REGISTRIES=("192.168.0.109:10960" "192.168.182.156:10960" "192.168.0.189:10960" "192.168.222.216:10960")
+INSECURE_REGISTRIES=("192.168.0.109:10960" "192.168.182.156:10960" "192.168.0.189:10960" "192.168.192.247:10960")
 
 # 检查是否已经存在 daemon.json 文件
 if [ ! -f /etc/docker/daemon.json ]; then
@@ -20,6 +20,8 @@ for REGISTRY in "${INSECURE_REGISTRIES[@]}"; do
     fi
     echo "已添加 $REGISTRY 到 /etc/docker/daemon.json"
 done
+
+cat /etc/docker/daemon.json
 
 # 重启 Docker 守护程序以应用更改
 systemctl restart docker
