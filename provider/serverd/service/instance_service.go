@@ -91,50 +91,81 @@ func (c *InstanceService) LaunchInstance(ctx context.Context, instanceModel *mod
 
 	// Add Exec command
 	// assuming pwd is "~/winecontainer/serverd/", and target shell at "~/winecontainer/winetools/run-wine.sh"
-	execCmd = "sh"
 
-	// Add params
-	params = append(params, "../winetools/run-wine.sh")
-	params = append(params, c.image_name)
-	params = append(params, strconv.Itoa(instanceModel.VMID))
-	if strings.HasPrefix(instanceModel.AppPath, "/") {
-		params = append(params, instanceModel.AppPath)
+	var ImageName string
+	if len(instanceModel.DepositoryList) > 0 {
+		ImageName = c.image_name
 	} else {
-		params = append(params, "/"+instanceModel.AppPath)
+		ImageName = instanceModel.ImageName
 	}
-	params = append(params, instanceModel.AppFile)
-	params = append(params, "'"+instanceModel.AppName+"'")
-	params = append(params, instanceModel.HWKey)
-	params = append(params, []string{strconv.Itoa(instanceModel.ScreenWidth), strconv.Itoa(instanceModel.ScreenHeight)}...)
 
-	ip, err := getClientIp()
-	if err != nil {
-		fmt.Println(err)
-		ip = "192.168.0.109"
+	if instanceModel.RunInLinux {
+		// run app in docker env
+
+		execCmd = "docker"
+		params = append(params, "run")
+		params = append(params, "-d")
+		params = append(params, "--privileged")
+		params = append(params, "--rm")
+		params = append(params, "--name")
+		params = append(params, "appvm"+strconv.Itoa(instanceModel.VMID))
+		// mount
+		params = append(params, "--mount")
+		params = append(params, "type=bind,source='$(pwd)'/../winetools/apps/point"+strconv.Itoa(instanceModel.VMID)+",target=/workspace")
+		params = append(params, "-w")
+		params = append(params, "/workspace")
+		// execution
+		params = append(params, ImageName)
+		params = append(params, instanceModel.AppFile)
+		params = append(params, instanceModel.AppOption)
 	} else {
-		fmt.Println("Found ip: ", ip)
+		// run app in docker-wine env
+
+		execCmd = "sh"
+
+		// Add params
+		params = append(params, "../winetools/run-wine.sh")
+		params = append(params, ImageName)
+		params = append(params, strconv.Itoa(instanceModel.VMID))
+		if strings.HasPrefix(instanceModel.AppPath, "/") {
+			params = append(params, instanceModel.AppPath)
+		} else {
+			params = append(params, "/"+instanceModel.AppPath)
+		}
+		params = append(params, instanceModel.AppFile)
+		params = append(params, "'"+instanceModel.AppName+"'")
+		params = append(params, instanceModel.HWKey)
+		params = append(params, []string{strconv.Itoa(instanceModel.ScreenWidth), strconv.Itoa(instanceModel.ScreenHeight)}...)
+
+		ip, err := getClientIp()
+		if err != nil {
+			fmt.Println(err)
+			ip = "192.168.0.109"
+		} else {
+			fmt.Println("Found ip: ", ip)
+		}
+		params = append(params, ip)
+
+		params = append(params, strconv.Itoa(instanceModel.FPS))
+
+		vcodec := instanceModel.VCodec
+		if strings.Contains(vcodec, "264") {
+			vcodec = "h264"
+		} else if strings.Contains(vcodec, "vp") {
+			vcodec = "vpx"
+		}
+		params = append(params, vcodec)
+
+		if instanceModel.RunWithGpu {
+			params = append(params, "all")
+		} else {
+			params = append(params, "none")
+		}
+
+		// TODO: option
+		// instanceModel.AppOption = "test.flv"
+		params = append(params, instanceModel.AppOption)
 	}
-	params = append(params, ip)
-
-	params = append(params, strconv.Itoa(instanceModel.FPS))
-
-	vcodec := instanceModel.VCodec
-	if strings.Contains(vcodec, "264") {
-		vcodec = "h264"
-	} else if strings.Contains(vcodec, "vp") {
-		vcodec = "vpx"
-	}
-	params = append(params, vcodec)
-
-	if instanceModel.RunWithGpu {
-		params = append(params, "all")
-	} else {
-		params = append(params, "none")
-	}
-
-	// TODO: 等后台完善 option
-	// instanceModel.WineOption = "test.flv"
-	params = append(params, instanceModel.WineOption)
 
 	done := utils.RunShell(execCmd, params)
 

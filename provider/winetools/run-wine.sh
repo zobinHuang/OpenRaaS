@@ -49,10 +49,10 @@ else
 fi
 
 conf_pre="$(pwd)"/../winetools/dockertools/containerfiles/supervisord_${vcodec}
-if [ "$use_gpu" != "none" ]; then
-    conf=${conf_pre}_nvidia.conf
+if echo "$image_name" | grep -q "$nvidia"; then
+  conf=${conf_pre}_nvidia.conf
 else
-    conf=${conf_pre}.conf
+  conf=${conf_pre}.conf
 fi
 
 container_name="appvm${container_id}"

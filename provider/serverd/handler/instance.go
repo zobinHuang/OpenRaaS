@@ -3,11 +3,12 @@ package handler
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"serverd/model"
 	"serverd/model/apperrors"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,16 +19,43 @@ import (
 */
 func (h *Handler) CreateInstance(c *gin.Context) {
 	instanceModel := &model.InstanceModel{}
+	log.Printf("%+v", c)
 	if ok := bindData(c, &instanceModel); !ok {
+		log.WithFields(log.Fields{
+			"Client Address": c.Request.Host,
+		}).Error("Failed to bind data, abandoned")
 		return
 	}
 
-	ctx := c.Request.Context()
-	err := h.CreateInstanceWithModel(ctx, instanceModel)
+	log.Printf("%+v", instanceModel)
 
+	ctx := c.Request.Context()
+
+	err := h.SelectFilestore(ctx, instanceModel)
 	if err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
-			"error": err.Error(),
+			"error": "cannot select filestore",
+		})
+	}
+
+	err = h.InstanceService.NewVMID(ctx, instanceModel)
+	if err != nil {
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": "cannot generate new vm id",
+		})
+	}
+
+	err = h.MountFilestore(ctx, instanceModel)
+	if err != nil {
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": "cannot mount filestore",
+		})
+	}
+
+	err = h.CreateInstanceWithModel(ctx, instanceModel)
+	if err != nil {
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": "cannot create instance",
 		})
 	}
 

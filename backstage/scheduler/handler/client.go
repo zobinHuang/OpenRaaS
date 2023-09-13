@@ -2,11 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
-	"net/http"
 )
 
 var upGrader = websocket.Upgrader{
@@ -292,7 +293,9 @@ func (h *Handler) LearnNetWork(c *gin.Context) {
 		DepositoryList: depositoryList,
 		FileStoreList:  filestoreList,
 	}
+	log.Printf("Before marshal: %+v\n", req)
 	reqStr, err := json.Marshal(&req)
+	log.Printf("After marshal: %+v\n", string(reqStr))
 	if err != nil {
 		log.WithFields(log.Fields{
 			"Client Address": c.Request.Host,
@@ -303,7 +306,6 @@ func (h *Handler) LearnNetWork(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"info": reqStr,
+		"info": string(reqStr),
 	})
-	return
 }

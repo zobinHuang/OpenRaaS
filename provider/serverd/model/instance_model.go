@@ -14,7 +14,7 @@ type InstanceModel struct {
 	HWKey            string           `json:"hw_key"` // 'app' or 'game'
 	ScreenWidth      int              `json:"screen_width"`
 	ScreenHeight     int              `json:"screen_height"`
-	WineOption       string           `json:"wine_option"`
+	AppOption        string           `json:"app_option"`
 	FPS              int              `json:"fps"`
 	VCodec           string           `json:"vcodec"`
 	ImageName        string           `json:"image_name"`
@@ -22,6 +22,7 @@ type InstanceModel struct {
 	DepositoryList   []DepositoryCore `json:"depository_list"` // list of ip address
 	TargetFilestore  FilestoreCore    `json:"target_filestore"`
 	TargetDepository DepositoryCore   `json:"target_depository"`
+	RunInLinux       bool             `json:"run_in_linux"`
 	RunWithGpu       bool
 }
 
