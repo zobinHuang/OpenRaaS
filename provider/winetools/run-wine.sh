@@ -12,7 +12,8 @@
 # 9. target host IP of the RTP protocal
 # 10. frame
 # 11. vcodec
-# 12.(optional) optional parameters to run the app/game
+# 12. use_gpu (none, 0/1/2, all)
+# 13.(optional) optional parameters to run the app/game
 
 # Notice
 # 1. The supervisor is used inside the container as a daemon, and the supervisord.conf file is used to launch services
@@ -35,7 +36,8 @@ screenheight=$8
 targethost=$9
 fps=${10}
 vcodec=${11}
-wineoptions=${12}
+use_gpu=${12}
+wineoptions=${13}
 
 display=:99
 
@@ -46,9 +48,12 @@ else
     vmid_f="${container_id}"
 fi
 
-
-
-conf="$(pwd)"/../winetools/dockertools/containerfiles/supervisord_${vcodec}.conf
+conf_pre="$(pwd)"/../winetools/dockertools/containerfiles/supervisord_${vcodec}
+if [ "$use_gpu" != "none" ]; then
+    conf=${conf_pre}_nvidia.conf
+else
+    conf=${conf_pre}.conf
+fi
 
 container_name="appvm${container_id}"
 appdir_name="apps/point${container_id}"
@@ -57,6 +62,7 @@ docker run -d --privileged --rm --name ${container_name} \
 -v /etc/localtime:/etc/localtime:ro \
 --mount type=bind,source="$(pwd)"/../winetools/"${appdir_name}",target=/apps \
 --mount type=bind,source=${conf},target=/etc/supervisor/conf.d/supervisord.conf  \
+--gpus "${use_gpu}" \
 --env "vmid=${container_id}" \
 --env "apppath=/apps/${apppath}"  \
 --env "appfile=${appfile}" \

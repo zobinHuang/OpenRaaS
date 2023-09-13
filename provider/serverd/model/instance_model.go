@@ -17,10 +17,12 @@ type InstanceModel struct {
 	WineOption       string           `json:"wine_option"`
 	FPS              int              `json:"fps"`
 	VCodec           string           `json:"vcodec"`
+	ImageName        string           `json:"image_name"`
 	FilestoreList    []FilestoreCore  `json:"filestore_list"`  // list of ip address
 	DepositoryList   []DepositoryCore `json:"depository_list"` // list of ip address
 	TargetFilestore  FilestoreCore    `json:"target_filestore"`
 	TargetDepository DepositoryCore   `json:"target_depository"`
+	RunWithGpu       bool
 }
 
 /*

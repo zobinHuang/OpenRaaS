@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os/exec"
 
 	"serverd/model"
 
@@ -56,6 +57,17 @@ func (h *Handler) WSConnect(c *gin.Context) {
 func (h *Handler) InitRecvRoute(ctx context.Context) error {
 	streamer := h.StreamerClient
 
+	// examine local gpu (nvidia)
+	var run_with_gpu bool
+	cmd := exec.Command("nvidia-smi")
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		// fmt.Println("This device don't have an nvidia gpu.")
+		run_with_gpu = false
+	} else {
+		run_with_gpu = true
+	}
+
 	/*
 		@callback: add_wine_instance
 		@description:
@@ -74,6 +86,14 @@ func (h *Handler) InitRecvRoute(ctx context.Context) error {
 				"error":            err,
 			}).Warn("Failed to decode json during receiving, abandoned.")
 			return model.EmptyPacket
+		}
+
+		if len(instanceModel.ImageName) == 0 {
+			instanceModel.ImageName = "dcwine"
+		}
+		instanceModel.RunWithGpu = run_with_gpu
+		if run_with_gpu {
+			instanceModel.ImageName = instanceModel.ImageName + "_nvidia"
 		}
 
 		fmt.Printf("Unmarshaled request details: %v\n", instanceModel)

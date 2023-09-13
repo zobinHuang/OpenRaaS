@@ -172,7 +172,7 @@ func (h *Handler) MountFilestore(ctx context.Context, instanceModel *model.Insta
 	description: fetch the docker layer including some configuration of the app's installation from the target depository server
 */
 func (h *Handler) FetchDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
-	err := h.InstanceService.FetchLayerFromDepository(ctx, instanceModel.VMID, instanceModel.TargetDepository)
+	err := h.InstanceService.FetchLayerFromDepository(ctx, instanceModel.VMID, instanceModel.TargetDepository, instanceModel.ImageName)
 
 	if err != nil {
 		log.Printf("Failed to fetch layer: %v\n", err.Error())

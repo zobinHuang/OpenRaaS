@@ -352,6 +352,14 @@ const WebsocketCallback = (props) => {
             "log_content": `obtain client id: ${payload.WSPacket.data.client_id}`,
         }))
 
+        // dispatch(TerminalActions.updateTerminal({
+        //     "type": "APPEND_LOG_CONTENT",
+        //     "terminal_key": `${payload.TerminalKey}`,
+        //     "log_priority": "SUCCESS",
+        //     "log_time": GetTimestamp(),
+        //     "log_content": `User service has been successfully decomposed into three microservices: (1) normal computing power (2) app files for winmine (3) image layers for dcwine`,
+        // }))
+
         // store iceserver
         instanceDynamicState.iceServers = payload.WSPacket.data.iceservers
 

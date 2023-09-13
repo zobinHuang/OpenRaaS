@@ -47,6 +47,10 @@ const VideoStreamPage = (props) => {
     // add track
     useEffect(() => {
         streamRef.current.srcObject = RtcPeer.mediaStream[0]
+        console.log('test')
+        
+
+        console.log('end')
 
         /*
             @callback: keydown

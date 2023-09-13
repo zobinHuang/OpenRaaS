@@ -126,6 +126,12 @@ func (c *InstanceService) LaunchInstance(ctx context.Context, instanceModel *mod
 	}
 	params = append(params, vcodec)
 
+	if instanceModel.RunWithGpu {
+		params = append(params, "all")
+	} else {
+		params = append(params, "none")
+	}
+
 	// TODO: 等后台完善 option
 	// instanceModel.WineOption = "test.flv"
 	params = append(params, instanceModel.WineOption)
@@ -273,7 +279,7 @@ func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestor
 	func: FetchLayerFromDepository
 	description: fetch the docker layer including some configuration of the app's installation from the target depository server
 */
-func (c *InstanceService) FetchLayerFromDepository(ctx context.Context, vmid int, depository model.DepositoryCore) error {
+func (c *InstanceService) FetchLayerFromDepository(ctx context.Context, vmid int, depository model.DepositoryCore, imageName string) error {
 
 	var execCmd string
 	var params []string
@@ -281,7 +287,7 @@ func (c *InstanceService) FetchLayerFromDepository(ctx context.Context, vmid int
 	execCmd = "docker"
 	params = append(params, "pull")
 
-	c.image_name = depository.HostAddress + ":" + depository.Port + "/dcwine"
+	c.image_name = depository.HostAddress + ":" + depository.Port + "/" + imageName
 	if depository.Tag != "" {
 		c.image_name = c.image_name + ":" + depository.Tag
 	}

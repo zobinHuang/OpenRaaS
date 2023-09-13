@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -201,6 +202,15 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 	consumer.Receive("select_stream_application", func(req model.WSPacket) (resp model.WSPacket) {
 		consumer.StartScheduleTime = time.Now()
 		log.Infof("%s, 开始调度, ID: %s", consumer.StartScheduleTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
+
+		// 初始化随机数生成器
+		rand.Seed(time.Now().UnixNano())
+
+		// 生成随机延迟的毫秒数（范围可根据需求调整）
+		minDelay := 10 // 最小延迟毫秒数
+		maxDelay := 50 // 最大延迟毫秒数
+		randomDelay := rand.Intn(maxDelay-minDelay+1) + minDelay
+		time.Sleep(time.Duration(randomDelay) * time.Millisecond)
 
 		// define request format
 		var reqPacketData struct {
