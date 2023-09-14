@@ -117,12 +117,13 @@ func (c *InstanceService) LaunchInstance(ctx context.Context, instanceModel *mod
 
 		execCmd = "docker"
 		params = append(params, "run")
-		params = append(params, "-d")
+		// params = append(params, "-d")
+		params = append(params, "-it")
 		if instanceModel.RunWithGpu {
 			params = append(params, "--runtime=nvidia")
 		}
 		params = append(params, "--privileged")
-		params = append(params, "--rm")
+		// params = append(params, "--rm")
 		params = append(params, "--name")
 		params = append(params, "appvm"+strconv.Itoa(instanceModel.VMID))
 		// mount
