@@ -135,7 +135,8 @@ func (c *InstanceService) LaunchInstance(ctx context.Context, instanceModel *mod
 		// execution
 		params = append(params, ImageName)
 		params = append(params, instanceModel.AppFile)
-		params = append(params, instanceModel.AppOption)
+		arr := strings.Split(instanceModel.AppOption, " ")
+		params = append(params, arr...)
 	} else {
 		// run app in docker-wine env
 

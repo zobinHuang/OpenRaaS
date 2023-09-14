@@ -49,16 +49,16 @@ const VideoStreamPage = (props) => {
         streamRef.current.srcObject = RtcPeer.mediaStream[0]
         
         console.log('test')
-        //console.log('RtcPeer.peerConnection:', RtcPeer.peerConnection)
-        console.log(typeof RtcPeer);
-        console.log(RtcPeer instanceof RTCPeerConnection);
+        console.log(RtcPeer.PeerConnection)
+        //console.log(typeof RtcPeer);
+        //console.log(RtcPeer instanceof RTCPeerConnection);
 
         
         // 创建一个处理RTC统计信息的函数
-        /*const handleRTCStats = async () => {
+        const handleRTCStats = async () => {
             try {
-                if (RtcPeer.peerConnection) {
-                    const stats = await RtcPeer.peerConnection.getStats();
+                if (RtcPeer.PeerConnection) {
+                    const stats = await RtcPeer.PeerConnection.getStats();
                     stats.forEach(report => {
                         if (report.type === "inbound-rtp" && report.kind === "video") {
                             const latency = report.roundTripTime * 1000; // 转换为毫秒
@@ -75,7 +75,7 @@ const VideoStreamPage = (props) => {
         };
 
         // 添加定时器以定期获取RTC统计信息
-        const statsInterval = setInterval(handleRTCStats, 1000); // 每秒获取一次统计信息*/
+        const statsInterval = setInterval(handleRTCStats, 1000); // 每秒获取一次统计信息
 
 
         console.log('end')
@@ -179,9 +179,9 @@ const VideoStreamPage = (props) => {
             }))
         })
         // 在组件卸载时清除定时器以防止内存泄漏
-        /*return () => {
+        return () => {
             clearInterval(statsInterval);
-        };*/
+        };
 
     },[])
     
