@@ -77,7 +77,7 @@ func (h *Handler) CheckInstanceByVMID(c *gin.Context) {
 		return
 	}
 
-	cmd := exec.Command("docker", "logs", "--tail", "10", "$(docker", "ps", "-qf", "name=appvm"+vmid+")")
+	cmd := exec.Command("docker", "logs", "--tail", "10", "$(docker", "ps", "-q", "-f", "name=appvm"+vmid+")")
 	log.Printf("%+v", cmd)
 	ret, err := cmd.CombinedOutput()
 	log.Printf("%s", ret)
