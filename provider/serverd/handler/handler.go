@@ -61,6 +61,7 @@ func NewHandler(c *Config) {
 	// disable authentication for debug
 	// g.GET("/wsconnect", middleware.AuthUser(h.TokenService), h.WSConnect)
 	g.GET("/wsconnect", h.WSConnect)
+	g.GET("/checkinstancebyvmid", h.CheckInstanceByVMID)
 	g.POST("/createinstance", h.CreateInstance)
 	g.POST("/deleteinstance", h.DeleteInstance)
 }

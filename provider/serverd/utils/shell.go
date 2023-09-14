@@ -69,7 +69,7 @@ func RunShell(execCmd string, params []string) chan struct{} {
 	description: run a target shell with parameters on the host, and wait until it finished
 	return: logs from the shell
 */
-func RunShellWithReturn(execCmd string, params []string) string {
+func RunShellWithReturn(execCmd string, params []string) (string, error) {
 	// fmt.Printf("pwd: %s\n", os.Getenv("PWD"))
 	fmt.Println("\n==================\nRunShellWithReturn: ", execCmd, params)
 
@@ -83,7 +83,7 @@ func RunShellWithReturn(execCmd string, params []string) string {
 	err := cmd.Run() // cmd.Run() will block until it finishes
 	if err != nil {
 		fmt.Printf("ERROR: cmd %s fail, %v\n", execCmd, err)
-		return ""
+		return "", err
 	}
 
 	ret := stdout.String()
@@ -91,5 +91,5 @@ func RunShellWithReturn(execCmd string, params []string) string {
 
 	fmt.Printf("Done running cmd %s with return\n==================\n", execCmd)
 
-	return ret
+	return ret, err
 }

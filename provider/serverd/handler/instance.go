@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"serverd/model"
 	"serverd/model/apperrors"
+	"serverd/utils"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
@@ -19,7 +20,7 @@ import (
 */
 func (h *Handler) CreateInstance(c *gin.Context) {
 	instanceModel := &model.InstanceModel{}
-	log.Printf("%+v", c)
+	log.Printf("Create instance with context: %+v", c)
 	if ok := bindData(c, &instanceModel); !ok {
 		log.WithFields(log.Fields{
 			"Client Address": c.Request.Host,
@@ -65,6 +66,36 @@ func (h *Handler) CreateInstance(c *gin.Context) {
 	})
 }
 
+func (h *Handler) CheckInstanceByVMID(c *gin.Context) {
+	vmid, ok := c.GetQuery("vmid")
+	if !ok {
+		log.WithFields(log.Fields{
+			"Client Address": c.Request.Host,
+		}).Error("Failed to extract vmid, invalid http connection request, abandoned")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need vmid"})
+		return
+	}
+
+	var execCmd string
+	var params []string
+	// docker logs --tail 10 $(docker ps -qf "name=appvm2")
+	execCmd = "docker"
+	params = append(params, "logs")
+	params = append(params, "--tail")
+	params = append(params, "10")
+	params = append(params, "$(docker ps -qf 'name=appvm"+vmid+"')")
+
+	ret, err := utils.RunShellWithReturn(execCmd, params)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	}
+	// return http_ok if success
+	c.JSON(http.StatusOK, gin.H{
+		"log": ret,
+	})
+}
+
 /*
 	func: CreateInstanceWithModel
 	description: use input instanceModel to create a new wine instance
@@ -74,7 +105,7 @@ func (h *Handler) CreateInstanceWithModel(ctx context.Context, instanceModel *mo
 	done := h.InstanceService.LaunchInstance(ctx, instanceModel)
 	if done == nil {
 		log.Printf("Failed to start up a new instance.")
-		return fmt.Errorf("Instance startup failed.")
+		return fmt.Errorf("instance startup failed")
 	}
 	return nil
 }
@@ -115,7 +146,7 @@ func (h *Handler) DeleteInstanceWithModel(ctx context.Context, deleteModel *mode
 		err = h.InstanceService.DeleteInstance(ctx, deleteModel.VMID)
 	} else {
 		log.Printf("No instance identification sent in.\n")
-		return fmt.Errorf("No instance specified.")
+		return fmt.Errorf("no instance specified")
 	}
 
 	if err != nil {

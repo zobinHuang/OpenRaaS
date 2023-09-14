@@ -4,4 +4,3 @@ __pycache__
 /depository/storage/docker
 /filestore/storage/apps
 .log
-/nginx/logs

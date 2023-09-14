@@ -217,8 +217,8 @@ func (c *InstanceService) DeleteInstance(ctx context.Context, vmid int) error {
 	params = append(params, "container")
 	params = append(params, "stop")
 	params = append(params, "appvm"+strconv.Itoa(vmid))
-	ret := utils.RunShellWithReturn(execCmd, params)
-	if ret == "" {
+	_, err = utils.RunShellWithReturn(execCmd, params)
+	if err != nil {
 		fmt.Printf("Failed to remove container %s\n", params[0])
 		// return fmt.Errorf("Cannont umount remote dir.")
 		err = fmt.Errorf("cannot umount remote dir")
@@ -230,8 +230,8 @@ func (c *InstanceService) DeleteInstance(ctx context.Context, vmid int) error {
 	execCmd = "umount"
 	params = append(params, "../winetools/apps/point"+strconv.Itoa(vmid))
 
-	ret = utils.RunShellWithReturn(execCmd, params)
-	if ret == "" {
+	_, err = utils.RunShellWithReturn(execCmd, params)
+	if err != nil {
 		fmt.Printf("Failed to umount %s\n", params[0])
 		// return fmt.Errorf("Cannont umount remote dir.")
 		err = fmt.Errorf("cannot umount remote dir")
@@ -316,8 +316,8 @@ func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestor
 	params = append(params, filestore.Password)
 
 	// utils.RunShell(execCmd, params)
-	ret := utils.RunShellWithReturn(execCmd, params)
-	if ret == "" {
+	_, err := utils.RunShellWithReturn(execCmd, params)
+	if err != nil {
 		return fmt.Errorf("cannot mount remote dir")
 	}
 
@@ -342,10 +342,9 @@ func (c *InstanceService) FetchLayerFromDepository(ctx context.Context, vmid int
 	}
 	params = append(params, c.image_name)
 
-	ret := utils.RunShellWithReturn(execCmd, params)
+	_, err := utils.RunShellWithReturn(execCmd, params)
 
-	var err error
-	if ret == "" {
+	if err != nil {
 		fmt.Printf("Failed to pull image\n")
 		err = fmt.Errorf("cannot pull image")
 	}
