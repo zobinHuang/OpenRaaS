@@ -49,7 +49,10 @@ const VideoStreamPage = (props) => {
         streamRef.current.srcObject = RtcPeer.mediaStream[0]
         
         console.log('test')
-        console.log('RtcPeer.peerConnection:', RtcPeer.peerConnection)
+        //console.log('RtcPeer.peerConnection:', RtcPeer.peerConnection)
+        console.log(typeof RtcPeer);
+        console.log(RtcPeer instanceof RTCPeerConnection);
+
         
         // 创建一个处理RTC统计信息的函数
         /*const handleRTCStats = async () => {

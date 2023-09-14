@@ -92,9 +92,9 @@ func (h *Handler) InitRecvRoute(ctx context.Context) error {
 			instanceModel.ImageName = "dcwine"
 		}
 		instanceModel.RunWithGpu = run_with_gpu
-		if run_with_gpu && instanceModel.VCodec == "h264" {
-			instanceModel.ImageName = instanceModel.ImageName + "_nvidia"
-		}
+		// if run_with_gpu && instanceModel.VCodec == "h264" {
+		// 	instanceModel.ImageName = instanceModel.ImageName + "_nvidia"
+		// }
 
 		fmt.Printf("Unmarshaled request details: %v\n", instanceModel)
 
