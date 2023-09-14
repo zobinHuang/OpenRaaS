@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os/exec"
 	"serverd/model"
 	"serverd/model/apperrors"
-	"serverd/utils"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
@@ -76,19 +76,10 @@ func (h *Handler) CheckInstanceByVMID(c *gin.Context) {
 		return
 	}
 
-	var execCmd string
-	var params []string
-	// docker logs --tail 10 $(docker ps -qf "name=appvm2")
-	execCmd = "docker"
-	params = append(params, "logs")
-	params = append(params, "--tail")
-	params = append(params, "10")
-	params = append(params, "$(docker ps -qf 'name=appvm"+vmid+"')")
-
-	ret, err := utils.RunShellWithReturn(execCmd, params)
+	cmd := exec.Command("docker logs --tail 10 $(docker ps -qf 'name=appvm" + vmid + "')")
+	ret, err := cmd.CombinedOutput()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-
 	}
 	// return http_ok if success
 	c.JSON(http.StatusOK, gin.H{
