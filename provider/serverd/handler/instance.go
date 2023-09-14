@@ -77,13 +77,26 @@ func (h *Handler) CheckInstanceByVMID(c *gin.Context) {
 		return
 	}
 
-	cmd := exec.Command("docker", "logs", "--tail", "10", "$(docker", "ps", "-q", "-f", "name=appvm"+vmid+")")
+	// cmd := exec.Command("docker", "logs", "--tail", "10", "$(docker", "ps", "-q", "-f", "name=appvm"+vmid+")")
+	// log.Printf("%+v", cmd)
+	// ret, err := cmd.CombinedOutput()
+	// log.Printf("%s", ret)
+	cmd := exec.Command("docker", "ps", "-q", "-f", "name=appvm"+vmid)
 	log.Printf("%+v", cmd)
 	ret, err := cmd.CombinedOutput()
 	log.Printf("%s", ret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
+	container_id := string(ret)
+	cmd = exec.Command("docker", "logs", "--tail", "10", container_id)
+	log.Printf("%+v", cmd)
+	ret, err = cmd.CombinedOutput()
+	log.Printf("%s", ret)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
 	// return http_ok if success
 	c.JSON(http.StatusOK, gin.H{
 		"log": ret,
