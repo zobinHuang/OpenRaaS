@@ -8,6 +8,7 @@ import (
 	"serverd/model"
 	"serverd/model/apperrors"
 	"strconv"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -81,21 +82,46 @@ func (h *Handler) CheckInstanceByVMID(c *gin.Context) {
 	// log.Printf("%+v", cmd)
 	// ret, err := cmd.CombinedOutput()
 	// log.Printf("%s", ret)
+
+	// 获取容器 ID
 	cmd := exec.Command("docker", "ps", "-q", "-f", "name=appvm"+vmid)
-	log.Printf("%+v", cmd)
 	ret, err := cmd.CombinedOutput()
-	log.Printf("%s", ret)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Println("Error:", err)
+		return
 	}
-	container_id := string(ret)
-	cmd = exec.Command("docker", "logs", "--tail", "10", container_id)
-	log.Printf("%+v", cmd)
+	containerID := strings.TrimSpace(string(ret))
+
+	// 打印容器 ID
+	fmt.Println("Container ID:", containerID)
+
+	// 获取容器日志
+	cmd = exec.Command("docker", "logs", "--tail", "10", containerID)
 	ret, err = cmd.CombinedOutput()
-	log.Printf("%s", ret)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Println("Error:", err)
+		return
 	}
+
+	// 打印容器日志
+	fmt.Println("Container logs:")
+	fmt.Println(string(ret))
+
+	// cmd := exec.Command("docker", "ps", "-q", "-f", "name=appvm"+vmid)
+	// log.Printf("%+v", cmd)
+	// ret, err := cmd.CombinedOutput()
+	// log.Printf("%s", ret)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// }
+	// container_id := string(ret)
+	// cmd = exec.Command("docker", "logs", "--tail", "10", container_id)
+	// log.Printf("%+v", cmd)
+	// ret, err = cmd.CombinedOutput()
+	// log.Printf("%s", ret)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// }
 
 	// return http_ok if success
 	c.JSON(http.StatusOK, gin.H{

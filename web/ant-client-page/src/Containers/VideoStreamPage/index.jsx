@@ -61,6 +61,7 @@ const VideoStreamPage = (props) => {
                     const stats = await RtcPeer.PeerConnection.getStats();
                     stats.forEach(report => {
                         if (report.type === "inbound-rtp" && report.kind === "video") {
+                            console.log(report)
                             const latency = report.roundTripTime * 1000; // 转换为毫秒
                             const jitter = report.jitter * 1000; // 转换为毫秒
                             console.log("Latency:", latency, "ms");
@@ -75,7 +76,7 @@ const VideoStreamPage = (props) => {
         };
 
         // 添加定时器以定期获取RTC统计信息
-        const statsInterval = setInterval(handleRTCStats, 1000); // 每秒获取一次统计信息
+        const statsInterval = setInterval(handleRTCStats, 100000); // 每秒获取一次统计信息
 
 
         console.log('end')
