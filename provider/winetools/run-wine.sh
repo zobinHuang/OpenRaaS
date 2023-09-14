@@ -63,7 +63,7 @@ docker run -d --privileged --rm --name ${container_name} \
 -v /etc/localtime:/etc/localtime:ro \
 --mount type=bind,source="$(pwd)"/../winetools/"${appdir_name}",target=/apps \
 --mount type=bind,source=${conf},target=/etc/supervisor/conf.d/supervisord.conf  \
---gpus "${use_gpu}" \
+# --gpus "${use_gpu}" \
 --env "vmid=${container_id}" \
 --env "apppath=/apps/${apppath}"  \
 --env "appfile=${appfile}" \
