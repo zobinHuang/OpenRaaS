@@ -50,6 +50,7 @@ const VideoStreamPage = (props) => {
         
         console.log('test')
         console.log('RtcPeer.peerConnection:', RtcPeer.peerConnection)
+        
         // 创建一个处理RTC统计信息的函数
         /*const handleRTCStats = async () => {
             try {

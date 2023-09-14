@@ -1,0 +1,9 @@
+ CUDA-version: 11020 (11040), cuDNN: 8.1.1, GPU count: 1  
+ OpenCV isn't used - data augmentation will be slow 
+yolov2-tiny
+ 0 : compute_capability = 860, cudnn_half = 0, GPU: NVIDIA RTX A4000 
+net.optimized_memory = 0 
+mini_batch = 32, batch = 64, time_steps = 1, train = 1 
+   layer   filters  size/strd(dil)      input                output
+   0 Create CUDA-stream - 0 
+ Create cudnn-handle 0 

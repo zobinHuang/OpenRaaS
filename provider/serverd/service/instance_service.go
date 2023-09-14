@@ -107,6 +107,7 @@ func (c *InstanceService) LaunchInstance(ctx context.Context, instanceModel *mod
 		execCmd = "docker"
 		params = append(params, "run")
 		params = append(params, "-d")
+		params = append(params, "--runtime=nvidia")
 		params = append(params, "--privileged")
 		params = append(params, "--rm")
 		params = append(params, "--name")
