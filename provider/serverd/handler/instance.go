@@ -68,6 +68,7 @@ func (h *Handler) CreateInstance(c *gin.Context) {
 
 func (h *Handler) CheckInstanceByVMID(c *gin.Context) {
 	vmid, ok := c.GetQuery("vmid")
+	log.Printf("%+v", c)
 	if !ok {
 		log.WithFields(log.Fields{
 			"Client Address": c.Request.Host,
@@ -77,7 +78,9 @@ func (h *Handler) CheckInstanceByVMID(c *gin.Context) {
 	}
 
 	cmd := exec.Command("docker", "logs", "--tail", "10", "$(docker", "ps", "-qf", "name=appvm"+vmid+")")
+	log.Printf("%+v", cmd)
 	ret, err := cmd.CombinedOutput()
+	log.Printf("%s", ret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
