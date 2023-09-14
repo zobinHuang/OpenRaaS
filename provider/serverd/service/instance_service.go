@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
+	"path/filepath"
 	"serverd/model"
 	"serverd/utils"
 	"strconv"
@@ -111,7 +113,9 @@ func (c *InstanceService) LaunchInstance(ctx context.Context, instanceModel *mod
 		params = append(params, "appvm"+strconv.Itoa(instanceModel.VMID))
 		// mount
 		params = append(params, "--mount")
-		params = append(params, "type=bind,source='$(pwd)'/../winetools/apps/point"+strconv.Itoa(instanceModel.VMID)+",target=/workspace")
+		currentPath, _ := os.Getwd()
+		parentDir := filepath.Dir(currentPath)
+		params = append(params, "type=bind,source="+parentDir+"/winetools/apps/point"+strconv.Itoa(instanceModel.VMID)+",target=/workspace")
 		params = append(params, "-w")
 		params = append(params, "/workspace")
 		// execution
