@@ -49,11 +49,12 @@ else
 fi
 
 conf_pre="$(pwd)"/../winetools/dockertools/containerfiles/supervisord_${vcodec}
-if echo "$image_name" | grep -q "$nvidia"; then
-  conf=${conf_pre}_nvidia.conf
-else
-  conf=${conf_pre}.conf
-fi
+# if echo "$image_name" | grep -q "$nvidia"; then
+#   conf=${conf_pre}_nvidia.conf
+# else
+#   conf=${conf_pre}.conf
+# fi
+conf=${conf_pre}.conf
 
 container_name="appvm${container_id}"
 appdir_name="apps/point${container_id}"
