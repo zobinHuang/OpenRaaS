@@ -60,9 +60,10 @@ const VideoStreamPage = (props) => {
                 if (RtcPeer.PeerConnection) {
                     const stats = await RtcPeer.PeerConnection.getStats();
                     stats.forEach(report => {
+                        console.log(report)
                         if (report.type === "inbound-rtp" && report.kind === "video") {
-                            console.log(report)
-                            const latency = report.roundTripTime * 1000; // 转换为毫秒
+                            
+                            const latency = report.totalInterFrameDelay * 1000; // 转换为毫秒
                             const jitter = report.jitter * 1000; // 转换为毫秒
                             console.log("Latency:", latency, "ms");
                             console.log("Jitter:", jitter, "ms");
