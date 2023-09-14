@@ -1640,3 +1640,8 @@
 192.168.0.1 - - [14/Sep/2023:12:34:44 +0000] "POST /api/scheduler/node_online?type=filestore HTTP/1.1" 500 108 "-" "python-requests/2.26.0" "-"
 192.168.0.1 - - [14/Sep/2023:12:34:44 +0000] "POST /api/scheduler/application_online HTTP/1.1" 200 0 "-" "python-requests/2.26.0" "-"
 192.168.0.1 - - [14/Sep/2023:12:34:44 +0000] "GET /api/scheduler/network_learn?app_id=eb49ea11-4993-4cd0-aa83-4b923996a625 HTTP/1.1" 200 930 "-" "python-requests/2.26.0" "-"
+192.168.0.1 - - [14/Sep/2023:12:39:02 +0000] "GET /api/scheduler/wsconnect?type=provider&uuid=23c1511b-1868-4fce-a000-01a1a6e0a756 HTTP/1.1" 101 174 "-" "Go-http-client/1.1" "-"
+192.168.0.1 - - [14/Sep/2023:12:39:07 +0000] "POST /api/scheduler/node_online?type=provider HTTP/1.1" 500 106 "-" "Go-http-client/1.1" "-"
+192.168.0.1 - - [14/Sep/2023:12:39:23 +0000] "POST /api/scheduler/node_online?type=filestore HTTP/1.1" 500 108 "-" "python-requests/2.26.0" "-"
+192.168.0.1 - - [14/Sep/2023:12:39:23 +0000] "POST /api/scheduler/application_online HTTP/1.1" 200 0 "-" "python-requests/2.26.0" "-"
+192.168.0.1 - - [14/Sep/2023:12:39:23 +0000] "GET /api/scheduler/network_learn?app_id=eb49ea11-4993-4cd0-aa83-4b923996a625 HTTP/1.1" 200 930 "-" "python-requests/2.26.0" "-"

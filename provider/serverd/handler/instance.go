@@ -88,6 +88,7 @@ func (h *Handler) CheckInstanceByVMID(c *gin.Context) {
 	ret, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Println("Error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	containerID := strings.TrimSpace(string(ret))
@@ -98,6 +99,7 @@ func (h *Handler) CheckInstanceByVMID(c *gin.Context) {
 	ret, err = cmd.CombinedOutput()
 	if err != nil {
 		log.Println("Error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
