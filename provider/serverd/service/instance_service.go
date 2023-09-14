@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"serverd/model"
 	"serverd/utils"
@@ -104,10 +105,22 @@ func (c *InstanceService) LaunchInstance(ctx context.Context, instanceModel *mod
 	if instanceModel.RunInLinux {
 		// run app in docker env
 
+		// examine local gpu (nvidia)
+		cmd := exec.Command("nvidia-smi")
+		_, err := cmd.CombinedOutput()
+		if err != nil {
+			// fmt.Println("This device don't have an nvidia gpu.")
+			instanceModel.RunWithGpu = false
+		} else {
+			instanceModel.RunWithGpu = true
+		}
+
 		execCmd = "docker"
 		params = append(params, "run")
 		params = append(params, "-d")
-		params = append(params, "--runtime=nvidia")
+		if instanceModel.RunWithGpu {
+			params = append(params, "--runtime=nvidia")
+		}
 		params = append(params, "--privileged")
 		params = append(params, "--rm")
 		params = append(params, "--name")
