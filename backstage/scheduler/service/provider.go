@@ -191,6 +191,8 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 			SelectedFileStore  model.FileStoreCore  `json:"selected_filestore"`
 		}
 
+		// todo: blockchain online
+
 		// parse request
 		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
 		if err != nil {

@@ -106,6 +106,14 @@ services:
     # have to use $$ (double-dollar) so docker doesn't try to substitute a variable
     command: reflex -r "\.go$$" -s -- sh -c "go run ./"
 
+  blockchain:
+    image: blockchain
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./blockchain:/root
+    command: reflex -r "\.py$$" -s -- sh -c "python3 app.py"
+
 volumes:
   pgdata_auth:
   pgdata_scheduler:
