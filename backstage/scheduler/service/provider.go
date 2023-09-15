@@ -186,9 +186,9 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 	provider.Receive("state_selected_storage", func(req model.WSPacket) (resp model.WSPacket) {
 		// define request format
 		var reqPacketData struct {
-			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepository model.DepositoryCore `json:"selected_depository"`
-			SelectedFileStore  model.FileStoreCore  `json:"selected_filestore"`
+			StreamInstanceID   string                       `json:"stream_instance_id"`
+			SelectedDepository model.DepositoryCoreWithInst `json:"selected_depository"`
+			SelectedFileStore  model.FileStoreCoreWithInst  `json:"selected_filestore"`
 		}
 
 		// todo: blockchain online
@@ -209,6 +209,29 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 			"Selected Depository": fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.IP, reqPacketData.SelectedDepository.Port),
 			"Selected FileStore":  fmt.Sprintf("%s:%s", reqPacketData.SelectedFileStore.IP, reqPacketData.SelectedFileStore.Port),
 		}).Info("Notification from daemon of successfully selecting storage node")
+
+		go func() {
+			streamInstanceRoom, err := s.InstanceRoomDAL.GetInstanceRoomByInstanceID(nil, reqPacketData.StreamInstanceID)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"Warn Type":        "Recv Callback Error",
+					"Recv Packet Type": "state_selected_storage",
+					"error":            err,
+					"StreamInstanceID": reqPacketData.StreamInstanceID,
+				}).Warn("Failed to GetInstanceRoomByInstanceID during state_selected_storage")
+				return
+			}
+			streamInstanceRoom.SelectedDepository = &model.Depository{DepositoryCore: model.DepositoryCore{ID: reqPacketData.SelectedDepository.ID}}
+			for _, value := range reqPacketData.SelectedDepository.InstHistory {
+				streamInstanceRoom.SelectedDepositoryBandWidth = value
+				break
+			}
+			streamInstanceRoom.SelectedFileStore = &model.FileStore{FileStoreCore: model.FileStoreCore{ID: reqPacketData.SelectedFileStore.ID}}
+			for _, value := range reqPacketData.SelectedFileStore.InstHistory {
+				streamInstanceRoom.SelectedFileStoreLatency = value
+				break
+			}
+		}()
 
 		// construct responses to consumers
 		respToConsumers := struct {

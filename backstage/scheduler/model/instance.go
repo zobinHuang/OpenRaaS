@@ -27,9 +27,11 @@ type StreamInstanceRoom struct {
 	Provider     *Provider
 	ConsumerList map[string]*Consumer
 
-	SelectedDepository      *Depository
-	PotentialDepositoryList map[string]*Depository
+	SelectedDepository          *Depository
+	SelectedDepositoryBandWidth string
+	PotentialDepositoryList     map[string]*Depository
 
-	SelectedFileStore      *FileStore
-	PotentialFileStoreList map[string]*FileStore
+	SelectedFileStore        *FileStore
+	SelectedFileStoreLatency string
+	PotentialFileStoreList   map[string]*FileStore
 }

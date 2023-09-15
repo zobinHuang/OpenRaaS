@@ -83,6 +83,15 @@ func (d *InstanceRoomDAL) GetProviderByInstanceID(ctx context.Context, instanceI
 	return instanceRoom.Provider, nil
 }
 
+// GetInstanceRoomByInstanceID obtain InstanceRoom by given instance room id
+func (d *InstanceRoomDAL) GetInstanceRoomByInstanceID(ctx context.Context, instanceID string) (*model.StreamInstanceRoom, error) {
+	instanceRoom, ok := d.StreamInstanceRoomList[instanceID]
+	if !ok {
+		return nil, fmt.Errorf("GetInstanceRoomByInstanceID No instance founded by given instance id")
+	}
+	return instanceRoom, nil
+}
+
 // Clear delete all
 func (d *InstanceRoomDAL) Clear() {
 	d.StreamInstanceRoomList = make(map[string]*model.StreamInstanceRoom)

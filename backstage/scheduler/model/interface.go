@@ -85,6 +85,9 @@ type DepositoryService interface {
 type ScheduleServiceCore interface {
 	CreateStreamInstanceRoom(ctx context.Context, provider *Provider, consumer *Consumer, streamInstance *StreamInstance) (*StreamInstanceRoom, error)
 	ScheduleStream(ctx context.Context, streamInstance *StreamInstance) (*Provider, []DepositoryCore, []FileStoreCore, error)
+	GetStreamInstanceRoomByInstanceID(id string) (*StreamInstanceRoom, error)
+	SetValueToBlockchain(key, value string) error
+	GetValueFromBlockchain(key string) (string, error)
 	Clear()
 }
 
@@ -165,6 +168,7 @@ type InstanceRoomDAL interface {
 	DeleteStreamInstanceRoom(ctx context.Context, instanceID string)
 	GetConsumerMapByInstanceID(ctx context.Context, instanceID string) (map[string]*Consumer, error)
 	GetProviderByInstanceID(ctx context.Context, instanceID string) (*Provider, error)
+	GetInstanceRoomByInstanceID(ctx context.Context, instanceID string) (*StreamInstanceRoom, error)
 	Clear()
 }
 
