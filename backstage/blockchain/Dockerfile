@@ -6,9 +6,9 @@ WORKDIR /root/
 
 COPY ./ /root/
 
-RUN pip3 install flask && npm install web3@1.10.1 --save && npm install fs-extra
+RUN pip3 install flask && npm install web3@1.10.1 -g && npm install fs-extra -g
 
-EXPOSE 5000
+EXPOSE 5001
 
 # run application
 CMD ["python3", "app.py"]
