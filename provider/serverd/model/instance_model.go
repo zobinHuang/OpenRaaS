@@ -7,22 +7,22 @@ package model
 type InstanceModel struct {
 	InstanceCore
 	InstanceConnection
-	Done             chan (struct{})  `json:"-"` // a channel used for close the vm
-	AppPath          string           `json:"application_path"`
-	AppFile          string           `json:"application_file"`
-	AppName          string           `json:"application_name"`
-	HWKey            string           `json:"hw_key"` // 'app' or 'game'
-	ScreenWidth      int              `json:"screen_width"`
-	ScreenHeight     int              `json:"screen_height"`
-	AppOption        string           `json:"app_option"`
-	FPS              int              `json:"fps"`
-	VCodec           string           `json:"vcodec"`
-	ImageName        string           `json:"image_name"`
-	FilestoreList    []FilestoreCore  `json:"filestore_list"`  // list of ip address
-	DepositoryList   []DepositoryCore `json:"depository_list"` // list of ip address
-	TargetFilestore  FilestoreCore    `json:"target_filestore"`
-	TargetDepository DepositoryCore   `json:"target_depository"`
-	RunInLinux       bool             `json:"run_in_linux"`
+	Done             chan (struct{}) `json:"-"` // a channel used for close the vm
+	AppPath          string          `json:"application_path"`
+	AppFile          string          `json:"application_file"`
+	AppName          string          `json:"application_name"`
+	HWKey            string          `json:"hw_key"` // 'app' or 'game'
+	ScreenWidth      int             `json:"screen_width"`
+	ScreenHeight     int             `json:"screen_height"`
+	AppOption        string          `json:"app_option"`
+	FPS              int             `json:"fps"`
+	VCodec           string          `json:"vcodec"`
+	ImageName        string          `json:"image_name"`
+	FilestoreList    []Filestore     `json:"filestore_list"`  // list of ip address
+	DepositoryList   []Depository    `json:"depository_list"` // list of ip address
+	TargetFilestore  Filestore       `json:"target_filestore"`
+	TargetDepository Depository      `json:"target_depository"`
+	RunInLinux       bool            `json:"run_in_linux"`
 	RunWithGpu       bool
 }
 
@@ -60,6 +60,7 @@ type InstanceCore struct {
 */
 type Depository struct {
 	DepositoryCore
+	InstHistory map[string]string `json:"inst_history"`
 }
 
 /*
@@ -83,6 +84,7 @@ type DepositoryCore struct {
 */
 type Filestore struct {
 	FilestoreCore
+	InstHistory map[string]string `json:"inst_history"`
 }
 
 /*

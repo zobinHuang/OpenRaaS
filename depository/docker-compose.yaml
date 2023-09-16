@@ -23,3 +23,9 @@ services:
     environment:
       - TZ=Asia/Shanghai
     entrypoint: python main.py
+
+  iperf:
+    image: networkstatic/iperf3
+    ports:
+      - "5201:5201"
+    command: -s

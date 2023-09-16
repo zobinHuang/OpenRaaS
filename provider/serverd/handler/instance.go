@@ -2,13 +2,16 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os/exec"
 	"serverd/model"
 	"serverd/model/apperrors"
+	"serverd/utils"
 	"strconv"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -182,7 +185,7 @@ func (h *Handler) SelectFilestore(ctx context.Context, instanceModel *model.Inst
 	if list_len == 0 {
 		log.Printf("Empty filestore list!")
 
-		var filestore model.FilestoreCore
+		var filestore model.Filestore
 		filestore.HostAddress = "kb109.dynv6.net"
 		filestore.Port = "7189"
 		filestore.Protocol = "davfs"
@@ -213,7 +216,7 @@ func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.Ins
 	if list_len == 0 {
 		log.Printf("Empty depository list!")
 
-		var depository model.DepositoryCore
+		var depository model.Depository
 		depository.HostAddress = "127.0.0.1"
 		depository.Port = "5000"
 		depository.Tag = "latest"
@@ -239,6 +242,38 @@ func (h *Handler) MountFilestore(ctx context.Context, instanceModel *model.Insta
 		log.Printf("Failed to mount filestore: %v\n", err.Error())
 	}
 
+	// test latency
+	targetURL := "http://" + instanceModel.TargetFilestore.HostAddress + ":" + instanceModel.TargetFilestore.Port
+
+	// 创建一个自定义的 HTTP 客户端
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	// 发起一个 HEAD 请求并计算延迟
+	startTime := time.Now()
+	req, err := http.NewRequest("HEAD", targetURL, nil)
+	if err != nil {
+		fmt.Println("Failed to build http request for latency testing:", err)
+		return err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Failed to send http request for latency testing:", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	elapsed := time.Since(startTime)
+
+	// 输出延迟结果
+	fmt.Printf("The latency between server %s is %s\n", targetURL, elapsed)
+	if len(instanceModel.TargetFilestore.InstHistory) == 0 {
+		instanceModel.TargetFilestore.InstHistory = make(map[string]string)
+	}
+	instanceModel.TargetFilestore.InstHistory[instanceModel.Instanceid] = elapsed.String()
+
 	return err
 }
 
@@ -251,6 +286,40 @@ func (h *Handler) FetchDepository(ctx context.Context, instanceModel *model.Inst
 
 	if err != nil {
 		log.Printf("Failed to fetch layer: %v\n", err.Error())
+		return err
+	}
+
+	// test speed
+	// iperf3 -c 192.168.0.109 -J -t 1
+	execCmd := "iperf3"
+	params := []string{}
+	params = append(params, "-c", instanceModel.TargetDepository.HostAddress, "-t", "1", "-J")
+	ret, err := utils.RunShellWithReturn(execCmd, params)
+
+	if err != nil {
+		fmt.Printf("Failed to test speed with deposiory\n")
+		return fmt.Errorf("cannot test speed with deposiory")
+	}
+
+	var data map[string]interface{}
+	err = json.Unmarshal([]byte(ret), &data)
+	if err != nil {
+		fmt.Println("failed to unmarshal JSON:", err)
+		return fmt.Errorf("cannot unmarshal speed")
+	}
+
+	if len(instanceModel.TargetDepository.InstHistory) == 0 {
+		instanceModel.TargetDepository.InstHistory = make(map[string]string)
+	}
+
+	if end, ok := data["end"].(map[string]interface{}); ok {
+		if sumReceived, ok := end["sum_received"].(map[string]interface{}); ok {
+			if bitsPerSecond, ok := sumReceived["bits_per_second"].(float64); ok {
+				fmt.Println("The receive speed is (bps):", bitsPerSecond)
+				bps := strconv.FormatFloat(bitsPerSecond, 'f', -1, 64)
+				instanceModel.TargetDepository.InstHistory[instanceModel.Instanceid] = bps + "bitsPerSecond"
+			}
+		}
 	}
 
 	return err

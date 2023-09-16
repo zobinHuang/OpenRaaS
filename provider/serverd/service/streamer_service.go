@@ -179,9 +179,9 @@ func (c *StreamerService) StateScheduler(ctx context.Context, streamer *model.St
 func (c *StreamerService) StateSelectedStorage(ctx context.Context, streamer *model.Streamer, instanceModel *model.InstanceModel) error {
 	// define request format
 	reqData := struct {
-		StreamInstanceID string               `json:"stream_instance_id"`
-		TargetFilestore  model.FilestoreCore  `json:"selected_filestore"`
-		TargetDepository model.DepositoryCore `json:"selected_depository"`
+		StreamInstanceID string           `json:"stream_instance_id"`
+		TargetFilestore  model.Filestore  `json:"selected_filestore"`
+		TargetDepository model.Depository `json:"selected_depository"`
 	}{
 		StreamInstanceID: instanceModel.Instanceid,
 		TargetFilestore:  instanceModel.TargetFilestore,

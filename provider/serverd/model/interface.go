@@ -33,8 +33,8 @@ type InstanceService interface {
 	DeleteInstance(ctx context.Context, vmid int) error
 	DeleteInstanceByInstanceid(ctx context.Context, Instanceid string) error
 	DeleteAllInstance(ctx context.Context) error
-	MountFilestore(ctx context.Context, vmid int, filestore FilestoreCore) error
-	FetchLayerFromDepository(ctx context.Context, vmid int, depository DepositoryCore, imageName string) error
+	MountFilestore(ctx context.Context, vmid int, filestore Filestore) error
+	FetchLayerFromDepository(ctx context.Context, vmid int, depository Depository, imageName string) error
 }
 
 /*

@@ -296,7 +296,7 @@ func (c *InstanceService) DeleteAllInstance(ctx context.Context) error {
 	func: MountFilestore
 	description: mount the target cloud storage directory
 */
-func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestore model.FilestoreCore) error {
+func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestore model.Filestore) error {
 	/* The current version can only be deployed on Linux */
 
 	var execCmd string
@@ -328,7 +328,7 @@ func (c *InstanceService) MountFilestore(ctx context.Context, vmid int, filestor
 	func: FetchLayerFromDepository
 	description: fetch the docker layer including some configuration of the app's installation from the target depository server
 */
-func (c *InstanceService) FetchLayerFromDepository(ctx context.Context, vmid int, depository model.DepositoryCore, imageName string) error {
+func (c *InstanceService) FetchLayerFromDepository(ctx context.Context, vmid int, depository model.Depository, imageName string) error {
 
 	var execCmd string
 	var params []string
@@ -346,51 +346,9 @@ func (c *InstanceService) FetchLayerFromDepository(ctx context.Context, vmid int
 	_, err := utils.RunShellWithReturn(execCmd, params)
 
 	if err != nil {
-		fmt.Printf("Failed to pull image\n")
-		err = fmt.Errorf("cannot pull image")
+		fmt.Println("Failed to pull image:", err)
+		return fmt.Errorf("cannot pull image")
 	}
-
-	// test speed
-	// iperf -c 192.168.0.222 -t 0.1 -f M
-	execCmd = "iperf"
-	params = []string{}
-	params = append(params, "-c", depository.HostAddress, "-t", "0.1", "-f", "M")
-	ret, err := utils.RunShellWithReturn(execCmd, params)
-
-	if err != nil {
-		fmt.Printf("Failed to test speed with deposiory\n")
-		err = fmt.Errorf("cannot test speed with deposiory")
-	}
-
-	// 拆分测试结果为行
-	lines := strings.Split(ret, "\n")
-
-	// 查找包含 "Bandwidth" 的行
-	var bandwidthLine string
-	for _, line := range lines {
-		if strings.Contains(line, "Bandwidth") {
-			bandwidthLine = line
-			break
-		}
-	}
-
-	// 从 "Bandwidth" 行中提取速度值
-	speed := extractSpeedInMBytesPerSec(bandwidthLine)
-	fmt.Println("速度值:", speed)
 
 	return err
-}
-
-// 解析速度值的函数
-func parseSpeed(iperfOutput string) string {
-	// 在 iperf 输出中查找 "bits/sec" 或 "bytes/sec"，然后提取速度值
-	if strings.Contains(iperfOutput, "MBytes/sec") {
-		parts := strings.Fields(iperfOutput)
-		for i, part := range parts {
-			if part == "MBytes/sec" {
-				return parts[i-1] + " " + parts[i]
-			}
-		}
-	}
-	return "速度值未找到"
 }

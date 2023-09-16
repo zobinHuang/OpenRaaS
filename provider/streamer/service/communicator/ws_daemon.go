@@ -156,9 +156,9 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 	s.DaemonWSConnection.Receive("state_selected_storage", func(req model.WSPacket) (resp model.WSPacket) {
 		// define request format
 		var reqPacketData struct {
-			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepository model.DepositoryCore `json:"selected_depository"`
-			SelectedFilestore  model.FilestoreCore  `json:"selected_filestore"`
+			StreamInstanceID   string                       `json:"stream_instance_id"`
+			SelectedDepository model.DepositoryCoreWithInst `json:"selected_depository"`
+			SelectedFilestore  model.FilestoreCoreWithInst  `json:"selected_filestore"`
 		}
 
 		// parse request
@@ -180,9 +180,9 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 
 		// construct websocket packet to scheduler
 		reqToScheduler := struct {
-			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepository model.DepositoryCore `json:"selected_depository"`
-			SelectedFilestore  model.FilestoreCore  `json:"selected_filestore"`
+			StreamInstanceID   string                       `json:"stream_instance_id"`
+			SelectedDepository model.DepositoryCoreWithInst `json:"selected_depository"`
+			SelectedFilestore  model.FilestoreCoreWithInst  `json:"selected_filestore"`
 		}{
 			StreamInstanceID:   reqPacketData.StreamInstanceID,
 			SelectedDepository: reqPacketData.SelectedDepository,
