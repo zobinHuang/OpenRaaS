@@ -34,3 +34,9 @@ type FileStoreCore struct {
 	Mem                   float64        `json:"mem"`
 	IsContainFastNetspeed bool           `gorm:"not null" json:"is_contain_fast_netspeed"`
 }
+
+// FileStoreCoreWithInst FileStoreCore with instance history in blockchain
+type FileStoreCoreWithInst struct {
+	FileStoreCore
+	InstHistory map[string]string `json:"inst_history"`
+}

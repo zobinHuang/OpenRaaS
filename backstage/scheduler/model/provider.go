@@ -29,3 +29,9 @@ type ProviderCore struct {
 	Processor    float64        `json:"processor"`
 	IsContainGPU bool           `gorm:"not null" json:"is_contain_gpu"`
 }
+
+// ProviderCoreWithInst ProviderCore with instance history in blockchain
+type ProviderCoreWithInst struct {
+	ProviderCore
+	InstHistory map[string]string `json:"inst_history"`
+}

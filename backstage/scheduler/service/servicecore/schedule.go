@@ -1,10 +1,13 @@
 package servicecore
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
+	"net/http"
 
 	log "github.com/sirupsen/logrus"
 
@@ -74,6 +77,11 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		providers[i].Port = pInfo.Port
 		providers[i].Processor = pInfo.Processor
 		providers[i].IsContainGPU = pInfo.IsContainGPU
+
+		s, err := sc.GetValueFromBlockchain(p.ClientID)
+		if err == nil {
+			log.Infof("Provider 数字资产获取, id: %s, value: %s", p.ClientID, s)
+		}
 	}
 
 	appInfo, err := sc.ApplicationDAL.GetStreamApplicationByID(ctx, streamInstance.ApplicationID)
@@ -109,10 +117,22 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetDepositoryInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
+	for _, d := range depositoryList {
+		s, err := sc.GetValueFromBlockchain(d.ID)
+		if err == nil {
+			log.Infof("Depository 数字资产获取, id: %s, value: %s", d.ID, s)
+		}
+	}
 
 	filestoreList, err := sc.FileStoreDAL.GetFileStoreInRDSBetweenID(ctx, fileStoreStrList)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+	for _, f := range filestoreList {
+		s, err := sc.GetValueFromBlockchain(f.ID)
+		if err == nil {
+			log.Infof("Filestore 数字资产获取, id: %s, value: %s", f.ID, s)
+		}
 	}
 
 	if sc.Counter < 5 {
@@ -176,6 +196,70 @@ func (sc *ScheduleServiceCore) CreateStreamInstanceRoom(ctx context.Context, pro
 	sc.InstanceRoomDAL.CreateStreamInstanceRoom(ctx, streamInstanceRoom)
 
 	return streamInstanceRoom, nil
+}
+
+// GetStreamInstanceRoomByInstanceID obtain StreamInstanceRoom by instance id
+func (sc *ScheduleServiceCore) GetStreamInstanceRoomByInstanceID(id string) (*model.StreamInstanceRoom, error) {
+	return sc.InstanceRoomDAL.GetInstanceRoomByInstanceID(nil, id)
+}
+
+// SetValueToBlockchain set key value to blockchain
+func (sc *ScheduleServiceCore) SetValueToBlockchain(key, value string) error {
+	url := "http://192.168.0.109:5001/api/set_value"
+	// 准备请求的数据
+	data := map[string]string{
+		"key":   key,
+		"value": value,
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("JSON marshaling failed:", err)
+		return err
+	}
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println("POST request failed:", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("POST request failed with status:", resp.StatusCode)
+		return fmt.Errorf("POST request failed with status: %+v", resp.StatusCode)
+	}
+	return nil
+}
+
+// GetValueFromBlockchain obtain value by key
+func (sc *ScheduleServiceCore) GetValueFromBlockchain(key string) (string, error) {
+	url := "http://192.168.0.109:5001/api/set_value?key=" + key
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println("GET request failed:", err)
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Failed to read response body:", err)
+		return "", err
+	}
+
+	type Response struct {
+		Key     string `json:"key"`
+		Message string `json:"message"`
+		Value   string `json:"value"`
+	}
+
+	var response Response
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		fmt.Println("Failed to parse JSON response:", err)
+		return "", err
+	}
+
+	return response.Value, nil
 }
 
 // Clear delete all

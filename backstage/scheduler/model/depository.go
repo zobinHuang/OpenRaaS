@@ -31,3 +31,9 @@ type DepositoryCore struct {
 	Mem                   float64        `json:"mem"`
 	IsContainFastNetspeed bool           `gorm:"not null" json:"is_contain_fast_netspeed"`
 }
+
+// DepositoryCoreWithInst DepositoryCore with instance history in blockchain
+type DepositoryCoreWithInst struct {
+	DepositoryCore
+	InstHistory map[string]string `json:"inst_history"`
+}
