@@ -1,0 +1,46 @@
+## filestore
+
+### 1. server info
+id: 8e3aa0e7-e13d-467a-b622-b341bf9c9cab    # device ID
+ip: 192.168.105.29    # device IP address
+
+### 2. filestore info
+performance: true    # device performance: true for "high", or false for "low"
+mem: 10               # prepared storage memory for OpenRaaS
+
+### 3. file-sharing info
+fs_protocol: davfs  # protocol name (WebDav is "davfs")
+fs_directory: "/"   # the directory of target files for mounting
+fs_port: 10950    # file_sharing port
+fs_user: kb109    # user
+fs_pwd: 123456    # password
+
+#################
+
+## scheduler
+
+scheduler_ip: kb109.dynv6.net
+scheduler_port: 52109
+handler_filestore_online: /api/scheduler/node_online
+handler_app_online: /api/scheduler/application_online
+handler_computation_offloading: /api/scheduler/network_learn
+
+#################
+
+## app
+
+app_num: 1
+
+# app1
+app1_id: eb49ea11-4993-4cd0-aa83-4b923996a625
+app1_name: Yolo数据集
+app1_path: "/"
+app1_file: "sh run_openraas.sh"
+app1_hwkey: app
+app1_os: linux
+app1_create_user: coolmoon327
+app1_description: 用于训练yolo网络进行目标检测的数据集
+app1_provider_performance: true
+app1_filestore_performance: false
+app1_depository_performance: false
+app1_image_name: daisukekobayashi/darknet:gpu
