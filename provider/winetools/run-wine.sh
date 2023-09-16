@@ -49,34 +49,57 @@ else
 fi
 
 conf_pre="$(pwd)"/../winetools/dockertools/containerfiles/supervisord_${vcodec}
-# if echo "$image_name" | grep -q "$nvidia"; then
-#   conf=${conf_pre}_nvidia.conf
-# else
-#   conf=${conf_pre}.conf
-# fi
-conf=${conf_pre}.conf
+if [[ $image_name == *nvidia* ]]; then 
+  conf=${conf_pre}_nvidia.conf
+else 
+  conf=${conf_pre}.conf
+fi
 
 container_name="appvm${container_id}"
 appdir_name="apps/point${container_id}"
 
-docker run -d --privileged --rm --name ${container_name} \
--v /etc/localtime:/etc/localtime:ro \
---mount type=bind,source="$(pwd)"/../winetools/"${appdir_name}",target=/apps \
---mount type=bind,source=${conf},target=/etc/supervisor/conf.d/supervisord.conf  \
-# --gpus "${use_gpu}" \
---env "vmid=${container_id}" \
---env "apppath=/apps/${apppath}"  \
---env "appfile=${appfile}" \
---env "appname=${appname}" \
---env "hwkey=${hwkey}" \
---env "screenwidth=${screenwidth}" \
---env "screenheight=${screenheight}" \
---env "wineoptions=${wineoptions}" \
---env "targethost=${targethost}" \
---env "videoport=1${vmid_f}05" \
---env "audioport=1${vmid_f}01" \
---env "inputport=1${vmid_f}09" \
---env "fps=${fps}" \
---env "DISPLAY=${display}" \
---volume "winecfg:/root/.wine" ${image_name} 
-#supervisord
+if [ "$use_gpu" = "none" ]; then
+    docker run -d --privileged --rm --name ${container_name} \
+    -v /etc/localtime:/etc/localtime:ro \
+    --mount type=bind,source="$(pwd)"/../winetools/"${appdir_name}",target=/apps \
+    --mount type=bind,source=${conf},target=/etc/supervisor/conf.d/supervisord.conf  \
+    --env "vmid=${container_id}" \
+    --env "apppath=/apps/${apppath}"  \
+    --env "appfile=${appfile}" \
+    --env "appname=${appname}" \
+    --env "hwkey=${hwkey}" \
+    --env "screenwidth=${screenwidth}" \
+    --env "screenheight=${screenheight}" \
+    --env "wineoptions=${wineoptions}" \
+    --env "targethost=${targethost}" \
+    --env "videoport=1${vmid_f}05" \
+    --env "audioport=1${vmid_f}01" \
+    --env "inputport=1${vmid_f}09" \
+    --env "fps=${fps}" \
+    --env "DISPLAY=${display}" \
+    --volume "winecfg:/root/.wine" ${image_name} 
+    #supervisord
+else
+    docker run -d --privileged --rm --name ${container_name} \
+    -v /etc/localtime:/etc/localtime:ro \
+    --mount type=bind,source="$(pwd)"/../winetools/"${appdir_name}",target=/apps \
+    --mount type=bind,source=${conf},target=/etc/supervisor/conf.d/supervisord.conf  \
+    --gpus "${use_gpu}" \
+    --env "vmid=${container_id}" \
+    --env "apppath=/apps/${apppath}"  \
+    --env "appfile=${appfile}" \
+    --env "appname=${appname}" \
+    --env "hwkey=${hwkey}" \
+    --env "screenwidth=${screenwidth}" \
+    --env "screenheight=${screenheight}" \
+    --env "wineoptions=${wineoptions}" \
+    --env "targethost=${targethost}" \
+    --env "videoport=1${vmid_f}05" \
+    --env "audioport=1${vmid_f}01" \
+    --env "inputport=1${vmid_f}09" \
+    --env "fps=${fps}" \
+    --env "DISPLAY=${display}" \
+    --volume "winecfg:/root/.wine" ${image_name} 
+    #supervisord
+fi
+

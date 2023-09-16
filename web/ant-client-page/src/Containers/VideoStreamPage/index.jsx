@@ -60,10 +60,14 @@ const VideoStreamPage = (props) => {
                 if (RtcPeer.PeerConnection) {
                     const stats = await RtcPeer.PeerConnection.getStats();
                     stats.forEach(report => {
-                        console.log(report)
+                        //console.log(report)
                         if (report.type === "inbound-rtp" && report.kind === "video") {
-                            
-                            const latency = report.totalInterFrameDelay * 1000; // 转换为毫秒
+                            // 获取RTCP的时间戳
+                            const rtcpTimestamp = report.lastPacketReceivedTimestamp;
+                            // 计算延迟（以毫秒为单位）
+                            const now = new Date().getTime();
+                            const latency = now - rtcpTimestamp;
+                            //const latency = report.totalInterFrameDelay * 1000; // 转换为毫秒
                             const jitter = report.jitter * 1000; // 转换为毫秒
                             console.log("Latency:", latency, "ms");
                             console.log("Jitter:", jitter, "ms");
@@ -77,7 +81,7 @@ const VideoStreamPage = (props) => {
         };
 
         // 添加定时器以定期获取RTC统计信息
-        const statsInterval = setInterval(handleRTCStats, 100000); // 每秒获取一次统计信息
+        const statsInterval = setInterval(handleRTCStats, 1000); // 每秒获取一次统计信息
 
 
         console.log('end')

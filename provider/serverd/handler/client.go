@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os/exec"
 
 	"serverd/model"
 
@@ -57,16 +58,16 @@ func (h *Handler) InitRecvRoute(ctx context.Context) error {
 	streamer := h.StreamerClient
 
 	// examine local gpu (nvidia)
-	// var run_with_gpu bool
-	// cmd := exec.Command("nvidia-smi")
-	// _, err := cmd.CombinedOutput()
-	// if err != nil {
-	// 	// fmt.Println("This device don't have an nvidia gpu.")
-	// 	run_with_gpu = false
-	// } else {
-	// 	run_with_gpu = true
-	// }
-	run_with_gpu := false
+	var run_with_gpu bool
+	cmd := exec.Command("nvidia-smi")
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		// fmt.Println("This device don't have an nvidia gpu.")
+		run_with_gpu = false
+	} else {
+		run_with_gpu = true
+	}
+	// run_with_gpu := false
 
 	/*
 		@callback: add_wine_instance
