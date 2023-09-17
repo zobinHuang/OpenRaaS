@@ -147,28 +147,29 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		h.ProviderService.ShowEnterInfo(ctx, &headerData)
 		h.ProviderService.ShowAllInfo(ctx)
 
-		providerCoreWithInst := &model.ProviderCoreWithInst{ProviderCore: headerData}
-		if s, err := json.Marshal(providerCoreWithInst); err != nil {
-			log.WithFields(
-				log.Fields{
-					"error":      err.Error(),
-					"headerData": headerData,
-				}).Warn("Failed to Marshal providerCoreWithInst")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		} else {
-			err := sc.SetValueToBlockchain(headerData.ID, string(s))
-			if err != nil {
+		go func() {
+			providerCoreWithInst := &model.ProviderCoreWithInst{ProviderCore: headerData}
+			if s, err := json.Marshal(providerCoreWithInst); err != nil {
 				log.WithFields(
 					log.Fields{
 						"error":      err.Error(),
 						"headerData": headerData,
-					}).Warn("providerCoreWithInst Failed to SetValueToBlockchain")
+					}).Warn("Failed to Marshal providerCoreWithInst")
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
+			} else {
+				err := sc.SetValueToBlockchain(headerData.ID, string(s))
+				if err != nil {
+					log.WithFields(
+						log.Fields{
+							"error":      err.Error(),
+							"headerData": headerData,
+						}).Warn("providerCoreWithInst Failed to SetValueToBlockchain")
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				} else {
+					log.Infof("Provider 数字资产发布, id: %s, value: %s", headerData.ID, s)
+				}
 			}
-			log.Infof("Provider 数字资产发布, id: %s, value: %s", headerData.ID, s)
-		}
+		}()
 
 	case model.CLIENT_TYPE_DEPOSITARY:
 		var headerData model.DepositoryCore
@@ -193,28 +194,30 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		h.DepositoryService.ShowEnterInfo(ctx, &headerData)
 		h.DepositoryService.ShowAllInfo(ctx)
 
-		depositoryCoreWithInst := &model.DepositoryCoreWithInst{DepositoryCore: headerData}
-		if s, err := json.Marshal(depositoryCoreWithInst); err != nil {
-			log.WithFields(
-				log.Fields{
-					"error":      err.Error(),
-					"headerData": headerData,
-				}).Warn("Failed to Marshal depositoryCoreWithInst")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		} else {
-			err := sc.SetValueToBlockchain(headerData.ID, string(s))
-			if err != nil {
+		go func() {
+			depositoryCoreWithInst := &model.DepositoryCoreWithInst{DepositoryCore: headerData}
+			if s, err := json.Marshal(depositoryCoreWithInst); err != nil {
 				log.WithFields(
 					log.Fields{
 						"error":      err.Error(),
 						"headerData": headerData,
-					}).Warn("depositoryCoreWithInst Failed to SetValueToBlockchain")
+					}).Warn("Failed to Marshal depositoryCoreWithInst")
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
+			} else {
+				err := sc.SetValueToBlockchain(headerData.ID, string(s))
+				if err != nil {
+					log.WithFields(
+						log.Fields{
+							"error":      err.Error(),
+							"headerData": headerData,
+						}).Warn("depositoryCoreWithInst Failed to SetValueToBlockchain")
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+				log.Infof("Depository 数字资产发布, id: %s, value: %s", headerData.ID, s)
 			}
-			log.Infof("Depository 数字资产发布, id: %s, value: %s", headerData.ID, s)
-		}
+		}()
 
 	case model.CLIENT_TYPE_FILESTORE:
 		var headerData model.FileStoreCore
@@ -239,28 +242,30 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		h.FileStoreService.ShowEnterInfo(ctx, &headerData)
 		h.FileStoreService.ShowAllInfo(ctx)
 
-		fileStoreCoreWithInst := &model.FileStoreCoreWithInst{FileStoreCore: headerData}
-		if s, err := json.Marshal(fileStoreCoreWithInst); err != nil {
-			log.WithFields(
-				log.Fields{
-					"error":      err.Error(),
-					"headerData": headerData,
-				}).Warn("Failed to Marshal fileStoreCoreWithInst")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		} else {
-			err := sc.SetValueToBlockchain(headerData.ID, string(s))
-			if err != nil {
+		go func() {
+			fileStoreCoreWithInst := &model.FileStoreCoreWithInst{FileStoreCore: headerData}
+			if s, err := json.Marshal(fileStoreCoreWithInst); err != nil {
 				log.WithFields(
 					log.Fields{
 						"error":      err.Error(),
 						"headerData": headerData,
-					}).Warn("fileStoreCoreWithInst Failed to SetValueToBlockchain")
+					}).Warn("Failed to Marshal fileStoreCoreWithInst")
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
+			} else {
+				err := sc.SetValueToBlockchain(headerData.ID, string(s))
+				if err != nil {
+					log.WithFields(
+						log.Fields{
+							"error":      err.Error(),
+							"headerData": headerData,
+						}).Warn("fileStoreCoreWithInst Failed to SetValueToBlockchain")
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+				log.Infof("FileStore 数字资产发布, id: %s, value: %s", headerData.ID, s)
 			}
-			log.Infof("FileStore 数字资产发布, id: %s, value: %s", headerData.ID, s)
-		}
+		}()
 
 	default:
 		// leave empty
@@ -413,135 +418,147 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 		return
 	}
 
-	s, err := sc.GetValueFromBlockchain(instRoom.Provider.ID)
-	if err != nil {
-		log.WithFields(
-			log.Fields{
-				"error":      err.Error(),
-				"headerData": headerData,
-			}).Warn("Failed to GetValueFromBlockchain(instRoom.Provider.ID)")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	var p model.ProviderCoreWithInst
-	err = json.Unmarshal([]byte(s), &p)
-	if err != nil {
-		log.WithFields(
-			log.Fields{
-				"error":      err.Error(),
-				"headerData": headerData,
-			}).Warn("Failed to ProviderCoreWithInst Unmarshal")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	p.InstHistory[headerData.InstanceID] = headerData.Latency
-	if s, err := json.Marshal(&p); err != nil {
-		log.WithFields(
-			log.Fields{
-				"error":      err.Error(),
-				"headerData": headerData,
-			}).Warn("Failed to Marshal providerCoreWithInst")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	} else {
-		err := sc.SetValueToBlockchain(p.ID, string(s))
+	go func() {
+		s, err := sc.GetValueFromBlockchain(instRoom.Provider.ID)
 		if err != nil {
 			log.WithFields(
 				log.Fields{
 					"error":      err.Error(),
 					"headerData": headerData,
-				}).Warn("providerCoreWithInst Failed to SetValueToBlockchain")
+				}).Warn("Failed to GetValueFromBlockchain(instRoom.Provider.ID)")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		log.Infof("Provider 数字资产发布, id: %s, value: %s", p.ID, s)
-	}
+		var p model.ProviderCoreWithInst
+		p.InstHistory = make(map[string]string)
+		err = json.Unmarshal([]byte(s), &p)
+		if err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to ProviderCoreWithInst Unmarshal")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if p.InstHistory == nil {
+			p.InstHistory = make(map[string]string)
+		}
+		p.InstHistory[headerData.InstanceID] = headerData.Latency
+		if s, err := json.Marshal(&p); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to Marshal providerCoreWithInst")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		} else {
+			err := sc.SetValueToBlockchain(p.ID, string(s))
+			if err != nil {
+				log.WithFields(
+					log.Fields{
+						"error":      err.Error(),
+						"headerData": headerData,
+					}).Warn("providerCoreWithInst Failed to SetValueToBlockchain")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			log.Infof("Provider 数字资产发布, id: %s, value: %s", p.ID, s)
+		}
 
-	s, err = sc.GetValueFromBlockchain(instRoom.SelectedDepository.ID)
-	if err != nil {
-		log.WithFields(
-			log.Fields{
-				"error":      err.Error(),
-				"headerData": headerData,
-			}).Warn("Failed to GetValueFromBlockchain(instRoom.SelectedDepository.ID)")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	var d model.DepositoryCoreWithInst
-	err = json.Unmarshal([]byte(s), &d)
-	if err != nil {
-		log.WithFields(
-			log.Fields{
-				"error":      err.Error(),
-				"headerData": headerData,
-			}).Warn("Failed to DepositoryCoreWithInst Unmarshal")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	d.InstHistory[headerData.InstanceID] = instRoom.SelectedDepositoryBandWidth
-	if s, err := json.Marshal(&d); err != nil {
-		log.WithFields(
-			log.Fields{
-				"error":      err.Error(),
-				"headerData": headerData,
-			}).Warn("Failed to Marshal DepositoryCoreWithInst")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	} else {
-		err := sc.SetValueToBlockchain(d.ID, string(s))
+		s, err = sc.GetValueFromBlockchain(instRoom.SelectedDepository.ID)
 		if err != nil {
 			log.WithFields(
 				log.Fields{
 					"error":      err.Error(),
 					"headerData": headerData,
-				}).Warn("DepositoryCoreWithInst Failed to SetValueToBlockchain")
+				}).Warn("Failed to GetValueFromBlockchain(instRoom.SelectedDepository.ID)")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		log.Infof("Depository 数字资产发布, id: %s, value: %s", d.ID, s)
-	}
+		var d model.DepositoryCoreWithInst
+		err = json.Unmarshal([]byte(s), &d)
+		if err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to DepositoryCoreWithInst Unmarshal")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if d.InstHistory == nil {
+			d.InstHistory = make(map[string]string)
+		}
+		d.InstHistory[headerData.InstanceID] = instRoom.SelectedDepositoryBandWidth
+		if s, err := json.Marshal(&d); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to Marshal DepositoryCoreWithInst")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		} else {
+			err := sc.SetValueToBlockchain(d.ID, string(s))
+			if err != nil {
+				log.WithFields(
+					log.Fields{
+						"error":      err.Error(),
+						"headerData": headerData,
+					}).Warn("DepositoryCoreWithInst Failed to SetValueToBlockchain")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			log.Infof("Depository 数字资产发布, id: %s, value: %s", d.ID, s)
+		}
 
-	s, err = sc.GetValueFromBlockchain(instRoom.SelectedFileStore.ID)
-	if err != nil {
-		log.WithFields(
-			log.Fields{
-				"error":      err.Error(),
-				"headerData": headerData,
-			}).Warn("Failed to GetValueFromBlockchain(instRoom.SelectedFileStore.ID)")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	var f model.FileStoreCoreWithInst
-	err = json.Unmarshal([]byte(s), &f)
-	if err != nil {
-		log.WithFields(
-			log.Fields{
-				"error":      err.Error(),
-				"headerData": headerData,
-			}).Warn("Failed to FileStoreCoreWithInst Unmarshal")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	f.InstHistory[headerData.InstanceID] = instRoom.SelectedFileStoreLatency
-	if s, err := json.Marshal(&f); err != nil {
-		log.WithFields(
-			log.Fields{
-				"error":      err.Error(),
-				"headerData": headerData,
-			}).Warn("Failed to Marshal FileStoreCoreWithInst")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	} else {
-		err := sc.SetValueToBlockchain(f.ID, string(s))
+		s, err = sc.GetValueFromBlockchain(instRoom.SelectedFileStore.ID)
 		if err != nil {
 			log.WithFields(
 				log.Fields{
 					"error":      err.Error(),
 					"headerData": headerData,
-				}).Warn("FileStoreCoreWithInst Failed to SetValueToBlockchain")
+				}).Warn("Failed to GetValueFromBlockchain(instRoom.SelectedFileStore.ID)")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		log.Infof("Filestore 数字资产发布, id: %s, value: %s", f.ID, s)
-	}
+		var f model.FileStoreCoreWithInst
+		err = json.Unmarshal([]byte(s), &f)
+		if err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to FileStoreCoreWithInst Unmarshal")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if f.InstHistory == nil {
+			f.InstHistory = make(map[string]string)
+		}
+		f.InstHistory[headerData.InstanceID] = instRoom.SelectedFileStoreLatency
+		if s, err := json.Marshal(&f); err != nil {
+			log.WithFields(
+				log.Fields{
+					"error":      err.Error(),
+					"headerData": headerData,
+				}).Warn("Failed to Marshal FileStoreCoreWithInst")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		} else {
+			err := sc.SetValueToBlockchain(f.ID, string(s))
+			if err != nil {
+				log.WithFields(
+					log.Fields{
+						"error":      err.Error(),
+						"headerData": headerData,
+					}).Warn("FileStoreCoreWithInst Failed to SetValueToBlockchain")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			log.Infof("Filestore 数字资产发布, id: %s, value: %s", f.ID, s)
+		}
+	}()
 }

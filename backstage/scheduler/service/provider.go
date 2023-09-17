@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
 	"time"
+
+	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
 
 	"github.com/gorilla/websocket"
 	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
@@ -191,8 +192,6 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 			SelectedFileStore  model.FileStoreCoreWithInst  `json:"selected_filestore"`
 		}
 
-		// todo: blockchain online
-
 		// parse request
 		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
 		if err != nil {
@@ -231,6 +230,9 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 				streamInstanceRoom.SelectedFileStoreLatency = value
 				break
 			}
+			log.Infof("reqPacketData: %+v", reqPacketData)
+			log.Infof("SelectedDepositoryBandWidth: %s, SelectedFileStoreLatency: %s",
+				streamInstanceRoom.SelectedDepositoryBandWidth, streamInstanceRoom.SelectedFileStoreLatency)
 		}()
 
 		// construct responses to consumers

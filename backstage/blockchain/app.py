@@ -34,7 +34,7 @@ def get_value():
     response = {
         'message': 'Value get successfully',
         'key': key,
-        'value': result.encode('ascii')
+        'value': result[1:]
     }
     app.logger.info("result: %s", result)
     return jsonify(response), 200

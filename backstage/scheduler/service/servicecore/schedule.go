@@ -77,12 +77,16 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		providers[i].Port = pInfo.Port
 		providers[i].Processor = pInfo.Processor
 		providers[i].IsContainGPU = pInfo.IsContainGPU
-
-		s, err := sc.GetValueFromBlockchain(p.ClientID)
-		if err == nil {
-			log.Infof("Provider 数字资产获取, id: %s, value: %s", p.ClientID, s)
-		}
 	}
+
+	go func() {
+		for _, p := range providers {
+			s, err := sc.GetValueFromBlockchain(p.ClientID)
+			if err == nil {
+				log.Infof("Provider 数字资产获取, id: %s, value: %s", p.ClientID, s)
+			}
+		}
+	}()
 
 	appInfo, err := sc.ApplicationDAL.GetStreamApplicationByID(ctx, streamInstance.ApplicationID)
 	if err != nil {
@@ -117,23 +121,29 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetDepositoryInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
-	for _, d := range depositoryList {
-		s, err := sc.GetValueFromBlockchain(d.ID)
-		if err == nil {
-			log.Infof("Depository 数字资产获取, id: %s, value: %s", d.ID, s)
+
+	go func() {
+		for _, d := range depositoryList {
+			s, err := sc.GetValueFromBlockchain(d.ID)
+			if err == nil {
+				log.Infof("Depository 数字资产获取, id: %s, value: %s", d.ID, s)
+			}
 		}
-	}
+	}()
 
 	filestoreList, err := sc.FileStoreDAL.GetFileStoreInRDSBetweenID(ctx, fileStoreStrList)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
-	for _, f := range filestoreList {
-		s, err := sc.GetValueFromBlockchain(f.ID)
-		if err == nil {
-			log.Infof("Filestore 数字资产获取, id: %s, value: %s", f.ID, s)
+
+	go func() {
+		for _, f := range filestoreList {
+			s, err := sc.GetValueFromBlockchain(f.ID)
+			if err == nil {
+				log.Infof("Filestore 数字资产获取, id: %s, value: %s", f.ID, s)
+			}
 		}
-	}
+	}()
 
 	if sc.Counter < 5 {
 		if appInfo.IsDepositoryReqFastNetspeed {
@@ -234,7 +244,7 @@ func (sc *ScheduleServiceCore) SetValueToBlockchain(key, value string) error {
 // GetValueFromBlockchain obtain value by key
 func (sc *ScheduleServiceCore) GetValueFromBlockchain(key string) (string, error) {
 	log.Infof("GetValueFromBlockchain key: %s", key)
-	url := "http://192.168.0.109:5001/api/set_value?key=" + key
+	url := "http://192.168.0.109:5001/api/get_value?key=" + key
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("GET request failed:", err)
