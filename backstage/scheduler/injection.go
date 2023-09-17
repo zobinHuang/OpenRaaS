@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -113,6 +115,23 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 	// --------------------- Handler Layer --------------------------
 	// initialize gin router
 	router := gin.Default()
+
+	router.Use(func(timeout time.Duration) gin.HandlerFunc {
+		return func(c *gin.Context) {
+			ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
+			defer cancel()
+
+			c.Request = c.Request.WithContext(ctx)
+			c.Next()
+
+			// 检查是否超时
+			if ctx.Err() == context.DeadlineExceeded {
+				c.AbortWithStatusJSON(http.StatusGatewayTimeout, gin.H{
+					"error": "context deadline exceeded",
+				})
+			}
+		}
+	}(100 * time.Second))
 
 	// obtain base url
 	baseURL := os.Getenv("SCHEDULER_API_URL")

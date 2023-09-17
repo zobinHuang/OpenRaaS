@@ -205,6 +205,7 @@ func (sc *ScheduleServiceCore) GetStreamInstanceRoomByInstanceID(id string) (*mo
 
 // SetValueToBlockchain set key value to blockchain
 func (sc *ScheduleServiceCore) SetValueToBlockchain(key, value string) error {
+	log.Infof("SetValueToBlockchain key: %s, value: %s", key, value)
 	url := "http://192.168.0.109:5001/api/set_value"
 	// 准备请求的数据
 	data := map[string]string{
@@ -232,6 +233,7 @@ func (sc *ScheduleServiceCore) SetValueToBlockchain(key, value string) error {
 
 // GetValueFromBlockchain obtain value by key
 func (sc *ScheduleServiceCore) GetValueFromBlockchain(key string) (string, error) {
+	log.Infof("GetValueFromBlockchain key: %s", key)
 	url := "http://192.168.0.109:5001/api/set_value?key=" + key
 	resp, err := http.Get(url)
 	if err != nil {
@@ -258,6 +260,8 @@ func (sc *ScheduleServiceCore) GetValueFromBlockchain(key string) (string, error
 		fmt.Println("Failed to parse JSON response:", err)
 		return "", err
 	}
+
+	log.Infof("GetValueFromBlockchain value: %s", response.Value)
 
 	return response.Value, nil
 }

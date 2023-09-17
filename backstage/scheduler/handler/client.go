@@ -144,6 +144,9 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 			return
 		}
 
+		h.ProviderService.ShowEnterInfo(ctx, &headerData)
+		h.ProviderService.ShowAllInfo(ctx)
+
 		providerCoreWithInst := &model.ProviderCoreWithInst{ProviderCore: headerData}
 		if s, err := json.Marshal(providerCoreWithInst); err != nil {
 			log.WithFields(
@@ -167,9 +170,6 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 			log.Infof("Provider 数字资产发布, id: %s, value: %s", headerData.ID, s)
 		}
 
-		h.ProviderService.ShowEnterInfo(ctx, &headerData)
-		h.ProviderService.ShowAllInfo(ctx)
-
 	case model.CLIENT_TYPE_DEPOSITARY:
 		var headerData model.DepositoryCore
 		if err := c.BindJSON(&headerData); err != nil {
@@ -189,6 +189,9 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
+		h.DepositoryService.ShowEnterInfo(ctx, &headerData)
+		h.DepositoryService.ShowAllInfo(ctx)
 
 		depositoryCoreWithInst := &model.DepositoryCoreWithInst{DepositoryCore: headerData}
 		if s, err := json.Marshal(depositoryCoreWithInst); err != nil {
@@ -213,9 +216,6 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 			log.Infof("Depository 数字资产发布, id: %s, value: %s", headerData.ID, s)
 		}
 
-		h.DepositoryService.ShowEnterInfo(ctx, &headerData)
-		h.DepositoryService.ShowAllInfo(ctx)
-
 	case model.CLIENT_TYPE_FILESTORE:
 		var headerData model.FileStoreCore
 		if err := c.BindJSON(&headerData); err != nil {
@@ -235,6 +235,9 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
+		h.FileStoreService.ShowEnterInfo(ctx, &headerData)
+		h.FileStoreService.ShowAllInfo(ctx)
 
 		fileStoreCoreWithInst := &model.FileStoreCoreWithInst{FileStoreCore: headerData}
 		if s, err := json.Marshal(fileStoreCoreWithInst); err != nil {
@@ -258,9 +261,6 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 			}
 			log.Infof("FileStore 数字资产发布, id: %s, value: %s", headerData.ID, s)
 		}
-
-		h.FileStoreService.ShowEnterInfo(ctx, &headerData)
-		h.FileStoreService.ShowAllInfo(ctx)
 
 	default:
 		// leave empty

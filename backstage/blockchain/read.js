@@ -3,7 +3,7 @@ const Web3 = require("web3");
 const fs = require("fs-extra");
 // use the existing Member1 account address or make a new account
 const address = "0x2bea587899fd6ca70e8b556d9e434ce0541f9168";
-const contractAddress = "0x22Be720AeAaD3C81d5003b277e1843c31f7E8Ee9";
+const contractAddress = "0x7507076Ede5599C4dCB1B5a728E909123cc3Ce07";
 // read in the contracts
 const contractJsonPath = path.resolve(__dirname, "Storage.json");
 const contractJson = JSON.parse(fs.readFileSync(contractJsonPath));
