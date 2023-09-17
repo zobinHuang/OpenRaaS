@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 
 # Parameter
 # 1. image name
@@ -49,10 +49,15 @@ else
 fi
 
 conf_pre="$(pwd)"/../winetools/dockertools/containerfiles/supervisord_${vcodec}
-if [[ $image_name == *nvidia* ]]; then 
-  conf=${conf_pre}_nvidia.conf
+# if [[ $image_name == *nvidia* ]]; then 
+#   conf=${conf_pre}_nvidia.conf
+# else 
+#   conf=${conf_pre}.conf
+# fi
+if [ "${vcodec}" = "h264" ] && [ "${use_gpu}" = "all" ]; then 
+  conf="${conf_pre}_nvidia.conf"
 else 
-  conf=${conf_pre}.conf
+  conf="${conf_pre}.conf"
 fi
 
 container_name="appvm${container_id}"

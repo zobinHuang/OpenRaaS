@@ -5,6 +5,7 @@ package model
 	@description: metadata for depository client
 */
 type DepositoryCore struct {
+	ID                    string `gorm:"unique,not null" json:"id"`
 	HostAddress           string `json:"IP"`
 	Port                  string `json:"port"`
 	Tag                   string `json:"tag"`
@@ -21,6 +22,7 @@ type DepositoryCoreWithInst struct {
 	@description: metadata for filestore client
 */
 type FilestoreCore struct {
+	ID                    string `gorm:"unique,not null" json:"id"`
 	HostAddress           string `json:"IP"`
 	Port                  string `json:"port"`
 	Protocol              string `json:"protocol"`

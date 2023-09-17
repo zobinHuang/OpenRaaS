@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -404,6 +405,8 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	fmt.Printf("获得来自前端的服务反馈,实例 ID: %s, 业务层时延: %s\n", headerData.InstanceID, headerData.Latency)
 
 	var sc model.ScheduleServiceCore
 	sc = *h.ConsumerService.GetScheduleServiceCore()

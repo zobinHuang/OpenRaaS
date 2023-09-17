@@ -72,6 +72,7 @@ type Depository struct {
 		depository.Tag = "latest"
 */
 type DepositoryCore struct {
+	ID                    string `gorm:"unique,not null" json:"id"`
 	HostAddress           string `json:"IP"`
 	Port                  string `json:"port"`
 	Tag                   string `json:"tag"`
@@ -99,6 +100,7 @@ type Filestore struct {
 		Directory   "/public_hdd/game/PC/dcwine"
 */
 type FilestoreCore struct {
+	ID                    string `gorm:"unique,not null" json:"id"`
 	HostAddress           string `json:"IP"`
 	Port                  string `json:"port"`
 	Protocol              string `json:"protocol"`

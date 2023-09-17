@@ -65,6 +65,7 @@ function App() {
         <Route path="/stream" element={<VideoStreamPage 
           terminalRtcPeerMap={terminalRtcPeerMap}
           setTerminalRtcPeerMap={setTerminalRtcPeerMap}
+          terminalDynamicState={terminalDynamicState}
         />} />
       </Routes>
 
