@@ -60,21 +60,23 @@ const VideoStreamPage = (props) => {
         const handleRTCStats = async () => {
             try {
                 if (RtcPeer.PeerConnection) {
-                const stats = await RtcPeer.PeerConnection.getStats();
+                    const stats = await RtcPeer.PeerConnection.getStats();
 
-                stats.forEach(report => {
-                    if (report.type === "inbound-rtp" && report.kind === "video") {
-                        const rtcpTimestamp = report.lastPacketReceivedTimestamp;
-                        const now = new Date().getTime();
-                        const latency = now - rtcpTimestamp;
-                        const jitter = report.jitter * 1000;
+                    stats.forEach(report => {
+                        // console.log(report.type,report)
+                        if (report.type === "candidate-pair" && report.lastPacketReceivedTimestamp != undefined && report.lastPacketSentTimestamp != undefined) {
+                            console.log(report.type,report)
+                            const latency = report.totalRoundTripTime / report.responsesReceived * 1000
+                            // const latency = report.lastPacketReceivedTimestamp - report.lastPacketSentTimestamp
+                            // const jitter = report.jitter * 1000;
 
-                        if (!isNaN(latency)) {
-                            latencies.push(latency); 
+                            if (!isNaN(latency)) {
+                                latencies.push(latency); 
+                            }
+
+
                         }
-
-                    }
-                });
+                    });
 
                 }
             } catch (error) {
@@ -84,7 +86,12 @@ const VideoStreamPage = (props) => {
 
         const sendAverageLatency = () => {
             if (latencies.length > 0) {
-                const averageLatency = latencies.reduce((sum, latency) => sum + latency, 0) / latencies.length;
+                console.log(latencies)
+                // Remove minimum and maximum values
+                const sortedLatencies = latencies.sort((a, b) => a - b);
+                const trimmedLatencies = sortedLatencies.slice(2, -2);
+
+                const averageLatency = trimmedLatencies.reduce((sum, latency) => sum + latency, 0) / latencies.length;
 
                 const jsonData = {
                     instance_id: String(instanceDynamicState.instanceSchedulerID),
@@ -104,12 +111,17 @@ const VideoStreamPage = (props) => {
             }
         };
 
-        const statsInterval = setInterval(handleRTCStats, 1000);
+        const startStatsInterval = () => {
+            const statsInterval = setInterval(handleRTCStats, 1000);
+          
+            setTimeout(() => {
+                clearInterval(statsInterval); // 停止每秒记录
+                sendAverageLatency(); // 计算平均值并发送
+            }, 20000);
+        };
 
-        setTimeout(() => {
-            clearInterval(statsInterval); // 停止每秒记录
-            sendAverageLatency(); // 计算平均值并发送
-        }, 20000);
+        // 延迟10秒后启动 statsInterval
+        setTimeout(startStatsInterval, 0);
 
         //console.log('end')
 
@@ -212,10 +224,6 @@ const VideoStreamPage = (props) => {
                 }),
             }))
         })
-        // �����ж��ʱ�����ʱ���Է�ֹ�ڴ�й©
-        return () => {
-            clearInterval(statsInterval);
-        };
 
     },[])
     

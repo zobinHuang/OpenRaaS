@@ -1,0 +1,11 @@
+## Install pumba
+
+```bash
+
+# Download
+wget https://github.com/alexei-led/pumba/releases/download/0.10.1/pumba_linux_amd64
+
+mv ./pumba_linux_amd64 /usr/local/bin/pumba
+chmod +x /usr/local/bin/pumba && pumba --help
+
+```
