@@ -121,6 +121,8 @@ func (h *Handler) InitRecvRoute(ctx context.Context) error {
 			return model.EmptyPacket
 		}
 
+		h.StreamerService.StateSelectedStorage(ctx, streamer, instanceModel)
+
 		// 3. get new vmid
 		err = h.InstanceService.NewVMID(ctx, instanceModel)
 		if err != nil {
@@ -158,9 +160,6 @@ func (h *Handler) InitRecvRoute(ctx context.Context) error {
 			h.StreamerService.SendErrorMsg(ctx, streamer, model.ERROR_TYPE_INSTANCE, instanceModel.Instanceid)
 			return model.EmptyPacket
 		}
-
-		// state only after mount & fetch
-		h.StreamerService.StateSelectedStorage(ctx, streamer, instanceModel)
 
 		// 5. create app instance and state to streamer
 		err = h.CreateInstanceWithModel(ctx, instanceModel)

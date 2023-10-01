@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
 )
 
 var upGrader = websocket.Upgrader{
@@ -350,7 +350,7 @@ func (h *Handler) LearnNetWork(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "need app_id"})
 		return
 	}
-	provider, depositoryList, filestoreList, err := scheduleServiceCore.ScheduleStream(ctx, &model.StreamInstance{
+	provider, depositoryList, filestoreList, err := scheduleServiceCore.ScheduleStream(ctx, &model.Consumer{}, &model.StreamInstance{
 		StreamApplication: &model.StreamApplication{
 			ApplicationCore: model.ApplicationCore{
 				ApplicationID: appID,

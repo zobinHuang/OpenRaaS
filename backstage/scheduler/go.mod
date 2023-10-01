@@ -1,4 +1,4 @@
-module github.com/zobinHuang/BrosCloud/backstage/scheduler
+module github.com/zobinHuang/OpenRaaS/backstage/scheduler
 
 go 1.17
 

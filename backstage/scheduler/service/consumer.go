@@ -4,16 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"time"
 
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/utils"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
 )
 
 /*
@@ -115,6 +114,9 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			config consumer type
 	*/
 	consumer.Receive("init_consumer_metadata", func(req model.WSPacket) (resp model.WSPacket) {
+		consumer.T0 = time.Now()
+		log.Infof("%s, 收到用户请求, ID: %s", consumer.T0.Format(utils.TIME_LAYOUT), consumer.ClientID)
+
 		// define request format
 		var reqPacketData struct {
 			ConsumerType string `json:"consumer_type"`
@@ -200,17 +202,18 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			select stream application
 	*/
 	consumer.Receive("select_stream_application", func(req model.WSPacket) (resp model.WSPacket) {
-		consumer.StartScheduleTime = time.Now()
-		log.Infof("%s, 开始调度, ID: %s", consumer.StartScheduleTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
+		consumer.T1 = time.Now()
+		log.Infof("%s, 开始下载数字资产, ID: %s", consumer.T1.Format(utils.TIME_LAYOUT), consumer.ClientID)
+		log.Infof("T1 = %s", consumer.T1.Sub(consumer.T0))
 
-		// 初始化随机数生成器
-		rand.Seed(time.Now().UnixNano())
+		// // 初始化随机数生成器
+		// rand.Seed(time.Now().UnixNano())
 
-		// 生成随机延迟的毫秒数（范围可根据需求调整）
-		minDelay := 10 // 最小延迟毫秒数
-		maxDelay := 50 // 最大延迟毫秒数
-		randomDelay := rand.Intn(maxDelay-minDelay+1) + minDelay
-		time.Sleep(time.Duration(randomDelay) * time.Millisecond)
+		// // 生成随机延迟的毫秒数（范围可根据需求调整）
+		// minDelay := 10 // 最小延迟毫秒数
+		// maxDelay := 50 // 最大延迟毫秒数
+		// randomDelay := rand.Intn(maxDelay-minDelay+1) + minDelay
+		// time.Sleep(time.Duration(randomDelay) * time.Millisecond)
 
 		// define request format
 		var reqPacketData struct {
@@ -268,7 +271,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		}
 
 		// schedule
-		provider, depositoryList, filestoreList, err := s.ScheduleServiceCore.ScheduleStream(ctx, streamInstance)
+		provider, depositoryList, filestoreList, err := s.ScheduleServiceCore.ScheduleStream(ctx, consumer, streamInstance)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"Warn Type":            "Recv Callback Error",
@@ -291,9 +294,10 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			}
 		}
 
-		consumer.EndScheduleTime = time.Now()
-		log.Infof("%s, 调度完成", consumer.EndScheduleTime.Format(utils.TIME_LAYOUT), consumer.EndScheduleTime.Sub(consumer.StartScheduleTime))
-		log.Infof("%s, 调配响应时长：%s", consumer.EndScheduleTime.Format(utils.TIME_LAYOUT), consumer.EndScheduleTime.Sub(consumer.StartScheduleTime))
+		consumer.T3 = time.Now()
+		log.Infof("%s, 调度完成, ID: %s", consumer.T3.Format(utils.TIME_LAYOUT), consumer.ClientID)
+		log.Infof("T3 = %s", consumer.T3.Sub(consumer.T2))
+		log.Infof("%s, 调配响应生成时间 = %s", consumer.T3.Format(utils.TIME_LAYOUT), consumer.T3.Sub(consumer.T2))
 
 		// generate instance index
 		streamInstance.InstanceID = uuid.Must(uuid.NewV4()).String()
@@ -430,7 +434,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			}).Warn("Failed to marshal response to consumer, abandoned")
 			return model.WSPacket{
 				PacketType: "failed_start_streaming",
-				Data:       fmt.Errorf("Server internal error: scheduler failed to send start_streaming to provider").Error(),
+				Data:       fmt.Errorf("server internal error: scheduler failed to send start_streaming to provider").Error(),
 			}
 		}
 

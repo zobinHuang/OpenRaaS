@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -84,7 +85,7 @@ type DepositoryService interface {
 // --------- Service Core Layer Interface ---------
 type ScheduleServiceCore interface {
 	CreateStreamInstanceRoom(ctx context.Context, provider *Provider, consumer *Consumer, streamInstance *StreamInstance) (*StreamInstanceRoom, error)
-	ScheduleStream(ctx context.Context, streamInstance *StreamInstance) (*Provider, []DepositoryCore, []FileStoreCore, error)
+	ScheduleStream(ctx context.Context, consumer *Consumer, streamInstance *StreamInstance) (*Provider, []DepositoryCore, []FileStoreCore, error)
 	GetStreamInstanceRoomByInstanceID(id string) (*StreamInstanceRoom, error)
 	SetValueToBlockchain(key, value string) error
 	GetValueFromBlockchain(key string) (string, error)

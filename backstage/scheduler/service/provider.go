@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/utils"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/utils"
 
 	"github.com/gorilla/websocket"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -269,6 +269,10 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 		// notify every consumer in this instance room
 		for consumerID := range consumerMap {
+			consumer := consumerMap[consumerID]
+			consumer.T4 = time.Now()
+			log.Infof("%s, 开始实施业务能力动态组合方案, ID: %s", consumer.T4.Format(utils.TIME_LAYOUT), consumer.ClientID)
+			log.Infof("T4 = %s", consumer.T4.Sub(consumer.T3))
 			consumerMap[consumerID].Send(model.WSPacket{
 				PacketType: "state_selected_storage",
 				Data:       string(respToConsumersString),
@@ -396,9 +400,17 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 		// notify every consumer in this instance room
 		for consumerID := range consumerMap {
 			consumer := consumerMap[consumerID]
-			consumer.StartStreamTime = time.Now()
-			log.Infof("%s, 开始打流, ID: %s", consumer.StartStreamTime.Format(utils.TIME_LAYOUT), consumer.ClientID)
-			log.Infof("%s, 服务个性化定制时长：%s", consumer.StartStreamTime.Format(utils.TIME_LAYOUT), consumer.StartStreamTime.Sub(consumer.StartScheduleTime))
+			consumer.T5 = time.Now()
+			log.Infof("%s, 完成业务能力动态组合, 开始进行服务推流, ID: %s", consumer.T5.Format(utils.TIME_LAYOUT), consumer.ClientID)
+			log.Infof("T5 = %s", consumer.T5.Sub(consumer.T4))
+			log.Infof("%s, 服务个性化定制时长 = %s", consumer.T5.Format(utils.TIME_LAYOUT), consumer.T5.Sub(consumer.T0))
+			log.Infof("=================")
+			log.Infof("客户 ID: %s", consumer.ClientID)
+			log.Infof("|T1 = %s | T2 = %s | T3 = %s|", consumer.T1.Sub(consumer.T0), consumer.T2.Sub(consumer.T1), consumer.T3.Sub(consumer.T2))
+			log.Infof("|T4 = %s | T5 = %s |", consumer.T4.Sub(consumer.T3), consumer.T5.Sub(consumer.T4))
+			log.Infof("调配响应生成时间 = T3 = %s", consumer.T3.Sub(consumer.T2))
+			log.Infof("服务个性化定制时长 = T1 + T2 + T3 + T4 + T5 = %s", consumer.T5.Sub(consumer.T0))
+			log.Infof("=================")
 			consumerMap[consumerID].Send(model.WSPacket{
 				PacketType: "state_run_instance",
 				Data:       string(respToConsumersString),

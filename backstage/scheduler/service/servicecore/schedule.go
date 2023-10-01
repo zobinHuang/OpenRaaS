@@ -8,10 +8,13 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"sync"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/utils"
 )
 
 /*
@@ -65,7 +68,9 @@ func NewScheduleServiceCore(c *ScheduleServiceCoreConfig) model.ScheduleServiceC
 
 	core logic of scheduling stream instance is here
 */
-func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstance *model.StreamInstance) (*model.Provider, []model.DepositoryCore, []model.FileStoreCore, error) {
+func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *model.Consumer, streamInstance *model.StreamInstance) (*model.Provider, []model.DepositoryCore, []model.FileStoreCore, error) {
+	// 1. 粗选节点 (所有满足 APP 基本需求的节点), 并等待获取数字资产
+
 	providers := sc.ProviderDAL.GetProvider()
 	for i, p := range providers {
 		pInfo, err := sc.ProviderDAL.GetProviderInRDSByID(ctx, p.ClientID)
@@ -78,15 +83,6 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		providers[i].Processor = pInfo.Processor
 		providers[i].IsContainGPU = pInfo.IsContainGPU
 	}
-
-	go func() {
-		for _, p := range providers {
-			s, err := sc.GetValueFromBlockchain(p.ClientID)
-			if err == nil {
-				log.Infof("Provider 数字资产获取, id: %s, value: %s", p.ClientID, s)
-			}
-		}
-	}()
 
 	appInfo, err := sc.ApplicationDAL.GetStreamApplicationByID(ctx, streamInstance.ApplicationID)
 	if err != nil {
@@ -122,28 +118,66 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 		return nil, nil, nil, fmt.Errorf("scheduler GetDepositoryInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
-	go func() {
-		for _, d := range depositoryList {
-			s, err := sc.GetValueFromBlockchain(d.ID)
-			if err == nil {
-				log.Infof("Depository 数字资产获取, id: %s, value: %s", d.ID, s)
-			}
-		}
-	}()
-
 	filestoreList, err := sc.FileStoreDAL.GetFileStoreInRDSBetweenID(ctx, fileStoreStrList)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
-	go func() {
-		for _, f := range filestoreList {
+	// todo: 打印所有满足要求的 ID 列表
+
+	// 2. 并行获得数字资产, 并等待全部完成
+
+	var wg sync.WaitGroup
+
+	for _, p := range providers {
+		wg.Add(1)
+		go func() {
+			s, err := sc.GetValueFromBlockchain(p.ClientID)
+			if err == nil {
+				log.Infof("Provider 数字资产获取, id: %s, value: %s", p.ClientID, s)
+			}
+			wg.Done()
+		}()
+	}
+
+	for _, d := range depositoryList {
+		wg.Add(1)
+		go func() {
+			s, err := sc.GetValueFromBlockchain(d.ID)
+			if err == nil {
+				log.Infof("Depository 数字资产获取, id: %s, value: %s", d.ID, s)
+			}
+			wg.Done()
+		}()
+	}
+
+	for _, f := range filestoreList {
+		wg.Add(1)
+		go func() {
 			s, err := sc.GetValueFromBlockchain(f.ID)
 			if err == nil {
 				log.Infof("Filestore 数字资产获取, id: %s, value: %s", f.ID, s)
 			}
-		}
-	}()
+			wg.Done()
+		}()
+	}
+
+	// 等待所有线程执行完毕
+	wg.Wait()
+
+	if consumer.ConsumerType == "stream" {
+		consumer.T2 = time.Now()
+		log.Infof("%s, 开始生成业务能力动态组合方案, ID: %s", consumer.T2.Format(utils.TIME_LAYOUT), consumer.ClientID)
+		log.Infof("T2 = %s", consumer.T2.Sub(consumer.T1))
+	}
+
+	// 3. 开始进一步筛选
+
+	// 3.1 排除异常节点
+
+	// 3.2 排序
+
+	// 4. 特殊处理 (支撑模型更新)
 
 	if sc.Counter < 5 {
 		if appInfo.IsDepositoryReqFastNetspeed {
@@ -180,6 +214,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, streamInstanc
 	}
 
 	sc.Counter += 1
+
+	// todo: 打印目标节点的全部信息
 
 	return candidatesGPU[0], depositoryList, filestoreList, nil
 }

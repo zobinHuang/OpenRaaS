@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
 	"gorm.io/gorm"
 )
 

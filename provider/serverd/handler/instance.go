@@ -201,47 +201,6 @@ func (h *Handler) SelectFilestore(ctx context.Context, instanceModel *model.Inst
 		instanceModel.TargetFilestore = instanceModel.FilestoreList[index]
 	}
 
-	return nil
-}
-
-/*
-	func: SelectDepository
-	description: check network connection status between host and depository servers, and select one as schedule target
-*/
-func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
-	/* Test */
-
-	list_len := len(instanceModel.DepositoryList)
-
-	if list_len == 0 {
-		log.Printf("Empty depository list!")
-
-		var depository model.Depository
-		depository.HostAddress = "127.0.0.1"
-		depository.Port = "5000"
-		depository.Tag = "latest"
-
-		instanceModel.TargetDepository = depository
-	} else {
-		// index := rand.Intn(list_len)
-		index := 0
-		instanceModel.TargetDepository = instanceModel.DepositoryList[index]
-	}
-
-	return nil
-}
-
-/*
-	func: MountFilestore
-	description: mount the target cloud storage directory
-*/
-func (h *Handler) MountFilestore(ctx context.Context, instanceModel *model.InstanceModel) error {
-	err := h.InstanceService.MountFilestore(ctx, instanceModel.VMID, instanceModel.TargetFilestore)
-
-	if err != nil {
-		log.Printf("Failed to mount filestore: %v\n", err.Error())
-	}
-
 	// test latency
 	targetURL := "http://" + instanceModel.TargetFilestore.HostAddress + ":" + instanceModel.TargetFilestore.Port
 
@@ -274,26 +233,38 @@ func (h *Handler) MountFilestore(ctx context.Context, instanceModel *model.Insta
 	}
 	instanceModel.TargetFilestore.InstHistory[instanceModel.Instanceid] = elapsed.String()
 
-	return err
+	return nil
 }
 
 /*
-	func: FetchDepository
-	description: fetch the docker layer including some configuration of the app's installation from the target depository server
+	func: SelectDepository
+	description: check network connection status between host and depository servers, and select one as schedule target
 */
-func (h *Handler) FetchDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
-	err := h.InstanceService.FetchLayerFromDepository(ctx, instanceModel.VMID, instanceModel.TargetDepository, instanceModel.ImageName)
+func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
+	/* Test */
 
-	if err != nil {
-		log.Printf("Failed to fetch layer: %v\n", err.Error())
-		return err
+	list_len := len(instanceModel.DepositoryList)
+
+	if list_len == 0 {
+		log.Printf("Empty depository list!")
+
+		var depository model.Depository
+		depository.HostAddress = "127.0.0.1"
+		depository.Port = "5000"
+		depository.Tag = "latest"
+
+		instanceModel.TargetDepository = depository
+	} else {
+		// index := rand.Intn(list_len)
+		index := 0
+		instanceModel.TargetDepository = instanceModel.DepositoryList[index]
 	}
 
 	// test speed
 	// iperf3 -c 192.168.0.109 -J -t 1
 	execCmd := "iperf3"
 	params := []string{}
-	params = append(params, "-c", instanceModel.TargetDepository.HostAddress, "-t", "1", "-J")
+	params = append(params, "-c", instanceModel.TargetDepository.HostAddress, "-t", "0.1", "-J")
 	ret, err := utils.RunShellWithReturn(execCmd, params)
 
 	if err != nil {
@@ -320,6 +291,35 @@ func (h *Handler) FetchDepository(ctx context.Context, instanceModel *model.Inst
 				instanceModel.TargetDepository.InstHistory[instanceModel.Instanceid] = bps + "bitsPerSecond"
 			}
 		}
+	}
+
+	return nil
+}
+
+/*
+	func: MountFilestore
+	description: mount the target cloud storage directory
+*/
+func (h *Handler) MountFilestore(ctx context.Context, instanceModel *model.InstanceModel) error {
+	err := h.InstanceService.MountFilestore(ctx, instanceModel.VMID, instanceModel.TargetFilestore)
+
+	if err != nil {
+		log.Printf("Failed to mount filestore: %v\n", err.Error())
+	}
+
+	return err
+}
+
+/*
+	func: FetchDepository
+	description: fetch the docker layer including some configuration of the app's installation from the target depository server
+*/
+func (h *Handler) FetchDepository(ctx context.Context, instanceModel *model.InstanceModel) error {
+	err := h.InstanceService.FetchLayerFromDepository(ctx, instanceModel.VMID, instanceModel.TargetDepository, instanceModel.ImageName)
+
+	if err != nil {
+		log.Printf("Failed to fetch layer: %v\n", err.Error())
+		return err
 	}
 
 	return err
