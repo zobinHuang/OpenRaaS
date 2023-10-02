@@ -17,6 +17,8 @@ if __name__ == "__main__":
         "tag": "latest",
         "is_contain_fast_netspeed": config["performance"],
         "mem": config["mem"],
+        "bandwidth": config["bw"],
+        "latency": config["latency"]
     }
     json_data = json.dumps(dict_data)
     s_addr = "http://" + s_conf["ip"] + ":" + str(s_conf["port"])

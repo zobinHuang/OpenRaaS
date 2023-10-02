@@ -44,6 +44,7 @@ const VideoStreamPage = (props) => {
     // get global state
     const StateTerminals = useSelector(state => state.terminal.StateTerminals)
     const CurrentSelectedTerminal = StateTerminals.terminalsMap[terminalKey]
+    let StateAPI = useSelector(state => state.api.StateAPI)
     
     // add track
     useEffect(() => {
@@ -52,7 +53,7 @@ const VideoStreamPage = (props) => {
         // console.log('test')
         console.log(RtcPeer.PeerConnection)
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'http://kb109.dynv6.net:52109/api/scheduler/record_history', true);
+        xhr.open('POST', `${StateAPI.ScheduleProtocol}://${StateAPI.ScheduleHostAddr}:${StateAPI.SchedulePort}${StateAPI.ScheduleBaseURL}/${StateAPI.ScheduleAPI.RecordApplicationHistory}`, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         
         const latencies = [];

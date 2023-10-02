@@ -167,7 +167,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 						}).Warn("providerCoreWithInst Failed to SetValueToBlockchain")
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				} else {
-					log.Infof("Provider 数字资产发布, id: %s, value: %s", headerData.ID, s)
+					log.Infof("服务提供节点数字资产发布, id: %s, value: %s", headerData.ID, s)
 				}
 			}
 		}()
@@ -216,7 +216,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
 				}
-				log.Infof("Depository 数字资产发布, id: %s, value: %s", headerData.ID, s)
+				log.Infof("镜像仓库节点数字资产发布, id: %s, value: %s", headerData.ID, s)
 			}
 		}()
 
@@ -264,7 +264,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
 				}
-				log.Infof("FileStore 数字资产发布, id: %s, value: %s", headerData.ID, s)
+				log.Infof("内容存储节点数字资产发布, id: %s, value: %s", headerData.ID, s)
 			}
 		}()
 
@@ -448,6 +448,7 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 			p.InstHistory = make(map[string]string)
 		}
 		p.InstHistory[headerData.InstanceID] = headerData.Latency
+		log.Infof("【服务提供节点】数字资产更新 (解析后):\n%s", p.DetailedInfo())
 		if s, err := json.Marshal(&p); err != nil {
 			log.WithFields(
 				log.Fields{
@@ -467,7 +468,7 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-			log.Infof("Provider 数字资产发布, id: %s, value: %s", p.ID, s)
+			log.Infof("【服务提供节点】数字资产发布成功, 资产索引: %s, 资产内容: %s", p.ID, s)
 		}
 
 		s, err = sc.GetValueFromBlockchain(instRoom.SelectedDepository.ID)
@@ -495,6 +496,7 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 			d.InstHistory = make(map[string]string)
 		}
 		d.InstHistory[headerData.InstanceID] = instRoom.SelectedDepositoryBandWidth
+		log.Infof("【镜像仓库节点】数字资产更新 (解析后):\n%s", d.DetailedInfo())
 		if s, err := json.Marshal(&d); err != nil {
 			log.WithFields(
 				log.Fields{
@@ -514,7 +516,7 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-			log.Infof("Depository 数字资产发布, id: %s, value: %s", d.ID, s)
+			log.Infof("【镜像仓库节点】数字资产发布成功, 资产索引: %s, 资产内容: %s", d.ID, s)
 		}
 
 		s, err = sc.GetValueFromBlockchain(instRoom.SelectedFileStore.ID)
@@ -542,6 +544,7 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 			f.InstHistory = make(map[string]string)
 		}
 		f.InstHistory[headerData.InstanceID] = instRoom.SelectedFileStoreLatency
+		log.Infof("【内容存储节点】数字资产更新 (解析后):\n%s", f.DetailedInfo())
 		if s, err := json.Marshal(&f); err != nil {
 			log.WithFields(
 				log.Fields{
@@ -561,7 +564,7 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-			log.Infof("Filestore 数字资产发布, id: %s, value: %s", f.ID, s)
+			log.Infof("【内容存储节点】数字资产发布成功, 资产索引: %s, 资产内容: %s", f.ID, s)
 		}
 	}()
 }
