@@ -62,7 +62,7 @@ func (d *DepositoryDAL) DeleteDepository(ctx context.Context, depositoryID strin
 }
 
 // CreateDepositoryInRDS create depository core info to rds
-func (d *DepositoryDAL) CreateDepositoryInRDS(ctx context.Context, info *model.DepositoryCore) error {
+func (d *DepositoryDAL) CreateDepositoryInRDS(ctx context.Context, info *model.DepositoryCoreWithInst) error {
 	// initialize context
 	tx := d.DB.WithContext(ctx)
 
@@ -84,7 +84,7 @@ func (d *DepositoryDAL) DeleteDepositoryInRDSByID(ctx context.Context, id string
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("depository_cores").Where("id=?", id).Delete(&model.DepositoryCore{}).Error; err != nil {
+	if err := tx.Table("depository_cores").Where("id=?", id).Delete(&model.DepositoryCoreWithInst{}).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    id,
@@ -95,8 +95,8 @@ func (d *DepositoryDAL) DeleteDepositoryInRDSByID(ctx context.Context, id string
 }
 
 // GetDepositoryInRDS obtain all depository core info from rds
-func (d *DepositoryDAL) GetDepositoryInRDS(ctx context.Context) ([]model.DepositoryCore, error) {
-	var infos []model.DepositoryCore
+func (d *DepositoryDAL) GetDepositoryInRDS(ctx context.Context) ([]model.DepositoryCoreWithInst, error) {
+	var infos []model.DepositoryCoreWithInst
 
 	// initialize context
 	tx := d.DB.WithContext(ctx)
@@ -113,8 +113,8 @@ func (d *DepositoryDAL) GetDepositoryInRDS(ctx context.Context) ([]model.Deposit
 }
 
 // GetDepositoryInRDSByID get depository core info by id from rds
-func (d *DepositoryDAL) GetDepositoryInRDSByID(ctx context.Context, id string) (*model.DepositoryCore, error) {
-	var info model.DepositoryCore
+func (d *DepositoryDAL) GetDepositoryInRDSByID(ctx context.Context, id string) (*model.DepositoryCoreWithInst, error) {
+	var info model.DepositoryCoreWithInst
 	// initialize context
 	tx := d.DB.WithContext(ctx)
 
@@ -130,7 +130,7 @@ func (d *DepositoryDAL) GetDepositoryInRDSByID(ctx context.Context, id string) (
 }
 
 // UpdateDepositoryInRDSByID update depository core info by id in rds
-func (d *DepositoryDAL) UpdateDepositoryInRDSByID(ctx context.Context, info *model.DepositoryCore) error {
+func (d *DepositoryDAL) UpdateDepositoryInRDSByID(ctx context.Context, info *model.DepositoryCoreWithInst) error {
 	// initialize context
 	tx := d.DB.WithContext(ctx)
 
@@ -146,8 +146,8 @@ func (d *DepositoryDAL) UpdateDepositoryInRDSByID(ctx context.Context, info *mod
 }
 
 // GetDepositoryBetweenIDInRDS get depository core info Between id from rds
-func (d *DepositoryDAL) GetDepositoryBetweenIDInRDS(ctx context.Context, ids []string) ([]model.DepositoryCore, error) {
-	var infos []model.DepositoryCore
+func (d *DepositoryDAL) GetDepositoryBetweenIDInRDS(ctx context.Context, ids []string) ([]model.DepositoryCoreWithInst, error) {
+	var infos []model.DepositoryCoreWithInst
 
 	// initialize context
 	tx := d.DB.WithContext(ctx)

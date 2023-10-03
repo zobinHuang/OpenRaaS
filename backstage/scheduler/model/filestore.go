@@ -35,8 +35,8 @@ type FileStoreCore struct {
 	Username              string         `json:"username"`
 	Password              string         `json:"password"`
 	Mem                   float64        `json:"mem"`
-	Bandwidth             float64        `json:bandwidth`
-	Latency               float64        `json:latency`
+	Bandwidth             float64        `json:"bandwidth"`
+	Latency               float64        `json:"latency"`
 	IsContainFastNetspeed bool           `gorm:"not null" json:"is_contain_fast_netspeed"`
 }
 

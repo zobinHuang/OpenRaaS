@@ -68,7 +68,8 @@ func NewScheduleServiceCore(c *ScheduleServiceCoreConfig) model.ScheduleServiceC
 
 	core logic of scheduling stream instance is here
 */
-func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *model.Consumer, streamInstance *model.StreamInstance) (*model.Provider, []model.DepositoryCore, []model.FileStoreCore, error) {
+func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *model.Consumer, streamInstance *model.StreamInstance) (
+	*model.Provider, []model.DepositoryCoreWithInst, []model.FileStoreCoreWithInst, error) {
 	// 1. 粗选节点 (所有满足 APP 基本需求的节点), 并等待获取数字资产
 
 	providers := sc.ProviderDAL.GetProvider()
@@ -181,7 +182,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 
 	if sc.Counter < 5 {
 		if appInfo.IsDepositoryReqFastNetspeed {
-			newDopositoryList := make([]model.DepositoryCore, 0)
+			newDopositoryList := make([]model.DepositoryCoreWithInst, 0)
 			for _, d := range depositoryList {
 				if d.IsContainFastNetspeed {
 					newDopositoryList = append(newDopositoryList, d)
@@ -190,7 +191,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 			depositoryList = newDopositoryList
 		}
 		if appInfo.IsFileStoreReqFastNetspeed {
-			newFilestoreList := make([]model.FileStoreCore, 0)
+			newFilestoreList := make([]model.FileStoreCoreWithInst, 0)
 			for _, f := range filestoreList {
 				if f.IsContainFastNetspeed {
 					newFilestoreList = append(newFilestoreList, f)

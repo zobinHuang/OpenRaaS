@@ -62,7 +62,7 @@ func (d *FileStoreDAL) DeleteFileStore(ctx context.Context, filestoreID string) 
 }
 
 // CreateFileStoreInRDS create file store core info to rds
-func (d *FileStoreDAL) CreateFileStoreInRDS(ctx context.Context, info *model.FileStoreCore) error {
+func (d *FileStoreDAL) CreateFileStoreInRDS(ctx context.Context, info *model.FileStoreCoreWithInst) error {
 	// initialize context
 	tx := d.DB.WithContext(ctx)
 
@@ -84,7 +84,7 @@ func (d *FileStoreDAL) DeleteFileStoreInRDSByID(ctx context.Context, id string) 
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("file_store_cores").Where("id=?", id).Delete(&model.FileStoreCore{}).Error; err != nil {
+	if err := tx.Table("file_store_cores").Where("id=?", id).Delete(&model.FileStoreCoreWithInst{}).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    id,
@@ -96,8 +96,8 @@ func (d *FileStoreDAL) DeleteFileStoreInRDSByID(ctx context.Context, id string) 
 }
 
 // GetFileStoreInRDS obtain all file store core info from rds
-func (d *FileStoreDAL) GetFileStoreInRDS(ctx context.Context) ([]model.FileStoreCore, error) {
-	var infos []model.FileStoreCore
+func (d *FileStoreDAL) GetFileStoreInRDS(ctx context.Context) ([]model.FileStoreCoreWithInst, error) {
+	var infos []model.FileStoreCoreWithInst
 
 	// initialize context
 	tx := d.DB.WithContext(ctx)
@@ -114,8 +114,8 @@ func (d *FileStoreDAL) GetFileStoreInRDS(ctx context.Context) ([]model.FileStore
 }
 
 // GetFileStoreInRDSByID get file store core info by id from rds
-func (d *FileStoreDAL) GetFileStoreInRDSByID(ctx context.Context, id string) (*model.FileStoreCore, error) {
-	var info model.FileStoreCore
+func (d *FileStoreDAL) GetFileStoreInRDSByID(ctx context.Context, id string) (*model.FileStoreCoreWithInst, error) {
+	var info model.FileStoreCoreWithInst
 	// initialize context
 	tx := d.DB.WithContext(ctx)
 
@@ -131,7 +131,7 @@ func (d *FileStoreDAL) GetFileStoreInRDSByID(ctx context.Context, id string) (*m
 }
 
 // UpdateFileStoreInRDSByID update file store core info by id in rds
-func (d *FileStoreDAL) UpdateFileStoreInRDSByID(ctx context.Context, info *model.FileStoreCore) error {
+func (d *FileStoreDAL) UpdateFileStoreInRDSByID(ctx context.Context, info *model.FileStoreCoreWithInst) error {
 	// initialize context
 	tx := d.DB.WithContext(ctx)
 
@@ -147,8 +147,8 @@ func (d *FileStoreDAL) UpdateFileStoreInRDSByID(ctx context.Context, info *model
 }
 
 // GetFileStoreInRDSBetweenID get file store core info between id from rds
-func (d *FileStoreDAL) GetFileStoreInRDSBetweenID(ctx context.Context, ids []string) ([]model.FileStoreCore, error) {
-	var infos []model.FileStoreCore
+func (d *FileStoreDAL) GetFileStoreInRDSBetweenID(ctx context.Context, ids []string) ([]model.FileStoreCoreWithInst, error) {
+	var infos []model.FileStoreCoreWithInst
 
 	// initialize context
 	tx := d.DB.WithContext(ctx)

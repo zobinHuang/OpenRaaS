@@ -30,11 +30,15 @@ func NewFileStoreService(f *FileStoreServiceConfig) model.FileStoreService {
 	}
 }
 
-func (s *FileStoreService) CreateFileStoreInRDS(ctx context.Context, info *model.FileStoreCore) error {
+func (s *FileStoreService) CreateFileStoreInRDS(ctx context.Context, info *model.FileStoreCoreWithInst) error {
 	return s.FileStoreDAL.CreateFileStoreInRDS(ctx, info)
 }
 
-func (s *FileStoreService) ShowEnterInfo(ctx context.Context, fileStore *model.FileStoreCore) {
+func (s *FileStoreService) UpdateFileStoreInRDS(ctx context.Context, info *model.FileStoreCoreWithInst) error {
+	return s.FileStoreDAL.UpdateFileStoreInRDSByID(ctx, info)
+}
+
+func (s *FileStoreService) ShowEnterInfo(ctx context.Context, fileStore *model.FileStoreCoreWithInst) {
 	log.Infof("%s, allow new filestore enter, id: %s", utils.GetCurrentTime(), fileStore.ID)
 	performance := "normal"
 	if fileStore.IsContainFastNetspeed {

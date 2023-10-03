@@ -52,8 +52,12 @@ func NewProviderService(c *ProviderServiceConfig) model.ProviderService {
 }
 
 // CreateProviderInRDS write Provider info to rds
-func (s *ProviderService) CreateProviderInRDS(ctx context.Context, provider *model.ProviderCore) error {
+func (s *ProviderService) CreateProviderInRDS(ctx context.Context, provider *model.ProviderCoreWithInst) error {
 	return s.ProviderDAL.CreateProviderInRDS(ctx, provider)
+}
+
+func (s *ProviderService) UpdateProviderInRDS(ctx context.Context, provider *model.ProviderCoreWithInst) error {
+	return s.ProviderDAL.UpdateProviderInRDSByID(ctx, provider)
 }
 
 /*
@@ -220,12 +224,12 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 				}).Warn("Failed to GetInstanceRoomByInstanceID during state_selected_storage")
 				return
 			}
-			streamInstanceRoom.SelectedDepository = &model.Depository{DepositoryCore: model.DepositoryCore{ID: reqPacketData.SelectedDepository.ID}}
+			streamInstanceRoom.SelectedDepository = &model.Depository{DepositoryCore: model.DepositoryCore{ID: reqPacketData.SelectedDepository.ID, Mem: reqPacketData.SelectedDepository.Mem}}
 			for _, value := range reqPacketData.SelectedDepository.InstHistory {
 				streamInstanceRoom.SelectedDepositoryBandWidth = value
 				break
 			}
-			streamInstanceRoom.SelectedFileStore = &model.FileStore{FileStoreCore: model.FileStoreCore{ID: reqPacketData.SelectedFileStore.ID}}
+			streamInstanceRoom.SelectedFileStore = &model.FileStore{FileStoreCore: model.FileStoreCore{ID: reqPacketData.SelectedFileStore.ID, Mem: reqPacketData.SelectedFileStore.Mem}}
 			for _, value := range reqPacketData.SelectedFileStore.InstHistory {
 				streamInstanceRoom.SelectedFileStoreLatency = value
 				break
@@ -673,7 +677,7 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 }
 
 // ShowEnterInfo show info when register a new provider
-func (s *ProviderService) ShowEnterInfo(ctx context.Context, provider *model.ProviderCore) {
+func (s *ProviderService) ShowEnterInfo(ctx context.Context, provider *model.ProviderCoreWithInst) {
 	log.Infof("%s, allow new provider enter, id: %s", utils.GetCurrentTime(), provider.ID)
 	performance := "normal"
 	if provider.IsContainGPU {

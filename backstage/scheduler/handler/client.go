@@ -126,7 +126,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 
 	switch nodeType {
 	case model.CLIENT_TYPE_PROVIDER:
-		var headerData model.ProviderCore
+		var headerData model.ProviderCoreWithInst
 		if err := c.BindJSON(&headerData); err != nil {
 			log.WithFields(
 				log.Fields{
@@ -149,7 +149,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		h.ProviderService.ShowAllInfo(ctx)
 
 		go func() {
-			providerCoreWithInst := &model.ProviderCoreWithInst{ProviderCore: headerData}
+			providerCoreWithInst := &headerData
 			if s, err := json.Marshal(providerCoreWithInst); err != nil {
 				log.WithFields(
 					log.Fields{
@@ -173,7 +173,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		}()
 
 	case model.CLIENT_TYPE_DEPOSITARY:
-		var headerData model.DepositoryCore
+		var headerData model.DepositoryCoreWithInst
 		if err := c.BindJSON(&headerData); err != nil {
 			log.WithFields(
 				log.Fields{
@@ -196,7 +196,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		h.DepositoryService.ShowAllInfo(ctx)
 
 		go func() {
-			depositoryCoreWithInst := &model.DepositoryCoreWithInst{DepositoryCore: headerData}
+			depositoryCoreWithInst := &headerData
 			if s, err := json.Marshal(depositoryCoreWithInst); err != nil {
 				log.WithFields(
 					log.Fields{
@@ -221,7 +221,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		}()
 
 	case model.CLIENT_TYPE_FILESTORE:
-		var headerData model.FileStoreCore
+		var headerData model.FileStoreCoreWithInst
 		if err := c.BindJSON(&headerData); err != nil {
 			log.WithFields(
 				log.Fields{
@@ -244,7 +244,7 @@ func (h *Handler) NodeOnline(c *gin.Context) {
 		h.FileStoreService.ShowAllInfo(ctx)
 
 		go func() {
-			fileStoreCoreWithInst := &model.FileStoreCoreWithInst{FileStoreCore: headerData}
+			fileStoreCoreWithInst := &headerData
 			if s, err := json.Marshal(fileStoreCoreWithInst); err != nil {
 				log.WithFields(
 					log.Fields{
@@ -366,9 +366,9 @@ func (h *Handler) LearnNetWork(c *gin.Context) {
 		return
 	}
 	req := struct {
-		ProviderCore   model.ProviderCore     `json:"provider_core"`
-		DepositoryList []model.DepositoryCore `json:"depository_list"`
-		FileStoreList  []model.FileStoreCore  `json:"filestore_list"`
+		ProviderCore   model.ProviderCore             `json:"provider_core"`
+		DepositoryList []model.DepositoryCoreWithInst `json:"depository_list"`
+		FileStoreList  []model.FileStoreCoreWithInst  `json:"filestore_list"`
 	}{
 		ProviderCore:   provider.ProviderCore,
 		DepositoryList: depositoryList,
@@ -448,7 +448,6 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 			p.InstHistory = make(map[string]string)
 		}
 		p.InstHistory[headerData.InstanceID] = headerData.Latency
-		log.Infof("【服务提供节点】数字资产更新 (解析后):\n%s", p.DetailedInfo())
 		if s, err := json.Marshal(&p); err != nil {
 			log.WithFields(
 				log.Fields{
@@ -468,7 +467,15 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-			log.Infof("【服务提供节点】数字资产发布成功, 资产索引: %s, 资产内容: %s", p.ID, s)
+			log.Infof("【服务提供节点】数字资产更新, 资产索引: %s, 资产内容: %s", p.ID, s)
+			log.Infof("【服务提供节点】数字资产更新 (解析后):\n%s", p.DetailedInfo())
+			ctx := c.Request.Context()
+			err = h.ProviderService.UpdateProviderInRDS(ctx, &p)
+			if err != nil {
+				log.Infof("RecordHistory h.ProviderService.UpdateProviderInRDS error: %s", err.Error())
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 		}
 
 		s, err = sc.GetValueFromBlockchain(instRoom.SelectedDepository.ID)
@@ -496,7 +503,6 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 			d.InstHistory = make(map[string]string)
 		}
 		d.InstHistory[headerData.InstanceID] = instRoom.SelectedDepositoryBandWidth
-		log.Infof("【镜像仓库节点】数字资产更新 (解析后):\n%s", d.DetailedInfo())
 		if s, err := json.Marshal(&d); err != nil {
 			log.WithFields(
 				log.Fields{
@@ -516,7 +522,15 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-			log.Infof("【镜像仓库节点】数字资产发布成功, 资产索引: %s, 资产内容: %s", d.ID, s)
+			log.Infof("【镜像仓库节点】数字资产更新, 资产索引: %s, 资产内容: %s", d.ID, s)
+			log.Infof("【镜像仓库节点】数字资产更新 (解析后):\n%s", d.DetailedInfo())
+			ctx := c.Request.Context()
+			err = h.DepositoryService.UpdateFileStoreInRDS(ctx, &d)
+			if err != nil {
+				log.Infof("RecordHistory h.DepositoryService.UpdateFileStoreInRDS error: %s", err.Error())
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 		}
 
 		s, err = sc.GetValueFromBlockchain(instRoom.SelectedFileStore.ID)
@@ -544,7 +558,6 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 			f.InstHistory = make(map[string]string)
 		}
 		f.InstHistory[headerData.InstanceID] = instRoom.SelectedFileStoreLatency
-		log.Infof("【内容存储节点】数字资产更新 (解析后):\n%s", f.DetailedInfo())
 		if s, err := json.Marshal(&f); err != nil {
 			log.WithFields(
 				log.Fields{
@@ -564,7 +577,15 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-			log.Infof("【内容存储节点】数字资产发布成功, 资产索引: %s, 资产内容: %s", f.ID, s)
+			log.Infof("【内容存储节点】数字资产更新, 资产索引: %s, 资产内容: %s", f.ID, s)
+			log.Infof("【内容存储节点】数字资产更新 (解析后):\n%s", f.DetailedInfo())
+			ctx := c.Request.Context()
+			err = h.FileStoreService.UpdateFileStoreInRDS(ctx, &f)
+			if err != nil {
+				log.Infof("RecordHistory h.FileStoreService.UpdateFileStoreInRDS error: %s", err.Error())
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 		}
 	}()
 }

@@ -30,11 +30,15 @@ func NewDepositoryService(f *DepositoryServiceConfig) model.DepositoryService {
 	}
 }
 
-func (s *DepositoryService) CreateDepositoryInRDS(ctx context.Context, info *model.DepositoryCore) error {
+func (s *DepositoryService) CreateDepositoryInRDS(ctx context.Context, info *model.DepositoryCoreWithInst) error {
 	return s.DepositoryDAL.CreateDepositoryInRDS(ctx, info)
 }
 
-func (s *DepositoryService) ShowEnterInfo(ctx context.Context, depository *model.DepositoryCore) {
+func (s *DepositoryService) UpdateFileStoreInRDS(ctx context.Context, info *model.DepositoryCoreWithInst) error {
+	return s.DepositoryDAL.UpdateDepositoryInRDSByID(ctx, info)
+}
+
+func (s *DepositoryService) ShowEnterInfo(ctx context.Context, depository *model.DepositoryCoreWithInst) {
 	log.Infof("%s, allow new depository enter, id: %s", utils.GetCurrentTime(), depository.ID)
 	performance := "normal"
 	if depository.IsContainFastNetspeed {

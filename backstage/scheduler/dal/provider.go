@@ -70,7 +70,7 @@ func (d *ProviderDAL) GetProvider() []*model.Provider {
 }
 
 // CreateProviderInRDS create provider core info to rds
-func (d *ProviderDAL) CreateProviderInRDS(ctx context.Context, provider *model.ProviderCore) error {
+func (d *ProviderDAL) CreateProviderInRDS(ctx context.Context, provider *model.ProviderCoreWithInst) error {
 	// initialize context
 	tx := d.DB.WithContext(ctx)
 
@@ -92,7 +92,7 @@ func (d *ProviderDAL) DeleteProviderInRDSByID(ctx context.Context, id string) er
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("provider_cores").Where("id=?", id).Delete(&model.ProviderCore{}).Error; err != nil {
+	if err := tx.Table("provider_cores").Where("id=?", id).Delete(&model.ProviderCoreWithInst{}).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    id,
@@ -104,8 +104,8 @@ func (d *ProviderDAL) DeleteProviderInRDSByID(ctx context.Context, id string) er
 }
 
 // GetProviderInRDS obtain all provider core info from rds
-func (d *ProviderDAL) GetProviderInRDS(ctx context.Context) ([]model.ProviderCore, error) {
-	var infos []model.ProviderCore
+func (d *ProviderDAL) GetProviderInRDS(ctx context.Context) ([]model.ProviderCoreWithInst, error) {
+	var infos []model.ProviderCoreWithInst
 
 	// initialize context
 	tx := d.DB.WithContext(ctx)
@@ -122,8 +122,8 @@ func (d *ProviderDAL) GetProviderInRDS(ctx context.Context) ([]model.ProviderCor
 }
 
 // GetProviderInRDSByID get provider core info by id from rds
-func (d *ProviderDAL) GetProviderInRDSByID(ctx context.Context, id string) (*model.ProviderCore, error) {
-	var info model.ProviderCore
+func (d *ProviderDAL) GetProviderInRDSByID(ctx context.Context, id string) (*model.ProviderCoreWithInst, error) {
+	var info model.ProviderCoreWithInst
 	// initialize context
 	tx := d.DB.WithContext(ctx)
 
@@ -139,7 +139,7 @@ func (d *ProviderDAL) GetProviderInRDSByID(ctx context.Context, id string) (*mod
 }
 
 // UpdateProviderInRDSByID update provider core info by id in rds
-func (d *ProviderDAL) UpdateProviderInRDSByID(ctx context.Context, provider *model.ProviderCore) error {
+func (d *ProviderDAL) UpdateProviderInRDSByID(ctx context.Context, provider *model.ProviderCoreWithInst) error {
 	// initialize context
 	tx := d.DB.WithContext(ctx)
 

@@ -65,6 +65,9 @@ type ConsumerCore struct {
 	// StartScheduleTime time.Time
 	// EndScheduleTime   time.Time
 	// StartStreamTime   time.Time
+	Provider   *Provider
+	Filestore  *FileStore
+	Depository *Depository
 }
 
 /*

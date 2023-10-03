@@ -30,8 +30,8 @@ type ProviderCore struct {
 	IP           string         `gorm:"unique,not null" json:"ip"`
 	Port         string         `json:"port"`
 	Processor    float64        `json:"processor"`
-	Bandwidth    float64        `json:bandwidth`
-	Latency      float64        `json:latency`
+	Bandwidth    float64        `json:"bandwidth"`
+	Latency      float64        `json:"latency"`
 	IsContainGPU bool           `gorm:"not null" json:"is_contain_gpu"`
 }
 

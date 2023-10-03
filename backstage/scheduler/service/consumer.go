@@ -304,9 +304,9 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 
 		// generate request websocket to provider to start instance
 		reqToProvider := struct {
-			StreamInstance model.StreamInstance   `json:"stream_instance"`
-			DepositoryList []model.DepositoryCore `json:"depository_list"`
-			FileStoreList  []model.FileStoreCore  `json:"filestore_list"`
+			StreamInstance model.StreamInstance           `json:"stream_instance"`
+			DepositoryList []model.DepositoryCoreWithInst `json:"depository_list"`
+			FileStoreList  []model.FileStoreCoreWithInst  `json:"filestore_list"`
 		}{
 			StreamInstance: *streamInstance, // metadata of application instance
 			DepositoryList: depositoryList,  // metadata of depository nodes
@@ -558,6 +558,19 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			}).Warn("%s, abandoned", err.Error())
 			return model.EmptyPacket
 		}
+		streamInstanceRoom, err := s.InstanceRoomDAL.GetInstanceRoomByInstanceID(nil, reqPacketData.InstanceID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Warn Type":        "Recv Callback Error",
+				"Recv Packet Type": "consumer_ice_candidate",
+				"error":            err,
+				"StreamInstanceID": reqPacketData.InstanceID,
+			}).Warn("Failed to GetInstanceRoomByInstanceID during consumer_ice_candidate")
+			return
+		}
+		consumer.Provider = provider
+		consumer.Depository = streamInstanceRoom.SelectedDepository
+		consumer.Filestore = streamInstanceRoom.SelectedFileStore
 
 		// construct websocket packet to provider
 		respToProvider := &struct {

@@ -15,15 +15,15 @@ func dBMigrator(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.ProviderCore{})
+	err = db.AutoMigrate(&model.ProviderCoreWithInst{})
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.FileStoreCore{})
+	err = db.AutoMigrate(&model.FileStoreCoreWithInst{})
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.DepositoryCore{})
+	err = db.AutoMigrate(&model.DepositoryCoreWithInst{})
 	if err != nil {
 		return err
 	}
