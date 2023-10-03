@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"sort"
 	"strconv"
@@ -420,10 +421,32 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		return nil, nil, nil, fmt.Errorf("not enough resourse to schedule")
 	}
 
-	log.Info("调度选择节点：")
-	providersInRDS[providersOut[0].ID].DetailedInfo()
-	fileStoresOut[0].DetailedInfo()
-	depositoryOut[0].DetailedInfo()
+	// !!!【开始】测试时间用代码
+	p_num := 10
+	f_num := 10
+	d_num := 10
+	rand.Seed(time.Now().UnixNano())
+	p_randomNumbers := make([]int, p_num)
+	f_randomNumbers := make([]int, f_num)
+	d_randomNumbers := make([]int, d_num)
+	for i := 0; i < p_num; i++ {
+		p_randomNumbers[i] = rand.Intn(100)
+	}
+	for i := 0; i < f_num; i++ {
+		f_randomNumbers[i] = rand.Intn(100)
+	}
+	for i := 0; i < d_num; i++ {
+		d_randomNumbers[i] = rand.Intn(100)
+	}
+	sort.Ints(p_randomNumbers)
+	sort.Ints(f_randomNumbers)
+	sort.Ints(d_randomNumbers)
+	// !!!【结束】测试时间用代码
+
+	log.Infof("【业务能力动态组合方案】")
+	fmt.Printf("1. 计算 (Computation) 原子服务:\n%s", providersInRDS[providersOut[0].ID].DetailedInfo())
+	fmt.Printf("2. 运行时文件 (Runtime Files) 原子服务:\n%s", fileStoresOut[0].DetailedInfo())
+	fmt.Printf("3. 运行时环境 (Runtime Environment) 原子服务:\n%s", depositoryOut[0].DetailedInfo())
 
 	return providersOut[0], depositoryOut, fileStoresOut, nil
 }
