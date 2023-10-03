@@ -11,6 +11,7 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
+	github.com/liushuochen/gotable v0.0.0-20221119160816-1113793e7092
 	github.com/sirupsen/logrus v1.8.1
 	gorm.io/driver/postgres v1.2.3
 	gorm.io/gorm v1.22.5

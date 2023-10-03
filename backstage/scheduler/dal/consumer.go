@@ -73,3 +73,13 @@ func (d *ConsumerDAL) GetConsumerByID(ctx context.Context, consumerID string) (*
 func (d *ConsumerDAL) Clear() {
 	d.ConsumerList = make(map[string]*model.Consumer)
 }
+
+/*
+@func: GetConsumers
+@description:
+
+	obtain all consumers
+*/
+func (d *ConsumerDAL) GetConsumers() map[string]*model.Consumer {
+	return d.ConsumerList
+}

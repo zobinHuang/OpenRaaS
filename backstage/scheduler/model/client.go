@@ -68,6 +68,7 @@ type ConsumerCore struct {
 	Provider   *Provider
 	Filestore  *FileStore
 	Depository *Depository
+	UserName   string
 }
 
 /*

@@ -678,13 +678,8 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 
 // ShowEnterInfo show info when register a new provider
 func (s *ProviderService) ShowEnterInfo(ctx context.Context, provider *model.ProviderCoreWithInst) {
-	log.Infof("%s, allow new provider enter, id: %s", utils.GetCurrentTime(), provider.ID)
-	performance := "normal"
-	if provider.IsContainGPU {
-		performance = "powerful"
-	}
-	log.Infof("%s, New provider id: %s, ip: %s, processor: %f GF, type: %s",
-		utils.GetCurrentTime(), provider.ID, provider.IP, provider.Processor, performance)
+	log.Infof("%s, 新服务提供节点上线, ID: %s", utils.GetCurrentTime(), provider.ID)
+	provider.DetailedInfo()
 }
 
 func (s *ProviderService) ShowAllInfo(ctx context.Context) {
@@ -693,6 +688,7 @@ func (s *ProviderService) ShowAllInfo(ctx context.Context) {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
 		}).Error("ProviderService ShowAllInfo GetProviderInRDS error")
+		return
 	}
 	totalProcessor := 0.0
 	powerNum := 0

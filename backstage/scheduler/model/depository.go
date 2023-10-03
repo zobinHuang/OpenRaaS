@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -40,7 +41,7 @@ type DepositoryCore struct {
 // DepositoryCoreWithInst DepositoryCore with instance history in blockchain
 type DepositoryCoreWithInst struct {
 	DepositoryCore
-	InstHistory map[string]string `json:"inst_history"`
+	InstHistory utils.JSONMap `json:"inst_history" gorm:"omitempty"`
 }
 
 //////// util ////////

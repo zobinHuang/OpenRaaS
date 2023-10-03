@@ -6,13 +6,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
+	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/liushuochen/gotable"
 	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
 	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/utils"
 )
@@ -72,7 +75,9 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	*model.Provider, []model.DepositoryCoreWithInst, []model.FileStoreCoreWithInst, error) {
 	// 1. 粗选节点 (所有满足 APP 基本需求的节点), 并等待获取数字资产
 
+	providersIDList := make([]string, 0)
 	providers := sc.ProviderDAL.GetProvider()
+	providersInRDS := make(map[string]*model.ProviderCoreWithInst)
 	for i, p := range providers {
 		pInfo, err := sc.ProviderDAL.GetProviderInRDSByID(ctx, p.ClientID)
 		if err != nil {
@@ -83,6 +88,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		providers[i].Port = pInfo.Port
 		providers[i].Processor = pInfo.Processor
 		providers[i].IsContainGPU = pInfo.IsContainGPU
+		providersIDList = append(providersIDList, p.ClientID)
+		providersInRDS[p.ID] = pInfo
 	}
 
 	appInfo, err := sc.ApplicationDAL.GetStreamApplicationByID(ctx, streamInstance.ApplicationID)
@@ -90,26 +97,11 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		return nil, nil, nil, fmt.Errorf("scheduler GetStreamApplicationByID err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
-	candidatesGPU := make([]*model.Provider, 0, 0)
-	if appInfo.IsProviderReqGPU {
-		for _, p := range providers {
-			if p.IsContainGPU {
-				candidatesGPU = append(candidatesGPU, p)
-			}
-		}
-	} else {
-		candidatesGPU = providers
-	}
-
-	if len(candidatesGPU) <= 0 {
-		return nil, nil, nil, fmt.Errorf("no provider can schedule")
-	}
-
 	if appInfo.FileStoreList == "" {
 		return nil, nil, nil, fmt.Errorf("scheduler FileStoreList is none streamInstance: %+v", streamInstance)
 	}
-	var fileStoreStrList []string
-	if err := json.Unmarshal([]byte(appInfo.FileStoreList), &fileStoreStrList); err != nil {
+	var fileStoreIDList []string
+	if err := json.Unmarshal([]byte(appInfo.FileStoreList), &fileStoreIDList); err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler unmarshal FileStoreList fail, err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
@@ -118,13 +110,27 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetDepositoryInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
+	depositoryIDList := make([]string, 0)
+	for _, d := range depositoryList {
+		depositoryIDList = append(depositoryIDList, d.ID)
+	}
 
-	filestoreList, err := sc.FileStoreDAL.GetFileStoreInRDSBetweenID(ctx, fileStoreStrList)
+	filestoreList, err := sc.FileStoreDAL.GetFileStoreInRDSBetweenID(ctx, fileStoreIDList)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
-	// todo: 打印所有满足要求的 ID 列表
+	// 打印所有满足要求的 ID 列表
+	table, err := gotable.Create("节点类型", "可使用的节点索引")
+	if err != nil {
+		fmt.Println("Create table failed: ", err.Error())
+		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+	table.AddRow([]string{"服务提供节点", strings.Join(providersIDList, ",")})
+	table.AddRow([]string{"内容存储节点", strings.Join(fileStoreIDList, ",")})
+	table.AddRow([]string{"镜像仓库节点", strings.Join(depositoryIDList, ",")})
+	log.Info("正常线上节点：")
+	fmt.Println("\n", table, "\n")
 
 	// 2. 并行获得数字资产, 并等待全部完成
 
@@ -173,52 +179,253 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	}
 
 	// 3. 开始进一步筛选
+	providersOut := make([]*model.Provider, 0)
+	fileStoresOut := make([]model.FileStoreCoreWithInst, 0)
+	depositoryOut := make([]model.DepositoryCoreWithInst, 0)
 
 	// 3.1 排除异常节点
+	table, err = gotable.Create("节点 ID", "平均历史服务质量", "网络性能", "带宽", "时延")
+	if err != nil {
+		fmt.Println("Create table failed: ", err.Error())
+		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+	for _, p := range providers {
+		if providersInRDS[p.ID].GetAbnormalHistoryTimes() == 0 {
+			providersOut = append(providersOut, p)
+			table.AddRow([]string{p.ID, providersInRDS[p.ID].GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency),
+				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency)})
+		} else {
+			log.Infof("剔除异常服务提供节点：%s，异常次数：%d，历史信息：%s", p.ID, providersInRDS[p.ID].GetAbnormalHistoryTimes(), providersInRDS[p.ID].InstHistory)
+		}
+	}
+	log.Info("服务提供节点性能表现：")
+	fmt.Println("\n", table, "\n")
 
-	// 3.2 排序
+	table, err = gotable.Create("节点 ID", "平均历史服务质量", "网络性能")
+	if err != nil {
+		fmt.Println("Create table failed: ", err.Error())
+		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+	for _, f := range filestoreList {
+		if f.GetAbnormalHistoryTimes() == 0 {
+			fileStoresOut = append(fileStoresOut, f)
+			table.AddRow([]string{f.ID, f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
+				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency)})
+		} else {
+			log.Infof("剔除异常内容存储节点：%s，异常次数：%d，历史信息：%s", f.ID, f.GetAbnormalHistoryTimes(), f.InstHistory)
+		}
+	}
+	log.Info("内容存储节点性能表现：")
+	fmt.Println("\n", table, "\n")
+
+	table, err = gotable.Create("节点 ID", "平均历史服务质量", "网络带宽性能")
+	if err != nil {
+		fmt.Println("Create table failed: ", err.Error())
+		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+	for _, d := range depositoryOut {
+		if d.GetAbnormalHistoryTimes() == 0 {
+			depositoryOut = append(depositoryOut, d)
+			table.AddRow([]string{d.ID, d.GetMeanHistory(), fmt.Sprintf("%.2f Mbps", d.Bandwidth)})
+		} else {
+			log.Infof("剔除异常镜像仓库节点：%s，异常次数：%d，历史信息：%s", d.ID, d.GetAbnormalHistoryTimes(), d.InstHistory)
+		}
+	}
+	log.Info("镜像存储节点性能表现：")
+	fmt.Println("\n", table, "\n")
+
+	// 3.2 统计总资源量和已经使用的资源量
+	totalGf := 0.0
+	usedGf := 0.0
+	providersRemained := make(map[string]float64)
+	totalMem := 0.0
+	usedMem := 0.0
+	fileStoresRemained := make(map[string]float64)
+	for _, p := range providersOut {
+		totalGf += p.Processor
+		providersRemained[p.ID] = p.Processor
+	}
+	for _, f := range fileStoresOut {
+		totalMem += f.Mem
+		fileStoresRemained[f.ID] = f.Mem
+	}
+
+	consumers := sc.ConsumerDAL.GetConsumers()
+	for _, c := range consumers {
+		if c.Provider == nil {
+			continue
+		}
+		if _, ok := providersRemained[c.Provider.ID]; ok {
+			if c.Provider.IsContainGPU {
+				usedGf += 5.0
+				providersRemained[c.Provider.ID] -= 5.0
+			} else {
+				usedGf += 2.0
+				providersRemained[c.Provider.ID] -= 2.0
+			}
+		}
+		if _, ok := fileStoresRemained[c.Filestore.ID]; ok {
+			usedMem += 1.0
+			fileStoresRemained[c.Filestore.ID] -= 1.0
+		}
+	}
+
+	table, err = gotable.Create("节点类型", "已使用资源量", "总资源量")
+	if err != nil {
+		fmt.Println("Create table failed: ", err.Error())
+		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+	table.AddRow([]string{"服务提供节点", fmt.Sprintf("%.2f GF", usedGf), fmt.Sprintf("%.2f GF", totalGf)})
+	table.AddRow([]string{"内容存储节点", fmt.Sprintf("%.2f GB", usedMem), fmt.Sprintf("%.2f GB", totalMem)})
+	log.Info("节点资源使用情况：")
+	fmt.Println("\n", table, "\n")
 
 	// 4. 特殊处理 (支撑模型更新)
-
-	if sc.Counter < 5 {
-		if appInfo.IsDepositoryReqFastNetspeed {
-			newDopositoryList := make([]model.DepositoryCoreWithInst, 0)
-			for _, d := range depositoryList {
-				if d.IsContainFastNetspeed {
-					newDopositoryList = append(newDopositoryList, d)
+	// 4.1 选择模型
+	if usedMem*2 >= totalMem || usedGf*2 >= totalGf {
+		log.Infof("资源紧缺，使用尽力服务策略")
+		if time.Now().Sub(consumer.T0) <= time.Minute && (appInfo.IsProviderReqGPU || appInfo.IsFileStoreReqFastNetspeed) {
+			log.Infof("用户 %s 创建应用时间间隔过短，对其性能进行限制", consumer.ClientID)
+			if (usedGf/totalGf > usedMem/totalMem || !appInfo.IsFileStoreReqFastNetspeed) && appInfo.IsProviderReqGPU {
+				log.Infof("对服务提供节点性能进行限制，将高性能限制为低性能")
+				appInfo.IsProviderReqGPU = false
+				tmp := make([]*model.Provider, 0)
+				for _, p := range providersOut {
+					if !p.IsContainGPU {
+						tmp = append(tmp, p)
+					}
 				}
-			}
-			depositoryList = newDopositoryList
-		}
-		if appInfo.IsFileStoreReqFastNetspeed {
-			newFilestoreList := make([]model.FileStoreCoreWithInst, 0)
-			for _, f := range filestoreList {
-				if f.IsContainFastNetspeed {
-					newFilestoreList = append(newFilestoreList, f)
+				providersOut = tmp
+			} else {
+				log.Infof("对内容存储节点性能进行限制，将高性能限制为低性能")
+				appInfo.IsFileStoreReqFastNetspeed = false
+				newFilestoreList := make([]model.FileStoreCoreWithInst, 0)
+				for _, f := range fileStoresOut {
+					if !f.IsContainFastNetspeed {
+						newFilestoreList = append(newFilestoreList, f)
+					}
 				}
+				fileStoresOut = newFilestoreList
 			}
-			filestoreList = newFilestoreList
+		}
+	} else {
+		log.Infof("资源充足，使用性能最佳策略")
+	}
+
+	// 4.2 正常筛选
+	tmp := make([]*model.Provider, 0)
+	for _, p := range providersOut {
+		if appInfo.IsProviderReqGPU && p.IsContainGPU && providersRemained[p.ID] >= 5.0 {
+			tmp = append(tmp, p)
+		} else if !appInfo.IsProviderReqGPU && providersRemained[p.ID] >= 2.0 {
+			tmp = append(tmp, p)
 		}
 	}
+	providersOut = tmp
+	if appInfo.IsDepositoryReqFastNetspeed {
+		newDopositoryList := make([]model.DepositoryCoreWithInst, 0)
+		for _, d := range depositoryOut {
+			if d.IsContainFastNetspeed {
+				newDopositoryList = append(newDopositoryList, d)
+			}
+		}
+		depositoryOut = newDopositoryList
+	}
+	newFilestoreList := make([]model.FileStoreCoreWithInst, 0)
+	for _, f := range fileStoresOut {
+		if appInfo.IsDepositoryReqFastNetspeed && f.IsContainFastNetspeed && fileStoresRemained[f.ID] >= 1.0 {
+			newFilestoreList = append(newFilestoreList, f)
+		} else if !appInfo.IsDepositoryReqFastNetspeed && fileStoresRemained[f.ID] >= 1.0 {
+			newFilestoreList = append(newFilestoreList, f)
+		}
+	}
+	fileStoresOut = newFilestoreList
 
-	log.Infof("select info, provider: %+v, depositoryList: %+v, filestoreList: %+v", candidatesGPU[0], depositoryList, filestoreList)
+	// 4.3 排序
+	sort.Slice(providersOut, func(i, j int) bool {
+		historyi := providersInRDS[providersOut[i].ID].GetMeanHistory()
+		historyj := providersInRDS[providersOut[j].ID].GetMeanHistory()
+		if historyi == "" {
+			return true
+		}
+		if historyj == "" {
+			return false
+		}
+		f1, err := strconv.ParseFloat(historyi[0:len(historyi)-3], 64)
+		if err != nil {
+			fmt.Println("providersOut strconv.ParseFloat(historyi[0:len(historyi)-3], 64) 转换失败:", err)
+			return false
+		}
+		f2, err := strconv.ParseFloat(historyj[0:len(historyj)-3], 64)
+		if err != nil {
+			fmt.Println("providersOut strconv.ParseFloat(historyj[0:len(historyj)-3], 64) 转换失败:", err)
+			return false
+		}
+		if f1 != f2 {
+			return f1 <= f2
+		}
+		return 5.0/providersOut[i].Bandwidth+providersOut[i].Latency <= 5.0/providersOut[j].Bandwidth+providersOut[j].Latency
+	})
+	sort.Slice(fileStoresOut, func(i, j int) bool {
+		historyi := fileStoresOut[i].GetMeanHistory()
+		historyj := fileStoresOut[j].GetMeanHistory()
+		if historyi == "" {
+			return true
+		}
+		if historyj == "" {
+			return false
+		}
+		f1, err := strconv.ParseFloat(historyi[0:len(historyi)-3], 64)
+		if err != nil {
+			fmt.Println("fileStoresOut strconv.ParseFloat(historyi[0:len(historyi)-3], 64) 转换失败:", err)
+			return false
+		}
+		f2, err := strconv.ParseFloat(historyj[0:len(historyj)-3], 64)
+		if err != nil {
+			fmt.Println("fileStoresOut strconv.ParseFloat(historyj[0:len(historyj)-3], 64) 转换失败:", err)
+			return false
+		}
+		if f1 != f2 {
+			return f1 <= f2
+		}
+		return 5.0/fileStoresOut[i].Bandwidth+fileStoresOut[i].Latency <= 5.0/fileStoresOut[j].Bandwidth+fileStoresOut[j].Latency
+	})
+	sort.Slice(depositoryOut, func(i, j int) bool {
+		historyi := depositoryOut[i].GetMeanHistory()
+		historyj := depositoryOut[j].GetMeanHistory()
+		if historyi == "" {
+			return true
+		}
+		if historyj == "" {
+			return false
+		}
+		f1, err := strconv.ParseFloat(historyi[0:len(historyi)-3], 64)
+		if err != nil {
+			fmt.Println("depositoryOut strconv.ParseFloat(historyi[0:len(historyi)-3], 64) 转换失败:", err)
+			return false
+		}
+		f2, err := strconv.ParseFloat(historyj[0:len(historyj)-3], 64)
+		if err != nil {
+			fmt.Println("depositoryOut strconv.ParseFloat(historyj[0:len(historyj)-3], 64) 转换失败:", err)
+			return false
+		}
+		if f1 != f2 {
+			return f1 <= f2
+		}
+		return depositoryOut[i].Bandwidth >= depositoryOut[j].Bandwidth
+	})
 
-	// Use Fisher-Yates algorithm to shuffle slices
-	for i := len(filestoreList) - 1; i > 0; i-- {
-		j := rand.Intn(i + 1)
-		filestoreList[i], filestoreList[j] = filestoreList[j], filestoreList[i]
+	log.Infof("select info, provider: %+v, depositoryOut: %+v, fileStoresOut: %+v", providersOut, depositoryOut, fileStoresOut)
+	if len(providersOut) == 0 || len(depositoryOut) == 0 || len(fileStoresOut) == 0 {
+		return nil, nil, nil, fmt.Errorf("not enough resourse to schedule")
 	}
 
-	for i := len(depositoryList) - 1; i > 0; i-- {
-		j := rand.Intn(i + 1)
-		depositoryList[i], depositoryList[j] = depositoryList[j], depositoryList[i]
-	}
+	log.Info("调度选择节点：")
+	providersInRDS[providersOut[0].ID].DetailedInfo()
+	fileStoresOut[0].DetailedInfo()
+	depositoryOut[0].DetailedInfo()
 
-	sc.Counter += 1
-
-	// todo: 打印目标节点的全部信息
-
-	return candidatesGPU[0], depositoryList, filestoreList, nil
+	return providersOut[0], depositoryOut, fileStoresOut, nil
 }
 
 /*

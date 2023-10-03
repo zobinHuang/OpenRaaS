@@ -120,6 +120,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		// define request format
 		var reqPacketData struct {
 			ConsumerType string `json:"consumer_type"`
+			UserName     string `json:"username"`
 		}
 
 		// parse request
@@ -147,6 +148,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 
 		// config consumer type
 		consumer.ConsumerType = reqPacketData.ConsumerType
+		consumer.UserName = reqPacketData.UserName
 		log.WithFields(log.Fields{
 			"ConsumerID":    consumer.ClientID,
 			"Consumer Type": reqPacketData.ConsumerType,

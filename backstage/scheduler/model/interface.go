@@ -111,6 +111,7 @@ type ConsumerDAL interface {
 	CreateConsumer(ctx context.Context, consumer *Consumer)
 	DeleteConsumer(ctx context.Context, consumerID string)
 	GetConsumerByID(ctx context.Context, consumerID string) (*Consumer, error)
+	GetConsumers() map[string]*Consumer
 	Clear()
 }
 

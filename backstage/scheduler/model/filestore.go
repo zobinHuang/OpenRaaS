@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -43,7 +44,7 @@ type FileStoreCore struct {
 // FileStoreCoreWithInst FileStoreCore with instance history in blockchain
 type FileStoreCoreWithInst struct {
 	FileStoreCore
-	InstHistory map[string]string `json:"inst_history"`
+	InstHistory utils.JSONMap `json:"inst_history" gorm:"omitempty"`
 }
 
 //////// util ////////
