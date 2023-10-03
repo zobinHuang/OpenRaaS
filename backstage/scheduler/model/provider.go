@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -39,7 +38,7 @@ type ProviderCore struct {
 // ProviderCoreWithInst ProviderCore with instance history in blockchain
 type ProviderCoreWithInst struct {
 	ProviderCore
-	InstHistory utils.JSONMap `json:"inst_history" gorm:"omitempty"`
+	InstHistory JSONMap `json:"inst_history" gorm:"omitempty"`
 }
 
 //////// util ////////
