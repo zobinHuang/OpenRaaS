@@ -304,6 +304,7 @@ func (h *Handler) ApplicationOnline(c *gin.Context) {
 		},
 		AppInfoAttach: model.AppInfoAttach{
 			FileStoreList:               headerData.FileStoreList,
+			ImageName:                   headerData.ImageName,
 			IsProviderReqGPU:            headerData.IsProviderReqGPU,
 			IsFileStoreReqFastNetspeed:  headerData.IsFileStoreReqFastNetspeed,
 			IsDepositoryReqFastNetspeed: headerData.IsDepositoryReqFastNetspeed,

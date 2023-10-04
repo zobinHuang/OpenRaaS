@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/liushuochen/gotable"
-	"strconv"
 	"strings"
+
+	"github.com/liushuochen/gotable"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
@@ -152,6 +152,7 @@ func (s *ApplicationService) AddFileStoreIDToAPPInRDS(ctx context.Context, info 
 
 func (s *ApplicationService) ShowEnterInfo(ctx context.Context, app *model.StreamApplication, nodeId string) {
 	log.Infof("%s, 软件上线, 软件 id: %s，上传节点 ID: %s", utils.GetCurrentTime(), app.ApplicationID, nodeId)
+	app.FileStoreList = nodeId[:5]
 	log.Infof("认知到新的软件资源，详细信息: %s", app.DetailedInfo())
 }
 
@@ -186,7 +187,7 @@ func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
 	//}
 	//depositoriesIdsStr, _ := json.Marshal(depositoriesIds)
 
-	table, err := gotable.Create("软件 ID", "软件名", "软件路径", "启动文件", "软件类型", "镜像 ID", "支持的内容存储节点", "是否需要高性能服务提供节点", "是否需要高性能内容存储节点", "是否需要高性能镜像仓库节点", "软件说明")
+	table, err := gotable.Create("软件ID", "软件名", "软件路径", "启动文件", "类型", "镜像名", "部署的节点", "计算资源需求", "存储资源需求 (读写)", "存储资源需求 (只读)", "软件说明")
 	if err != nil {
 		fmt.Println("ShowAllInfo ApplicationService Create table failed: ", err.Error())
 		return
@@ -201,8 +202,7 @@ func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
 			ids[i] = ids[i][0:5]
 		}
 		table.AddRow([]string{a.ApplicationID, a.ApplicationName, a.ApplicationPath, a.ApplicationFile, a.HWKey, a.ImageName, strings.Join(ids, ","),
-			strconv.FormatBool(a.IsProviderReqGPU), strconv.FormatBool(a.IsFileStoreReqFastNetspeed), strconv.FormatBool(a.IsDepositoryReqFastNetspeed),
-			a.Description})
+			a.ProviderReq(), a.FilestoreReq(), a.DepositoryReq(), a.Description})
 	}
 	fmt.Println("\n", table, "\n")
 }

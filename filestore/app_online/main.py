@@ -25,6 +25,7 @@ if __name__ == "__main__":
             "is_provider_req_gpu": config[tag+"provider_performance"],
             "is_filestore_req_fast_netspeed": config[tag+"filestore_performance"],
             "is_depository_req_fast_netspeed": config[tag+"depository_performance"],
+            "image_name": "dcwine"
         }
         json_data = json.dumps(dict_data)
         s_addr = "http://" + s_conf["ip"] + ":" + str(s_conf["port"])

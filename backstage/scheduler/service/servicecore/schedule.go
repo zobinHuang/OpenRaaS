@@ -229,7 +229,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		fmt.Println("Create table failed: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
-	for _, d := range depositoryOut {
+	for _, d := range depositoryList {
 		if d.GetAbnormalHistoryTimes() == 0 {
 			depositoryOut = append(depositoryOut, d)
 			table.AddRow([]string{d.ID[0:5], d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(),
@@ -239,7 +239,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 			log.Infof("剔除异常镜像仓库节点：%s，异常次数：%d，历史信息：%s", d.ID, d.GetAbnormalHistoryTimes(), d.InstHistory)
 		}
 	}
-	log.Info("镜像存储节点性能表现：")
+	log.Info("镜像仓库节点性能表现：")
 	fmt.Println("\n", table, "\n")
 
 	// 3.2 统计总资源量和已经使用的资源量

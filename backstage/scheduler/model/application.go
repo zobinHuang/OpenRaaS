@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -83,14 +82,38 @@ type AppInfoAttach struct {
 	IsDepositoryReqFastNetspeed bool   `gorm:"not null" json:"is_depository_req_fast_netspeed"`
 }
 
+func (s StreamApplication) ProviderReq() string {
+	if s.IsProviderReqGPU {
+		return "高性能 (GPU)"
+	} else {
+		return "普通"
+	}
+}
+
+func (s StreamApplication) FilestoreReq() string {
+	if s.IsFileStoreReqFastNetspeed {
+		return "高速读写"
+	} else {
+		return "普通"
+	}
+}
+
+func (s StreamApplication) DepositoryReq() string {
+	if s.IsDepositoryReqFastNetspeed {
+		return "高速读取"
+	} else {
+		return "普通"
+	}
+}
+
 func (s StreamApplication) DetailedInfo() string {
 	// Customize fmt.Println(s)
-	l1 := fmt.Sprintf("软件 ID: %s | 软件名: %s ", s.ApplicationID, s.ApplicationName)
-	l2 := fmt.Sprintf("软件路径: %s | 启动文件: %s | 软件类型: %s | 镜像 ID: %s", s.ApplicationPath, s.ApplicationFile, s.HWKey, s.ImageName)
-	l3 := fmt.Sprintf("支持的内容存储节点: %s | 软件说明: %s", s.FileStoreList, s.Description)
-	l4 := fmt.Sprintf("是否需要高性能服务提供节点：%s", strconv.FormatBool(s.IsProviderReqGPU))
-	l5 := fmt.Sprintf("是否需要高性能内容存储节点：%s", strconv.FormatBool(s.IsFileStoreReqFastNetspeed))
-	l6 := fmt.Sprintf("是否需要高性能镜像仓库节点：%s", strconv.FormatBool(s.IsDepositoryReqFastNetspeed))
+	l1 := fmt.Sprintf("软件ID: %s | 软件名: %s ", s.ApplicationID, s.ApplicationName)
+	l2 := fmt.Sprintf("软件路径: %s | 启动文件: %s | 类型: %s | 镜像名: %s", s.ApplicationPath, s.ApplicationFile, s.HWKey, s.ImageName)
+	l3 := fmt.Sprintf("部署的节点: %s | 软件说明: %s", s.FileStoreList, s.Description)
+	l4 := fmt.Sprintf("计算资源需求: %s", s.ProviderReq())
+	l5 := fmt.Sprintf("存储资源需求 (读写): %s", s.FilestoreReq())
+	l6 := fmt.Sprintf("存储资源需求 (只读): %s", s.DepositoryReq())
 
 	ans := l1 + "\n" + l2 + "\n" + l3 + "\n" + l4 + "\n" + l5 + "\n" + l6 + "\n"
 
