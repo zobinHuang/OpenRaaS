@@ -169,7 +169,7 @@ const PageHeader = (props) => {
                         </AvatarContainer>
                         <UserInfoContainer>
                             <Link to="/user" style={{ textDecoration: 'none' }}>
-                                <UserName>{StateAuth.username}</UserName>
+                                <UserName name="user_name">{StateAuth.username}</UserName>
                             </Link>
                         </UserInfoContainer>
                         <Button

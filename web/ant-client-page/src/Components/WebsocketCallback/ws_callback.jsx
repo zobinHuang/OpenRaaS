@@ -97,15 +97,23 @@ const WebsocketCallback = (props) => {
                 "terminal_key": `${terminalKey}`,
                 "current_step_index": TERMINAL_STEP_SCHEDULE_COMPUTE_NODE
             }))
+            
+            
+            const paragraph = document.querySelector('p[name="user_name"]');
+            const username = paragraph.textContent;
 
             // send consummer metadata to scheduler
             let reqWSPacket = JSON.stringify({
                 packet_type: "init_consumer_metadata",
                 data: JSON.stringify({ 
-                    consumer_type: stateTerminals.terminalsMap[terminalKey].applicationMeta.currentSelectedApplicationType,
+                    "consumer_type": stateTerminals.terminalsMap[terminalKey].applicationMeta.currentSelectedApplicationType,
+                    "username": username,
                 }),
             })
             ws.send(reqWSPacket)
+
+            // console.log(reqWSPacket)
+            // console.log("Sent username to server in init_consumer_metadata.");
 
             // append terminal log
             dispatch(TerminalActions.updateTerminal({
