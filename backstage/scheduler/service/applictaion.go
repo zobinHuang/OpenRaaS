@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/liushuochen/gotable"
 	"strconv"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
@@ -125,6 +126,11 @@ func (s *ApplicationService) AddFileStoreIDToAPPInRDS(ctx context.Context, info 
 			if err := json.Unmarshal([]byte(app.FileStoreList), &ids); err != nil {
 				return err
 			}
+			for _, tmp := range ids {
+				if tmp == id {
+					return nil
+				}
+			}
 			ids = append(ids, id)
 			idsStr, err := json.Marshal(&ids)
 			if err != nil {
@@ -146,7 +152,7 @@ func (s *ApplicationService) AddFileStoreIDToAPPInRDS(ctx context.Context, info 
 
 func (s *ApplicationService) ShowEnterInfo(ctx context.Context, app *model.StreamApplication, nodeId string) {
 	log.Infof("%s, 软件上线, 软件 id: %s，上传节点 ID: %s", utils.GetCurrentTime(), app.ApplicationID, nodeId)
-	log.Infof("详细信息: %s", app.DetailedInfo())
+	log.Infof("认知到新的软件资源，详细信息: %s", app.DetailedInfo())
 }
 
 func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
@@ -186,7 +192,15 @@ func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
 		return
 	}
 	for _, a := range apps {
-		table.AddRow([]string{a.ApplicationID, a.ApplicationName, a.ApplicationPath, a.ApplicationFile, a.HWKey, a.ImageName, a.FileStoreList,
+		if len(a.ApplicationID) > 5 {
+			a.ApplicationID = a.ApplicationID[0:5]
+		}
+		var ids []string
+		json.Unmarshal([]byte(a.FileStoreList), &ids)
+		for i := 0; i < len(ids); i++ {
+			ids[i] = ids[i][0:5]
+		}
+		table.AddRow([]string{a.ApplicationID, a.ApplicationName, a.ApplicationPath, a.ApplicationFile, a.HWKey, a.ImageName, strings.Join(ids, ","),
 			strconv.FormatBool(a.IsProviderReqGPU), strconv.FormatBool(a.IsFileStoreReqFastNetspeed), strconv.FormatBool(a.IsDepositoryReqFastNetspeed),
 			a.Description})
 	}

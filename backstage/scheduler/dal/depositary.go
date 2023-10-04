@@ -71,7 +71,7 @@ func (d *DepositoryDAL) CreateDepositoryInRDS(ctx context.Context, info *model.D
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("depository_cores").Create(info).Error; err != nil {
+	if err := tx.Table("depository_core_with_insts").Create(info).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"info":  info,
@@ -88,7 +88,7 @@ func (d *DepositoryDAL) DeleteDepositoryInRDSByID(ctx context.Context, id string
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("depository_cores").Where("id=?", id).Delete(&model.DepositoryCoreWithInst{}).Error; err != nil {
+	if err := tx.Table("depository_core_with_insts").Where("id=?", id).Delete(&model.DepositoryCoreWithInst{}).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    id,
@@ -106,7 +106,7 @@ func (d *DepositoryDAL) GetDepositoryInRDS(ctx context.Context) ([]model.Deposit
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("depository_cores").Find(&infos).Error; err != nil {
+	if err := tx.Table("depository_core_with_insts").Find(&infos).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Warn("Failed to obtain all depository core info from rds")
@@ -123,7 +123,7 @@ func (d *DepositoryDAL) GetDepositoryInRDSByID(ctx context.Context, id string) (
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("depository_cores").Where("id = ?", id).First(&info).Error; err != nil {
+	if err := tx.Table("depository_core_with_insts").Where("id = ?", id).First(&info).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    id,
@@ -139,7 +139,7 @@ func (d *DepositoryDAL) UpdateDepositoryInRDSByID(ctx context.Context, info *mod
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("depository_cores").Where("id=?", info.ID).Updates(info).Error; err != nil {
+	if err := tx.Table("depository_core_with_insts").Where("id=?", info.ID).Updates(info).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    info.ID,
@@ -157,7 +157,7 @@ func (d *DepositoryDAL) GetDepositoryBetweenIDInRDS(ctx context.Context, ids []s
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("depository_cores").Where("id IN (?)", ids).Find(&infos).Error; err != nil {
+	if err := tx.Table("depository_core_with_insts").Where("id IN (?)", ids).Find(&infos).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Warn("Failed to obtain all depository core info from rds")
@@ -169,7 +169,7 @@ func (d *DepositoryDAL) GetDepositoryBetweenIDInRDS(ctx context.Context, ids []s
 
 // Clear delete all
 func (d *DepositoryDAL) Clear() {
-	if err := d.DB.Exec("DELETE FROM public.depository_cores").Error; err != nil {
+	if err := d.DB.Exec("DELETE FROM public.depository_core_with_insts").Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Fail to clear depository core table")
@@ -214,11 +214,11 @@ func (d *DepositoryDAL) ShowInfoFromRDS(depositories []model.DepositoryCoreWithI
 	}
 	for _, d := range depositories {
 		if d.GetAbnormalHistoryTimes() == 0 {
-			table.AddRow([]string{d.ID, d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
+			table.AddRow([]string{d.ID[0:5], d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
 				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
 				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
 		} else {
-			table.AddRow([]string{d.ID + "*", d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
+			table.AddRow([]string{d.ID[0:5] + "*", d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
 				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
 				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
 		}

@@ -89,7 +89,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		providers[i].Port = pInfo.Port
 		providers[i].Processor = pInfo.Processor
 		providers[i].IsContainGPU = pInfo.IsContainGPU
-		providersIDList = append(providersIDList, p.ClientID)
+		providersIDList = append(providersIDList, p.ClientID[0:5])
 		providersInRDS[p.ID] = pInfo
 	}
 
@@ -113,12 +113,15 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	}
 	depositoryIDList := make([]string, 0)
 	for _, d := range depositoryList {
-		depositoryIDList = append(depositoryIDList, d.ID)
+		depositoryIDList = append(depositoryIDList, d.ID[0:5])
 	}
 
 	filestoreList, err := sc.FileStoreDAL.GetFileStoreInRDSBetweenID(ctx, fileStoreIDList)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+	for i := 0; i < len(fileStoreIDList); i++ {
+		fileStoreIDList[i] = fileStoreIDList[i][0:5]
 	}
 
 	// 打印所有满足要求的 ID 列表
@@ -193,7 +196,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	for _, p := range providers {
 		if providersInRDS[p.ID].GetAbnormalHistoryTimes() == 0 {
 			providersOut = append(providersOut, p)
-			table.AddRow([]string{p.ID, p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
+			table.AddRow([]string{p.ID[0:5], p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
 				fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency), fmt.Sprintf("%.2f Mbps", p.Bandwidth),
 				fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
 		} else {
@@ -211,7 +214,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	for _, f := range filestoreList {
 		if f.GetAbnormalHistoryTimes() == 0 {
 			fileStoresOut = append(fileStoresOut, f)
-			table.AddRow([]string{f.ID, f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
+			table.AddRow([]string{f.ID[0:5], f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
 				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency), strconv.FormatBool(f.IsContainFastNetspeed),
 				fmt.Sprintf("%d", f.GetAbnormalHistoryTimes())})
 		} else {
@@ -229,7 +232,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	for _, d := range depositoryOut {
 		if d.GetAbnormalHistoryTimes() == 0 {
 			depositoryOut = append(depositoryOut, d)
-			table.AddRow([]string{d.ID, d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
+			table.AddRow([]string{d.ID[0:5], d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
 				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
 				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
 		} else {

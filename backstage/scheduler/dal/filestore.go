@@ -71,7 +71,7 @@ func (d *FileStoreDAL) CreateFileStoreInRDS(ctx context.Context, info *model.Fil
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("file_store_cores").Create(info).Error; err != nil {
+	if err := tx.Table("file_store_core_with_insts").Create(info).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"info":  info,
@@ -88,7 +88,7 @@ func (d *FileStoreDAL) DeleteFileStoreInRDSByID(ctx context.Context, id string) 
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("file_store_cores").Where("id=?", id).Delete(&model.FileStoreCoreWithInst{}).Error; err != nil {
+	if err := tx.Table("file_store_core_with_insts").Where("id=?", id).Delete(&model.FileStoreCoreWithInst{}).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    id,
@@ -107,7 +107,7 @@ func (d *FileStoreDAL) GetFileStoreInRDS(ctx context.Context) ([]model.FileStore
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("file_store_cores").Find(&infos).Error; err != nil {
+	if err := tx.Table("file_store_core_with_insts").Find(&infos).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Warn("Failed to obtain all file store core info from rds")
@@ -124,7 +124,7 @@ func (d *FileStoreDAL) GetFileStoreInRDSByID(ctx context.Context, id string) (*m
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("file_store_cores").Where("id = ?", id).First(&info).Error; err != nil {
+	if err := tx.Table("file_store_core_with_insts").Where("id = ?", id).First(&info).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    id,
@@ -140,7 +140,7 @@ func (d *FileStoreDAL) UpdateFileStoreInRDSByID(ctx context.Context, info *model
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("file_store_cores").Where("id=?", info.ID).Updates(info).Error; err != nil {
+	if err := tx.Table("file_store_core_with_insts").Where("id=?", info.ID).Updates(info).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    info.ID,
@@ -158,7 +158,7 @@ func (d *FileStoreDAL) GetFileStoreInRDSBetweenID(ctx context.Context, ids []str
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("file_store_cores").Where("id IN (?)", ids).Find(&infos).Error; err != nil {
+	if err := tx.Table("file_store_core_with_insts").Where("id IN (?)", ids).Find(&infos).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Warn("Failed to obtain all file store core info from rds")
@@ -170,10 +170,10 @@ func (d *FileStoreDAL) GetFileStoreInRDSBetweenID(ctx context.Context, ids []str
 
 // Clear delete all
 func (d *FileStoreDAL) Clear() {
-	if err := d.DB.Exec("DELETE FROM public.file_store_cores").Error; err != nil {
+	if err := d.DB.Exec("DELETE FROM public.file_store_core_with_insts").Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
-		}).Error("Fail to clear file_store_cores table")
+		}).Error("Fail to clear file_store_core_with_insts table")
 	}
 }
 
@@ -215,11 +215,11 @@ func (d *FileStoreDAL) ShowInfoFromRDS(fileStores []model.FileStoreCoreWithInst)
 	}
 	for _, f := range fileStores {
 		if f.GetAbnormalHistoryTimes() == 0 {
-			table.AddRow([]string{f.ID, f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
+			table.AddRow([]string{f.ID[0:5], f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
 				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency), strconv.FormatBool(f.IsContainFastNetspeed),
 				fmt.Sprintf("%d", f.GetAbnormalHistoryTimes())})
 		} else {
-			table.AddRow([]string{f.ID + "*", f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
+			table.AddRow([]string{f.ID[0:5] + "*", f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
 				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency), strconv.FormatBool(f.IsContainFastNetspeed),
 				fmt.Sprintf("%d", f.GetAbnormalHistoryTimes())})
 		}

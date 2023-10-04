@@ -79,7 +79,7 @@ func (d *ProviderDAL) CreateProviderInRDS(ctx context.Context, provider *model.P
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("provider_cores").Create(provider).Error; err != nil {
+	if err := tx.Table("provider_core_with_insts").Create(provider).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error":    err,
 			"provider": provider,
@@ -96,7 +96,7 @@ func (d *ProviderDAL) DeleteProviderInRDSByID(ctx context.Context, id string) er
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("provider_cores").Where("id=?", id).Delete(&model.ProviderCoreWithInst{}).Error; err != nil {
+	if err := tx.Table("provider_core_with_insts").Where("id=?", id).Delete(&model.ProviderCoreWithInst{}).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    id,
@@ -115,7 +115,7 @@ func (d *ProviderDAL) GetProviderInRDS(ctx context.Context) ([]model.ProviderCor
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("provider_cores").Find(&infos).Error; err != nil {
+	if err := tx.Table("provider_core_with_insts").Find(&infos).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Warn("Failed to obtain all provider core info from rds")
@@ -132,7 +132,7 @@ func (d *ProviderDAL) GetProviderInRDSByID(ctx context.Context, id string) (*mod
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("provider_cores").Where("id = ?", id).First(&info).Error; err != nil {
+	if err := tx.Table("provider_core_with_insts").Where("id = ?", id).First(&info).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    id,
@@ -148,7 +148,7 @@ func (d *ProviderDAL) UpdateProviderInRDSByID(ctx context.Context, provider *mod
 	tx := d.DB.WithContext(ctx)
 
 	// query in database
-	if err := tx.Table("provider_cores").Where("id=?", provider.ID).Updates(provider).Error; err != nil {
+	if err := tx.Table("provider_core_with_insts").Where("id=?", provider.ID).Updates(provider).Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 			"id":    provider.ID,
@@ -160,10 +160,10 @@ func (d *ProviderDAL) UpdateProviderInRDSByID(ctx context.Context, provider *mod
 
 // Clear delete all
 func (d *ProviderDAL) Clear() {
-	if err := d.DB.Exec("DELETE FROM public.provider_cores").Error; err != nil {
+	if err := d.DB.Exec("DELETE FROM public.provider_core_with_insts").Error; err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
-		}).Error("Fail to clear provider_cores table")
+		}).Error("Fail to clear provider_core_with_insts table")
 	}
 }
 
@@ -254,11 +254,11 @@ func (d *ProviderDAL) ShowInfoFromClient(providers []*model.Provider, providersI
 	}
 	for _, p := range providers {
 		if providersInRDS[p.ID].GetAbnormalHistoryTimes() == 0 {
-			table.AddRow([]string{p.ID, p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
+			table.AddRow([]string{p.ID[0:5], p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
 				fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency), fmt.Sprintf("%.2f Mbps", p.Bandwidth),
 				fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
 		} else {
-			table.AddRow([]string{p.ID + "*", p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
+			table.AddRow([]string{p.ID[0:5] + "*", p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
 				fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency), fmt.Sprintf("%.2f Mbps", p.Bandwidth),
 				fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
 		}
