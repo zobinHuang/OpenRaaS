@@ -184,6 +184,9 @@ func (d *DepositoryDAL) ShowInfoFromRDS(depositories []model.DepositoryCoreWithI
 		if depositories[j].IsContainFastNetspeed {
 			return false
 		}
+		if depositories[i].Bandwidth != depositories[j].Bandwidth {
+			return depositories[i].Bandwidth > depositories[j].Bandwidth
+		}
 		historyi := depositories[i].GetMeanHistory()
 		historyj := depositories[j].GetMeanHistory()
 		if historyi == "" {
@@ -202,23 +205,20 @@ func (d *DepositoryDAL) ShowInfoFromRDS(depositories []model.DepositoryCoreWithI
 			fmt.Println("ShowInfoFromRDS fileStores strconv.ParseFloat(historyj[0:len(historyj)-3], 64) 转换失败:", err)
 			return false
 		}
-		if f1 != f2 {
-			return f1 <= f2
-		}
-		return depositories[i].Bandwidth >= depositories[j].Bandwidth
+		return f1 <= f2
 	})
-	table, err := gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
+	table, err := gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
 	if err != nil {
 		fmt.Println("ShowInfoFromRDS DepositoryDAL Create table failed: ", err.Error())
 		return
 	}
 	for _, d := range depositories {
 		if d.GetAbnormalHistoryTimes() == 0 {
-			table.AddRow([]string{d.ID[0:5], d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
+			table.AddRow([]string{d.ID[0:5], d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
 				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
 		} else {
-			table.AddRow([]string{d.ID[0:5] + "*", d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
+			table.AddRow([]string{d.ID[0:5] + "*", d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
 				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
 		}

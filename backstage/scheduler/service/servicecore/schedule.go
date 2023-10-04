@@ -188,7 +188,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	depositoryOut := make([]model.DepositoryCoreWithInst, 0)
 
 	// 3.1 排除异常节点
-	table, err = gotable.Create("节点 ID", "节点 IP", "计算能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否有 GPU", "异常服务次数")
+	table, err = gotable.Create("节点 ID", "节点 IP", "计算能力", "平均历史服务质量", "带宽", "时延", "是否有 GPU", "异常服务次数")
 	if err != nil {
 		fmt.Println("Create table failed: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
@@ -197,8 +197,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		if providersInRDS[p.ID].GetAbnormalHistoryTimes() == 0 {
 			providersOut = append(providersOut, p)
 			table.AddRow([]string{p.ID[0:5], p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
-				fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency), fmt.Sprintf("%.2f Mbps", p.Bandwidth),
-				fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
+				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU),
+				fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
 		} else {
 			log.Infof("剔除异常服务提供节点：%s，异常次数：%d，历史信息：%s", p.ID, providersInRDS[p.ID].GetAbnormalHistoryTimes(), providersInRDS[p.ID].InstHistory)
 		}
@@ -206,7 +206,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	log.Info("服务提供节点性能表现：")
 	fmt.Println("\n", table, "\n")
 
-	table, err = gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
+	table, err = gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
 	if err != nil {
 		fmt.Println("Create table failed: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
@@ -214,7 +214,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	for _, f := range filestoreList {
 		if f.GetAbnormalHistoryTimes() == 0 {
 			fileStoresOut = append(fileStoresOut, f)
-			table.AddRow([]string{f.ID[0:5], f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
+			table.AddRow([]string{f.ID[0:5], f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency), strconv.FormatBool(f.IsContainFastNetspeed),
 				fmt.Sprintf("%d", f.GetAbnormalHistoryTimes())})
 		} else {
@@ -224,7 +224,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	log.Info("内容存储节点性能表现：")
 	fmt.Println("\n", table, "\n")
 
-	table, err = gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
+	table, err = gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
 	if err != nil {
 		fmt.Println("Create table failed: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
@@ -232,7 +232,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	for _, d := range depositoryOut {
 		if d.GetAbnormalHistoryTimes() == 0 {
 			depositoryOut = append(depositoryOut, d)
-			table.AddRow([]string{d.ID[0:5], d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
+			table.AddRow([]string{d.ID[0:5], d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
 				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
 		} else {

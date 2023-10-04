@@ -198,17 +198,17 @@ func (d *ProviderDAL) ShowInfoFromRDS(providers []model.ProviderCoreWithInst) {
 		}
 		return 5.0/providers[i].Bandwidth+providers[i].Latency <= 5.0/providers[j].Bandwidth+providers[j].Latency
 	})
-	table, err := gotable.Create("节点 ID", "节点 IP", "计算能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否有 GPU", "异常服务次数")
+	table, err := gotable.Create("节点 ID", "节点 IP", "计算能力", "平均历史服务质量", "带宽", "时延", "是否有 GPU", "异常服务次数")
 	if err != nil {
 		fmt.Println("ShowInfoFromRDS providers Create table failed: ", err.Error())
 		return
 	}
 	for _, p := range providers {
 		if p.GetAbnormalHistoryTimes() == 0 {
-			table.AddRow([]string{p.ID[0:5], p.IP, fmt.Sprintf("%.2f GF", p.Processor), p.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency),
+			table.AddRow([]string{p.ID[0:5], p.IP, fmt.Sprintf("%.2f GF", p.Processor), p.GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", p.GetAbnormalHistoryTimes())})
 		} else {
-			table.AddRow([]string{p.ID[0:5] + "*", p.IP, fmt.Sprintf("%.2f GF", p.Processor), p.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency),
+			table.AddRow([]string{p.ID[0:5] + "*", p.IP, fmt.Sprintf("%.2f GF", p.Processor), p.GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", p.GetAbnormalHistoryTimes())})
 		}
 	}
@@ -247,7 +247,7 @@ func (d *ProviderDAL) ShowInfoFromClient(providers []*model.Provider, providersI
 		}
 		return 5.0/providers[i].Bandwidth+providers[i].Latency <= 5.0/providers[j].Bandwidth+providers[j].Latency
 	})
-	table, err := gotable.Create("节点 ID", "节点 IP", "计算能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否有 GPU", "异常服务次数")
+	table, err := gotable.Create("节点 ID", "节点 IP", "计算能力", "平均历史服务质量", "带宽", "时延", "是否有 GPU", "异常服务次数")
 	if err != nil {
 		fmt.Println("ShowInfoFromClient providers Create table failed: ", err.Error())
 		return
@@ -255,12 +255,12 @@ func (d *ProviderDAL) ShowInfoFromClient(providers []*model.Provider, providersI
 	for _, p := range providers {
 		if providersInRDS[p.ID].GetAbnormalHistoryTimes() == 0 {
 			table.AddRow([]string{p.ID[0:5], p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
-				fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency), fmt.Sprintf("%.2f Mbps", p.Bandwidth),
-				fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
+				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency),
+				strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
 		} else {
 			table.AddRow([]string{p.ID[0:5] + "*", p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
-				fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency), fmt.Sprintf("%.2f Mbps", p.Bandwidth),
-				fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
+				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency),
+				strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
 		}
 	}
 	log.Info("服务提供节点性能表现：")

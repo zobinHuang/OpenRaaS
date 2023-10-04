@@ -208,18 +208,18 @@ func (d *FileStoreDAL) ShowInfoFromRDS(fileStores []model.FileStoreCoreWithInst)
 		}
 		return 5.0/fileStores[i].Bandwidth+fileStores[i].Latency <= 5.0/fileStores[j].Bandwidth+fileStores[j].Latency
 	})
-	table, err := gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
+	table, err := gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
 	if err != nil {
 		fmt.Println("ShowInfoFromRDS FileStoreDAL Create table failed: ", err.Error())
 		return
 	}
 	for _, f := range fileStores {
 		if f.GetAbnormalHistoryTimes() == 0 {
-			table.AddRow([]string{f.ID[0:5], f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
+			table.AddRow([]string{f.ID[0:5], f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency), strconv.FormatBool(f.IsContainFastNetspeed),
 				fmt.Sprintf("%d", f.GetAbnormalHistoryTimes())})
 		} else {
-			table.AddRow([]string{f.ID[0:5] + "*", f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
+			table.AddRow([]string{f.ID[0:5] + "*", f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency), strconv.FormatBool(f.IsContainFastNetspeed),
 				fmt.Sprintf("%d", f.GetAbnormalHistoryTimes())})
 		}
