@@ -39,13 +39,8 @@ func (s *DepositoryService) UpdateFileStoreInRDS(ctx context.Context, info *mode
 }
 
 func (s *DepositoryService) ShowEnterInfo(ctx context.Context, depository *model.DepositoryCoreWithInst) {
-	log.Infof("%s, allow new depository enter, id: %s", utils.GetCurrentTime(), depository.ID)
-	performance := "normal"
-	if depository.IsContainFastNetspeed {
-		performance = "powerful"
-	}
-	log.Infof("%s, New depository id: %s, ip: %s, mem: %f GB, type: %s",
-		utils.GetCurrentTime(), depository.ID, depository.IP, depository.Mem, performance)
+	log.Infof("%s, 新镜像仓库节点上线, ID: %s", utils.GetCurrentTime(), depository.ID)
+	log.Infof("详细信息：\n", depository.DetailedInfo())
 }
 
 func (s *DepositoryService) ShowAllInfo(ctx context.Context) {
@@ -58,6 +53,7 @@ func (s *DepositoryService) ShowAllInfo(ctx context.Context) {
 	totalMem := 0.0
 	powerNum := 0
 	normalNum := 0
+	abnormalNum := 0
 	for _, d := range depositories {
 		if d.IsContainFastNetspeed {
 			powerNum += 1
@@ -65,15 +61,14 @@ func (s *DepositoryService) ShowAllInfo(ctx context.Context) {
 			normalNum += 1
 		}
 		totalMem += d.Mem
-	}
-	log.Infof("%s, Depositories Info, Total: %d nodes, %f GB MEM, %d powerful node, %d normal node",
-		utils.GetCurrentTime(), len(depositories), totalMem, powerNum, normalNum)
-	for _, d := range depositories {
-		performance := "normal"
-		if d.IsContainFastNetspeed {
-			performance = "powerful"
+		if d.GetAbnormalHistoryTimes() != 0 {
+			abnormalNum += 1
 		}
-		log.Infof("%s, depository id: %s, ip: %s, mem: %f GB, type: %s",
-			utils.GetCurrentTime(), d.ID, d.IP, d.Mem, performance)
 	}
+	log.Infof("整合前，镜像仓库节点信息：%+v", depositories)
+	log.Infof("整合后，镜像仓库节点信息：")
+	log.Infof("%s, 节点数量：%d, 总存储资源：%f GB MEM, 高性能节点数量：%d, 低性能节点数量：%d，异常节点数量： %d",
+		utils.GetCurrentTime(), len(depositories), totalMem, powerNum, normalNum, abnormalNum)
+	log.Infof("ID 后有 * 表示服务异常节点")
+	s.DepositoryDAL.ShowInfoFromRDS(depositories)
 }

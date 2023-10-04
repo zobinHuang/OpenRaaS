@@ -2,6 +2,10 @@ package dal
 
 import (
 	"context"
+	"fmt"
+	"github.com/liushuochen/gotable"
+	"sort"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -170,4 +174,55 @@ func (d *DepositoryDAL) Clear() {
 			"error": err,
 		}).Error("Fail to clear depository core table")
 	}
+}
+
+func (d *DepositoryDAL) ShowInfoFromRDS(depositories []model.DepositoryCoreWithInst) {
+	sort.Slice(depositories, func(i, j int) bool {
+		if depositories[i].IsContainFastNetspeed {
+			return true
+		}
+		if depositories[j].IsContainFastNetspeed {
+			return false
+		}
+		historyi := depositories[i].GetMeanHistory()
+		historyj := depositories[j].GetMeanHistory()
+		if historyi == "" {
+			return true
+		}
+		if historyj == "" {
+			return false
+		}
+		f1, err := strconv.ParseFloat(historyi[0:len(historyi)-4], 64)
+		if err != nil {
+			fmt.Println("ShowInfoFromRDS fileStores strconv.ParseFloat(historyi[0:len(historyi)-3], 64) 转换失败:", err)
+			return false
+		}
+		f2, err := strconv.ParseFloat(historyj[0:len(historyj)-4], 64)
+		if err != nil {
+			fmt.Println("ShowInfoFromRDS fileStores strconv.ParseFloat(historyj[0:len(historyj)-3], 64) 转换失败:", err)
+			return false
+		}
+		if f1 != f2 {
+			return f1 <= f2
+		}
+		return depositories[i].Bandwidth >= depositories[j].Bandwidth
+	})
+	table, err := gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
+	if err != nil {
+		fmt.Println("ShowInfoFromRDS DepositoryDAL Create table failed: ", err.Error())
+		return
+	}
+	for _, d := range depositories {
+		if d.GetAbnormalHistoryTimes() == 0 {
+			table.AddRow([]string{d.ID, d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
+				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
+				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
+		} else {
+			table.AddRow([]string{d.ID + "*", d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
+				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
+				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
+		}
+	}
+	log.Info("镜像仓库节点性能表现：")
+	fmt.Println("\n", table, "\n")
 }

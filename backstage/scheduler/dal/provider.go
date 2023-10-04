@@ -2,6 +2,10 @@ package dal
 
 import (
 	"context"
+	"fmt"
+	"github.com/liushuochen/gotable"
+	"sort"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -161,4 +165,104 @@ func (d *ProviderDAL) Clear() {
 			"error": err,
 		}).Error("Fail to clear provider_cores table")
 	}
+}
+
+func (d *ProviderDAL) ShowInfoFromRDS(providers []model.ProviderCoreWithInst) {
+	sort.Slice(providers, func(i, j int) bool {
+		if providers[i].IsContainGPU {
+			return true
+		}
+		if providers[j].IsContainGPU {
+			return false
+		}
+		historyi := providers[i].GetMeanHistory()
+		historyj := providers[j].GetMeanHistory()
+		if historyi == "" {
+			return true
+		}
+		if historyj == "" {
+			return false
+		}
+		f1, err := strconv.ParseFloat(historyi[0:len(historyi)-3], 64)
+		if err != nil {
+			fmt.Println("ShowInfoFromRDS providers strconv.ParseFloat(historyi[0:len(historyi)-3], 64) 转换失败:", err)
+			return false
+		}
+		f2, err := strconv.ParseFloat(historyj[0:len(historyj)-3], 64)
+		if err != nil {
+			fmt.Println("ShowInfoFromRDS providers strconv.ParseFloat(historyj[0:len(historyj)-3], 64) 转换失败:", err)
+			return false
+		}
+		if f1 != f2 {
+			return f1 <= f2
+		}
+		return 5.0/providers[i].Bandwidth+providers[i].Latency <= 5.0/providers[j].Bandwidth+providers[j].Latency
+	})
+	table, err := gotable.Create("节点 ID", "节点 IP", "计算能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否有 GPU", "异常服务次数")
+	if err != nil {
+		fmt.Println("ShowInfoFromRDS providers Create table failed: ", err.Error())
+		return
+	}
+	for _, p := range providers {
+		if p.GetAbnormalHistoryTimes() == 0 {
+			table.AddRow([]string{p.ID, p.IP, fmt.Sprintf("%.2f GF", p.Processor), p.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency),
+				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", p.GetAbnormalHistoryTimes())})
+		} else {
+			table.AddRow([]string{p.ID + "*", p.IP, fmt.Sprintf("%.2f GF", p.Processor), p.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency),
+				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", p.GetAbnormalHistoryTimes())})
+		}
+	}
+	log.Info("服务提供节点性能表现：")
+	fmt.Println("\n", table, "\n")
+}
+
+func (d *ProviderDAL) ShowInfoFromClient(providers []*model.Provider, providersInRDS map[string]*model.ProviderCoreWithInst) {
+	sort.Slice(providers, func(i, j int) bool {
+		if providers[i].IsContainGPU {
+			return true
+		}
+		if providers[j].IsContainGPU {
+			return false
+		}
+		historyi := providersInRDS[providers[i].ID].GetMeanHistory()
+		historyj := providersInRDS[providers[j].ID].GetMeanHistory()
+		if historyi == "" {
+			return true
+		}
+		if historyj == "" {
+			return false
+		}
+		f1, err := strconv.ParseFloat(historyi[0:len(historyi)-3], 64)
+		if err != nil {
+			fmt.Println("ShowInfoFromClient providers strconv.ParseFloat(historyi[0:len(historyi)-3], 64) 转换失败:", err)
+			return false
+		}
+		f2, err := strconv.ParseFloat(historyj[0:len(historyj)-3], 64)
+		if err != nil {
+			fmt.Println("ShowInfoFromClient providers strconv.ParseFloat(historyj[0:len(historyj)-3], 64) 转换失败:", err)
+			return false
+		}
+		if f1 != f2 {
+			return f1 <= f2
+		}
+		return 5.0/providers[i].Bandwidth+providers[i].Latency <= 5.0/providers[j].Bandwidth+providers[j].Latency
+	})
+	table, err := gotable.Create("节点 ID", "节点 IP", "计算能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否有 GPU", "异常服务次数")
+	if err != nil {
+		fmt.Println("ShowInfoFromClient providers Create table failed: ", err.Error())
+		return
+	}
+	for _, p := range providers {
+		if providersInRDS[p.ID].GetAbnormalHistoryTimes() == 0 {
+			table.AddRow([]string{p.ID, p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
+				fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency), fmt.Sprintf("%.2f Mbps", p.Bandwidth),
+				fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
+		} else {
+			table.AddRow([]string{p.ID + "*", p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
+				fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency), fmt.Sprintf("%.2f Mbps", p.Bandwidth),
+				fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
+		}
+	}
+	log.Info("服务提供节点性能表现：")
+	fmt.Println("\n", table, "\n")
 }

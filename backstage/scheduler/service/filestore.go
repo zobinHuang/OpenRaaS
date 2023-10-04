@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
 	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/utils"
@@ -39,13 +38,8 @@ func (s *FileStoreService) UpdateFileStoreInRDS(ctx context.Context, info *model
 }
 
 func (s *FileStoreService) ShowEnterInfo(ctx context.Context, fileStore *model.FileStoreCoreWithInst) {
-	log.Infof("%s, allow new filestore enter, id: %s", utils.GetCurrentTime(), fileStore.ID)
-	performance := "normal"
-	if fileStore.IsContainFastNetspeed {
-		performance = "powerful"
-	}
-	log.Infof("%s, New filestore id: %s, ip: %s, mem: %f GB, type: %s",
-		utils.GetCurrentTime(), fileStore.ID, fileStore.IP, fileStore.Mem, performance)
+	log.Infof("%s, 新内容存储节点上线, ID: %s", utils.GetCurrentTime(), fileStore.ID)
+	log.Infof("详细信息：\n", fileStore.DetailedInfo())
 }
 
 func (s *FileStoreService) ShowAllInfo(ctx context.Context) {
@@ -58,6 +52,7 @@ func (s *FileStoreService) ShowAllInfo(ctx context.Context) {
 	totalMem := 0.0
 	powerNum := 0
 	normalNum := 0
+	abnormalNum := 0
 	for _, f := range fileStores {
 		if f.IsContainFastNetspeed {
 			powerNum += 1
@@ -65,15 +60,14 @@ func (s *FileStoreService) ShowAllInfo(ctx context.Context) {
 			normalNum += 1
 		}
 		totalMem += f.Mem
-	}
-	log.Infof("%s, filestores info, Total: %d nodes, %f GB MEM, %d powerful node, %d normal node",
-		utils.GetCurrentTime(), len(fileStores), totalMem, powerNum, normalNum)
-	for _, f := range fileStores {
-		performance := "normal"
-		if f.IsContainFastNetspeed {
-			performance = "powerful"
+		if f.GetAbnormalHistoryTimes() != 0 {
+			abnormalNum += 1
 		}
-		log.Infof("%s, filestore id: %s, ip: %s, mem: %f GB, type: %s",
-			utils.GetCurrentTime(), f.ID, f.IP, f.Mem, performance)
 	}
+	log.Infof("整合前，内容存储节点信息：%+v", fileStores)
+	log.Infof("整合后，内容存储节点信息：")
+	log.Infof("%s, 节点数量：%d, 总存储资源：%f GB MEM, 高性能节点数量：%d, 低性能节点数量：%d，异常节点数量： %d",
+		utils.GetCurrentTime(), len(fileStores), totalMem, powerNum, normalNum, abnormalNum)
+	log.Infof("ID 后有 * 表示服务异常节点")
+	s.FileStoreDAL.ShowInfoFromRDS(fileStores)
 }

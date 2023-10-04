@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -184,7 +183,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	depositoryOut := make([]model.DepositoryCoreWithInst, 0)
 
 	// 3.1 排除异常节点
-	table, err = gotable.Create("节点 ID", "平均历史服务质量", "网络性能", "带宽", "时延")
+	table, err = gotable.Create("节点 ID", "节点 IP", "计算能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否有 GPU", "异常服务次数")
 	if err != nil {
 		fmt.Println("Create table failed: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
@@ -192,8 +191,9 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	for _, p := range providers {
 		if providersInRDS[p.ID].GetAbnormalHistoryTimes() == 0 {
 			providersOut = append(providersOut, p)
-			table.AddRow([]string{p.ID, providersInRDS[p.ID].GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency),
-				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency)})
+			table.AddRow([]string{p.ID, p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
+				fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency), fmt.Sprintf("%.2f Mbps", p.Bandwidth),
+				fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
 		} else {
 			log.Infof("剔除异常服务提供节点：%s，异常次数：%d，历史信息：%s", p.ID, providersInRDS[p.ID].GetAbnormalHistoryTimes(), providersInRDS[p.ID].InstHistory)
 		}
@@ -201,7 +201,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	log.Info("服务提供节点性能表现：")
 	fmt.Println("\n", table, "\n")
 
-	table, err = gotable.Create("节点 ID", "平均历史服务质量", "网络性能")
+	table, err = gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
 	if err != nil {
 		fmt.Println("Create table failed: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
@@ -209,8 +209,9 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	for _, f := range filestoreList {
 		if f.GetAbnormalHistoryTimes() == 0 {
 			fileStoresOut = append(fileStoresOut, f)
-			table.AddRow([]string{f.ID, f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
-				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency)})
+			table.AddRow([]string{f.ID, f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/f.Bandwidth+f.Latency),
+				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency), strconv.FormatBool(f.IsContainFastNetspeed),
+				fmt.Sprintf("%d", f.GetAbnormalHistoryTimes())})
 		} else {
 			log.Infof("剔除异常内容存储节点：%s，异常次数：%d，历史信息：%s", f.ID, f.GetAbnormalHistoryTimes(), f.InstHistory)
 		}
@@ -218,7 +219,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	log.Info("内容存储节点性能表现：")
 	fmt.Println("\n", table, "\n")
 
-	table, err = gotable.Create("节点 ID", "平均历史服务质量", "网络带宽性能")
+	table, err = gotable.Create("节点 ID", "节点 IP", "存储能力", "平均历史服务质量", "网络性能", "带宽", "时延", "是否支持高性能读写", "异常服务次数")
 	if err != nil {
 		fmt.Println("Create table failed: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
@@ -226,7 +227,9 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	for _, d := range depositoryOut {
 		if d.GetAbnormalHistoryTimes() == 0 {
 			depositoryOut = append(depositoryOut, d)
-			table.AddRow([]string{d.ID, d.GetMeanHistory(), fmt.Sprintf("%.2f Mbps", d.Bandwidth)})
+			table.AddRow([]string{d.ID, d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/d.Bandwidth+d.Latency),
+				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
+				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
 		} else {
 			log.Infof("剔除异常镜像仓库节点：%s，异常次数：%d，历史信息：%s", d.ID, d.GetAbnormalHistoryTimes(), d.InstHistory)
 		}
@@ -342,85 +345,17 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	fileStoresOut = newFilestoreList
 
 	// 4.3 排序
-	sort.Slice(providersOut, func(i, j int) bool {
-		historyi := providersInRDS[providersOut[i].ID].GetMeanHistory()
-		historyj := providersInRDS[providersOut[j].ID].GetMeanHistory()
-		if historyi == "" {
-			return true
-		}
-		if historyj == "" {
-			return false
-		}
-		f1, err := strconv.ParseFloat(historyi[0:len(historyi)-3], 64)
-		if err != nil {
-			fmt.Println("providersOut strconv.ParseFloat(historyi[0:len(historyi)-3], 64) 转换失败:", err)
-			return false
-		}
-		f2, err := strconv.ParseFloat(historyj[0:len(historyj)-3], 64)
-		if err != nil {
-			fmt.Println("providersOut strconv.ParseFloat(historyj[0:len(historyj)-3], 64) 转换失败:", err)
-			return false
-		}
-		if f1 != f2 {
-			return f1 <= f2
-		}
-		return 5.0/providersOut[i].Bandwidth+providersOut[i].Latency <= 5.0/providersOut[j].Bandwidth+providersOut[j].Latency
-	})
-	sort.Slice(fileStoresOut, func(i, j int) bool {
-		historyi := fileStoresOut[i].GetMeanHistory()
-		historyj := fileStoresOut[j].GetMeanHistory()
-		if historyi == "" {
-			return true
-		}
-		if historyj == "" {
-			return false
-		}
-		f1, err := strconv.ParseFloat(historyi[0:len(historyi)-3], 64)
-		if err != nil {
-			fmt.Println("fileStoresOut strconv.ParseFloat(historyi[0:len(historyi)-3], 64) 转换失败:", err)
-			return false
-		}
-		f2, err := strconv.ParseFloat(historyj[0:len(historyj)-3], 64)
-		if err != nil {
-			fmt.Println("fileStoresOut strconv.ParseFloat(historyj[0:len(historyj)-3], 64) 转换失败:", err)
-			return false
-		}
-		if f1 != f2 {
-			return f1 <= f2
-		}
-		return 5.0/fileStoresOut[i].Bandwidth+fileStoresOut[i].Latency <= 5.0/fileStoresOut[j].Bandwidth+fileStoresOut[j].Latency
-	})
-	sort.Slice(depositoryOut, func(i, j int) bool {
-		historyi := depositoryOut[i].GetMeanHistory()
-		historyj := depositoryOut[j].GetMeanHistory()
-		if historyi == "" {
-			return true
-		}
-		if historyj == "" {
-			return false
-		}
-		f1, err := strconv.ParseFloat(historyi[0:len(historyi)-3], 64)
-		if err != nil {
-			fmt.Println("depositoryOut strconv.ParseFloat(historyi[0:len(historyi)-3], 64) 转换失败:", err)
-			return false
-		}
-		f2, err := strconv.ParseFloat(historyj[0:len(historyj)-3], 64)
-		if err != nil {
-			fmt.Println("depositoryOut strconv.ParseFloat(historyj[0:len(historyj)-3], 64) 转换失败:", err)
-			return false
-		}
-		if f1 != f2 {
-			return f1 <= f2
-		}
-		return depositoryOut[i].Bandwidth >= depositoryOut[j].Bandwidth
-	})
+	log.Info("节点排序：")
+	sc.ProviderDAL.ShowInfoFromClient(providers, providersInRDS)
+	sc.FileStoreDAL.ShowInfoFromRDS(fileStoresOut)
+	sc.DepositoryDAL.ShowInfoFromRDS(depositoryOut)
 
 	log.Infof("select info, provider: %+v, depositoryOut: %+v, fileStoresOut: %+v", providersOut, depositoryOut, fileStoresOut)
 	if len(providersOut) == 0 || len(depositoryOut) == 0 || len(fileStoresOut) == 0 {
 		return nil, nil, nil, fmt.Errorf("not enough resourse to schedule")
 	}
 
-	log.Info("调度选择节点：")
+	log.Info("调度选择的节点：")
 	providersInRDS[providersOut[0].ID].DetailedInfo()
 	fileStoresOut[0].DetailedInfo()
 	depositoryOut[0].DetailedInfo()

@@ -679,7 +679,7 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 // ShowEnterInfo show info when register a new provider
 func (s *ProviderService) ShowEnterInfo(ctx context.Context, provider *model.ProviderCoreWithInst) {
 	log.Infof("%s, 新服务提供节点上线, ID: %s", utils.GetCurrentTime(), provider.ID)
-	provider.DetailedInfo()
+	log.Infof("详细信息：\n", provider.DetailedInfo())
 }
 
 func (s *ProviderService) ShowAllInfo(ctx context.Context) {
@@ -690,9 +690,12 @@ func (s *ProviderService) ShowAllInfo(ctx context.Context) {
 		}).Error("ProviderService ShowAllInfo GetProviderInRDS error")
 		return
 	}
+	log.Infof("整合前，服务提供节点信息：%+v", providers)
+	log.Infof("整合后，服务提供节点信息：")
 	totalProcessor := 0.0
 	powerNum := 0
 	normalNum := 0
+	abnormalNum := 0
 	for _, p := range providers {
 		if p.IsContainGPU {
 			powerNum += 1
@@ -700,15 +703,12 @@ func (s *ProviderService) ShowAllInfo(ctx context.Context) {
 			normalNum += 1
 		}
 		totalProcessor += p.Processor
-	}
-	log.Infof("%s, Providers Info, Total: %d nodes, %f GF, %d powerful node, %d normal node",
-		utils.GetCurrentTime(), len(providers), totalProcessor, powerNum, normalNum)
-	for _, p := range providers {
-		performance := "normal"
-		if p.IsContainGPU {
-			performance = "powerful"
+		if p.GetAbnormalHistoryTimes() != 0 {
+			abnormalNum += 1
 		}
-		log.Infof("%s, provider id: %s, ip: %s, processor: %f GF, performance: %s",
-			utils.GetCurrentTime(), p.ID, p.IP, p.Processor, performance)
 	}
+	log.Infof("%s, 节点数量：%d, 总计算资源：%f GF, 高性能节点数量：%d, 低性能节点数量：%d，异常节点数量： %d",
+		utils.GetCurrentTime(), len(providers), totalProcessor, powerNum, normalNum, abnormalNum)
+	log.Infof("ID 后有 * 表示服务异常节点")
+	s.ProviderDAL.ShowInfoFromRDS(providers)
 }

@@ -129,6 +129,8 @@ type ProviderDAL interface {
 	UpdateProviderInRDSByID(ctx context.Context, provider *ProviderCoreWithInst) error
 	CreateProviderInRDS(ctx context.Context, provider *ProviderCoreWithInst) error
 	Clear()
+	ShowInfoFromRDS(providers []ProviderCoreWithInst)
+	ShowInfoFromClient(providers []*Provider, providersInRDS map[string]*ProviderCoreWithInst)
 }
 
 /*
@@ -145,6 +147,7 @@ type DepositoryDAL interface {
 	UpdateDepositoryInRDSByID(ctx context.Context, info *DepositoryCoreWithInst) error
 	CreateDepositoryInRDS(ctx context.Context, info *DepositoryCoreWithInst) error
 	Clear()
+	ShowInfoFromRDS(depositories []DepositoryCoreWithInst)
 }
 
 /*
@@ -161,6 +164,7 @@ type FileStoreDAL interface {
 	UpdateFileStoreInRDSByID(ctx context.Context, info *FileStoreCoreWithInst) error
 	CreateFileStoreInRDS(ctx context.Context, info *FileStoreCoreWithInst) error
 	Clear()
+	ShowInfoFromRDS(fileStores []FileStoreCoreWithInst)
 }
 
 /*

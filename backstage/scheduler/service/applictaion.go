@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/liushuochen/gotable"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
@@ -142,22 +145,8 @@ func (s *ApplicationService) AddFileStoreIDToAPPInRDS(ctx context.Context, info 
 }
 
 func (s *ApplicationService) ShowEnterInfo(ctx context.Context, app *model.StreamApplication, nodeId string) {
-	log.Infof("%s, allow new application enter, id: %s", utils.GetCurrentTime(), app.ApplicationID)
-	req1 := "normal"
-	if app.IsProviderReqGPU {
-		req1 = "powerful"
-	}
-	req2 := "normal"
-	if app.IsProviderReqGPU {
-		req2 = "powerful"
-	}
-	req3 := "normal"
-	if app.IsProviderReqGPU {
-		req3 = "powerful"
-	}
-	log.Infof("%s, new application id: %s, name: %s, type: %s, description: %s, image Name: %s, launch nodes: %s, "+
-		"provider request: %s, depository request: %s, filestore request: %s",
-		utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description, app.ImageName, nodeId, req1, req2, req3)
+	log.Infof("%s, 软件上线, 软件 id: %s，上传节点 ID: %s", utils.GetCurrentTime(), app.ApplicationID, nodeId)
+	log.Infof("详细信息: %s", app.DetailedInfo())
 }
 
 func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
@@ -179,31 +168,27 @@ func (s *ApplicationService) ShowAllInfo(ctx context.Context) {
 			"error": err.Error(),
 		}).Error("ApplicationService ShowAllInfo GetDepositoryInRDS error")
 	}
-	log.Infof("%s, Applications Total Info, app amount: %d, launch filestore amount: %d, launch depository amount: %d, served image amount: 1",
+
+	log.Infof("整合前，软件资源信息：%+v", apps)
+	log.Infof("整合后，软件资源信息：")
+	log.Infof("%s, app 数量：%d, 内容存储节点数量：%d, 镜像仓库节点数量：%d",
 		utils.GetCurrentTime(), len(apps), len(fileStores), len(depositories))
 
-	depositoriesIds := make([]string, 0, 0)
-	for _, d := range depositories {
-		depositoriesIds = append(depositoriesIds, d.ID)
-	}
-	depositoriesIdsStr, _ := json.Marshal(depositoriesIds)
+	//depositoriesIds := make([]string, 0, 0)
+	//for _, d := range depositories {
+	//	depositoriesIds = append(depositoriesIds, d.ID)
+	//}
+	//depositoriesIdsStr, _ := json.Marshal(depositoriesIds)
 
-	for _, app := range apps {
-		req1 := "normal"
-		if app.IsProviderReqGPU {
-			req1 = "powerful"
-		}
-		req2 := "normal"
-		if app.IsProviderReqGPU {
-			req2 = "powerful"
-		}
-		req3 := "normal"
-		if app.IsProviderReqGPU {
-			req3 = "powerful"
-		}
-		log.Infof("%s, application id: %s, name: %s, type: %s, description: %s, image Name: %s, "+
-			"launch filestores: %s, launch depositories: %s, provider request: %s, depository request: %s, filestore request: %s",
-			utils.GetCurrentTime(), app.ApplicationID, app.ApplicationName, app.HWKey, app.Description, app.ImageName,
-			app.FileStoreList, depositoriesIdsStr, req1, req2, req3)
+	table, err := gotable.Create("软件 ID", "软件名", "软件路径", "启动文件", "软件类型", "镜像 ID", "支持的内容存储节点", "是否需要高性能服务提供节点", "是否需要高性能内容存储节点", "是否需要高性能镜像仓库节点", "软件说明")
+	if err != nil {
+		fmt.Println("ShowAllInfo ApplicationService Create table failed: ", err.Error())
+		return
 	}
+	for _, a := range apps {
+		table.AddRow([]string{a.ApplicationID, a.ApplicationName, a.ApplicationPath, a.ApplicationFile, a.HWKey, a.ImageName, a.FileStoreList,
+			strconv.FormatBool(a.IsProviderReqGPU), strconv.FormatBool(a.IsFileStoreReqFastNetspeed), strconv.FormatBool(a.IsDepositoryReqFastNetspeed),
+			a.Description})
+	}
+	fmt.Println("\n", table, "\n")
 }
