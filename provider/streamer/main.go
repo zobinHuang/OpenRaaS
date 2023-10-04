@@ -40,8 +40,16 @@ func main() {
 	data["processor"], _ = strconv.ParseFloat(os.Getenv("SERVER_PROCESSOR"), 64)
 	data["bandwidth"], _ = strconv.ParseFloat(os.Getenv("SERVER_BW"), 64)
 	data["latency"], _ = strconv.ParseFloat(os.Getenv("SERVER_LATENCY"), 64)
+	// history
 	// data["inst_history"] = os.Getenv("SERVER_HISTORY")
+
 	bytesData, _ := json.Marshal(data)
+	trimmedBytesData := bytesData[:len(bytesData)-1]
+	hisData, _ := json.Marshal(os.Getenv("SERVER_HISTORY"))
+	trimmedHisData := hisData[1 : len(hisData)-1]
+	trimmedHisData = bytes.ReplaceAll(trimmedHisData, []byte("\\"), []byte(""))
+	bytesData = []byte(string(trimmedBytesData) + ",\"inst_history\":" + string(trimmedHisData) + "}")
+
 	req, _ := http.NewRequest("POST", addr, bytes.NewReader(bytesData))
 	resp, _ := client.Do(req)
 	log.Println("Sent provider worker node online with info:", string(bytesData))

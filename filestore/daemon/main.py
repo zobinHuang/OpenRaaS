@@ -78,6 +78,10 @@ if __name__ == "__main__":
         "latency": config["latency"]
     }
     json_data = json.dumps(dict_data)
+    trimmed_json_data = json_data[:-1]
+    trimmed_json_data += ', "inst_history": ' + config["inst_history"] + '}'
+    json_data = trimmed_json_data
+     
     s_addr = "http://" + s_conf["ip"] + ":" + str(s_conf["port"])
     interface = s_addr + s_conf["handler"]
     headers = {
