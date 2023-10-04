@@ -40,7 +40,7 @@ func (s *DepositoryService) UpdateFileStoreInRDS(ctx context.Context, info *mode
 
 func (s *DepositoryService) ShowEnterInfo(ctx context.Context, depository *model.DepositoryCoreWithInst) {
 	log.Infof("%s, 捕获到新节点上线, ID: %s", utils.GetCurrentTime(), depository.ID)
-	log.Infof("认知到新的镜像仓库节点，详细信息：\n", depository.DetailedInfo())
+	log.Infof("认知到新的镜像仓库节点，详细信息：%s\n", depository.DetailedInfo())
 }
 
 func (s *DepositoryService) ShowAllInfo(ctx context.Context) {

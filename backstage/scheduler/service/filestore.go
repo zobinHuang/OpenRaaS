@@ -39,7 +39,7 @@ func (s *FileStoreService) UpdateFileStoreInRDS(ctx context.Context, info *model
 
 func (s *FileStoreService) ShowEnterInfo(ctx context.Context, fileStore *model.FileStoreCoreWithInst) {
 	log.Infof("%s, 捕获到新节点上线, ID: %s", utils.GetCurrentTime(), fileStore.ID)
-	log.Infof("认知到新的内容存储节点，详细信息：\n", fileStore.DetailedInfo())
+	log.Infof("认知到新的内容存储节点，详细信息：%s\n", fileStore.DetailedInfo())
 }
 
 func (s *FileStoreService) ShowAllInfo(ctx context.Context) {

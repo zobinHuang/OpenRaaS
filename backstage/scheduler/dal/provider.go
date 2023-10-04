@@ -205,10 +205,10 @@ func (d *ProviderDAL) ShowInfoFromRDS(providers []model.ProviderCoreWithInst) {
 	}
 	for _, p := range providers {
 		if p.GetAbnormalHistoryTimes() == 0 {
-			table.AddRow([]string{p.ID, p.IP, fmt.Sprintf("%.2f GF", p.Processor), p.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency),
+			table.AddRow([]string{p.ID[0:5], p.IP, fmt.Sprintf("%.2f GF", p.Processor), p.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency),
 				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", p.GetAbnormalHistoryTimes())})
 		} else {
-			table.AddRow([]string{p.ID + "*", p.IP, fmt.Sprintf("%.2f GF", p.Processor), p.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency),
+			table.AddRow([]string{p.ID[0:5] + "*", p.IP, fmt.Sprintf("%.2f GF", p.Processor), p.GetMeanHistory(), fmt.Sprintf("%.2f", 5.0/p.Bandwidth+p.Latency),
 				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU), fmt.Sprintf("%d", p.GetAbnormalHistoryTimes())})
 		}
 	}

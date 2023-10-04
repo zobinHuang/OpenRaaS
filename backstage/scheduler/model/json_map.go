@@ -5,6 +5,8 @@ import (
 	"context"
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/schema"
@@ -23,13 +25,20 @@ func (m JSONMap) Value() (driver.Value, error) {
 }
 
 // Scan scan value into Jsonb, implements sql.Scanner interface
-func (m *JSONMap) Scan(val string) error {
-	if val == "" {
+func (m *JSONMap) Scan(val interface{}) error {
+	if val == nil {
 		*m = make(JSONMap)
 		return nil
 	}
 	var ba []byte
-	ba = []byte(val)
+	switch v := val.(type) {
+	case []byte:
+		ba = v
+	case string:
+		ba = []byte(v)
+	default:
+		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", val))
+	}
 	t := map[string]string{}
 	rd := bytes.NewReader(ba)
 	decoder := json.NewDecoder(rd)

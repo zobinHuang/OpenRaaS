@@ -679,7 +679,7 @@ func (s *ProviderService) InitRecvRoute(ctx context.Context, provider *model.Pro
 // ShowEnterInfo show info when register a new provider
 func (s *ProviderService) ShowEnterInfo(ctx context.Context, provider *model.ProviderCoreWithInst) {
 	log.Infof("%s, 捕获到新节点上线, ID: %s", utils.GetCurrentTime(), provider.ID)
-	log.Infof("认知到新的服务提供节点，详细信息：\n", provider.DetailedInfo())
+	log.Infof("认知到新的服务提供节点，详细信息：%s\n", provider.DetailedInfo())
 }
 
 func (s *ProviderService) ShowAllInfo(ctx context.Context) {
