@@ -7,6 +7,7 @@ performance: true    # device performance: true for "high", or false for "low"
 mem: 10               # prepared storage memory for OpenRaaS
 bw: 1000    # mbps
 latency: 1  # ms
+inst_history: '{"d91bb3fa-8186-425c-915e-5ccddba8d4a7": "1ms"}'
 
 ### 3. file-sharing info
 fs_protocol: davfs  # protocol name (WebDav is "davfs")
