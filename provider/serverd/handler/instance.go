@@ -264,11 +264,11 @@ func (h *Handler) SelectDepository(ctx context.Context, instanceModel *model.Ins
 	// iperf3 -c 192.168.0.109 -J -t 1
 	execCmd := "iperf3"
 	params := []string{}
-	params = append(params, "-c", instanceModel.TargetDepository.HostAddress, "-t", "0.1", "-J")
+	params = append(params, "-c", instanceModel.TargetDepository.HostAddress, "-n", "1000", "-J")
 	ret, err := utils.RunShellWithReturn(execCmd, params)
 
 	if err != nil {
-		fmt.Printf("Failed to test speed with deposiory\n")
+		fmt.Printf("Failed to test speed with deposiory: %s\n", err)
 		return fmt.Errorf("cannot test speed with deposiory")
 	}
 
