@@ -178,11 +178,9 @@ func (d *DepositoryDAL) Clear() {
 
 func (d *DepositoryDAL) ShowInfoFromRDS(depositories []model.DepositoryCoreWithInst) {
 	sort.Slice(depositories, func(i, j int) bool {
-		if depositories[i].IsContainFastNetspeed {
-			return true
-		}
-		if depositories[j].IsContainFastNetspeed {
-			return false
+		if (depositories[i].IsContainFastNetspeed && !depositories[j].IsContainFastNetspeed) ||
+			(!depositories[i].IsContainFastNetspeed && depositories[j].IsContainFastNetspeed) {
+			return depositories[i].IsContainFastNetspeed
 		}
 		if depositories[i].Bandwidth != depositories[j].Bandwidth {
 			return depositories[i].Bandwidth > depositories[j].Bandwidth

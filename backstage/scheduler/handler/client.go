@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -470,8 +471,7 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 			}
 			log.Infof("【服务提供节点】数字资产更新, 资产索引: %s, 资产内容: %s", p.ID, s)
 			log.Infof("【服务提供节点】数字资产更新 (解析后):\n%s", p.DetailedInfo())
-			ctx := c.Request.Context()
-			err = h.ProviderService.UpdateProviderInRDS(ctx, &p)
+			err = h.ProviderService.UpdateProviderInRDS(context.TODO(), &p)
 			if err != nil {
 				log.Infof("RecordHistory h.ProviderService.UpdateProviderInRDS error: %s", err.Error())
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -525,8 +525,7 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 			}
 			log.Infof("【镜像仓库节点】数字资产更新, 资产索引: %s, 资产内容: %s", d.ID, s)
 			log.Infof("【镜像仓库节点】数字资产更新 (解析后):\n%s", d.DetailedInfo())
-			ctx := c.Request.Context()
-			err = h.DepositoryService.UpdateFileStoreInRDS(ctx, &d)
+			err = h.DepositoryService.UpdateFileStoreInRDS(context.TODO(), &d)
 			if err != nil {
 				log.Infof("RecordHistory h.DepositoryService.UpdateFileStoreInRDS error: %s", err.Error())
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -580,8 +579,7 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 			}
 			log.Infof("【内容存储节点】数字资产更新, 资产索引: %s, 资产内容: %s", f.ID, s)
 			log.Infof("【内容存储节点】数字资产更新 (解析后):\n%s", f.DetailedInfo())
-			ctx := c.Request.Context()
-			err = h.FileStoreService.UpdateFileStoreInRDS(ctx, &f)
+			err = h.FileStoreService.UpdateFileStoreInRDS(context.TODO(), &f)
 			if err != nil {
 				log.Infof("RecordHistory h.FileStoreService.UpdateFileStoreInRDS error: %s", err.Error())
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

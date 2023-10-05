@@ -179,11 +179,9 @@ func (d *FileStoreDAL) Clear() {
 
 func (d *FileStoreDAL) ShowInfoFromRDS(fileStores []model.FileStoreCoreWithInst) {
 	sort.Slice(fileStores, func(i, j int) bool {
-		if fileStores[i].IsContainFastNetspeed {
-			return true
-		}
-		if fileStores[j].IsContainFastNetspeed {
-			return false
+		if (fileStores[i].IsContainFastNetspeed && !fileStores[j].IsContainFastNetspeed) ||
+			(!fileStores[i].IsContainFastNetspeed && fileStores[j].IsContainFastNetspeed) {
+			return fileStores[i].IsContainFastNetspeed
 		}
 		historyi := fileStores[i].GetMeanHistory()
 		historyj := fileStores[j].GetMeanHistory()
@@ -204,7 +202,7 @@ func (d *FileStoreDAL) ShowInfoFromRDS(fileStores []model.FileStoreCoreWithInst)
 			return false
 		}
 		if f1 != f2 {
-			return f1 <= f2
+			return f1 < f2
 		}
 		return 5.0/fileStores[i].Bandwidth+fileStores[i].Latency <= 5.0/fileStores[j].Bandwidth+fileStores[j].Latency
 	})

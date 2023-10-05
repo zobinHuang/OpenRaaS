@@ -169,11 +169,9 @@ func (d *ProviderDAL) Clear() {
 
 func (d *ProviderDAL) ShowInfoFromRDS(providers []model.ProviderCoreWithInst) {
 	sort.Slice(providers, func(i, j int) bool {
-		if providers[i].IsContainGPU {
-			return true
-		}
-		if providers[j].IsContainGPU {
-			return false
+		if (providers[i].IsContainGPU && !providers[j].IsContainGPU) ||
+			(!providers[i].IsContainGPU && providers[j].IsContainGPU) {
+			return providers[i].IsContainGPU
 		}
 		historyi := providers[i].GetMeanHistory()
 		historyj := providers[j].GetMeanHistory()
@@ -194,7 +192,7 @@ func (d *ProviderDAL) ShowInfoFromRDS(providers []model.ProviderCoreWithInst) {
 			return false
 		}
 		if f1 != f2 {
-			return f1 <= f2
+			return f1 < f2
 		}
 		return 5.0/providers[i].Bandwidth+providers[i].Latency <= 5.0/providers[j].Bandwidth+providers[j].Latency
 	})
@@ -218,11 +216,9 @@ func (d *ProviderDAL) ShowInfoFromRDS(providers []model.ProviderCoreWithInst) {
 
 func (d *ProviderDAL) ShowInfoFromClient(providers []*model.Provider, providersInRDS map[string]*model.ProviderCoreWithInst) {
 	sort.Slice(providers, func(i, j int) bool {
-		if providers[i].IsContainGPU {
-			return true
-		}
-		if providers[j].IsContainGPU {
-			return false
+		if (providers[i].IsContainGPU && !providers[j].IsContainGPU) ||
+			(!providers[i].IsContainGPU && providers[j].IsContainGPU) {
+			return providers[i].IsContainGPU
 		}
 		historyi := providersInRDS[providers[i].ID].GetMeanHistory()
 		historyj := providersInRDS[providers[j].ID].GetMeanHistory()
@@ -243,7 +239,7 @@ func (d *ProviderDAL) ShowInfoFromClient(providers []*model.Provider, providersI
 			return false
 		}
 		if f1 != f2 {
-			return f1 <= f2
+			return f1 < f2
 		}
 		return 5.0/providers[i].Bandwidth+providers[i].Latency <= 5.0/providers[j].Bandwidth+providers[j].Latency
 	})
