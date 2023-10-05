@@ -145,7 +145,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		go func() {
 			s, err := sc.GetValueFromBlockchain(p.ClientID)
 			if err == nil {
-				log.Infof("Provider 数字资产获取, id: %s, value: %s", p.ClientID, s)
+				log.Infof("【服务提供节点】数字资产获取, 资产索引: %s, 资产内容: %s", providersInRDS[p.ID].ID, s)
+				log.Infof("【服务提供节点】数字资产获取 (解析后):\n%s", providersInRDS[p.ID].DetailedInfo())
 			}
 			wg.Done()
 		}()
@@ -156,7 +157,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		go func() {
 			s, err := sc.GetValueFromBlockchain(d.ID)
 			if err == nil {
-				log.Infof("Depository 数字资产获取, id: %s, value: %s", d.ID, s)
+				log.Infof("【镜像仓库节点】数字资产获取, 资产索引: %s, 资产内容: %s", d.ID, s)
+				log.Infof("【镜像仓库节点】数字资产获取 (解析后):\n%s", d.DetailedInfo())
 			}
 			wg.Done()
 		}()
@@ -167,7 +169,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		go func() {
 			s, err := sc.GetValueFromBlockchain(f.ID)
 			if err == nil {
-				log.Infof("Filestore 数字资产获取, id: %s, value: %s", f.ID, s)
+				log.Infof("【内容存储节点】数字资产获取, 资产索引: %s, 资产内容: %s", f.ID, s)
+				log.Infof("【内容存储节点】数字资产获取 (解析后):\n%s", f.DetailedInfo())
 			}
 			wg.Done()
 		}()
