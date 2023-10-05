@@ -25,6 +25,7 @@ import (
 @struct: ScheduleServiceCore
 @description: service core layer
 */
+
 type ScheduleServiceCore struct {
 	ConsumerDAL     model.ConsumerDAL
 	ProviderDAL     model.ProviderDAL
@@ -32,7 +33,6 @@ type ScheduleServiceCore struct {
 	FileStoreDAL    model.FileStoreDAL
 	InstanceRoomDAL model.InstanceRoomDAL
 	ApplicationDAL  model.ApplicationDAL
-	Counter         int
 }
 
 /*
@@ -62,7 +62,6 @@ func NewScheduleServiceCore(c *ScheduleServiceCoreConfig) model.ScheduleServiceC
 		FileStoreDAL:    c.FileStoreDAL,
 		InstanceRoomDAL: c.InstanceRoomDAL,
 		ApplicationDAL:  c.ApplicationDAL,
-		Counter:         0,
 	}
 }
 
@@ -197,13 +196,16 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 	for _, p := range providers {
+		providersOut = append(providersOut, p)
 		if providersInRDS[p.ID].GetAbnormalHistoryTimes() == 0 {
-			providersOut = append(providersOut, p)
 			table.AddRow([]string{p.ID[0:5], p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU),
 				fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
 		} else {
-			log.Infof("剔除异常服务提供节点：%s，异常次数：%d，历史信息：%s", p.ID, providersInRDS[p.ID].GetAbnormalHistoryTimes(), providersInRDS[p.ID].InstHistory)
+			//log.Infof("剔除异常服务提供节点：%s，异常次数：%d，历史信息：%s", p.ID, providersInRDS[p.ID].GetAbnormalHistoryTimes(), providersInRDS[p.ID].InstHistory)
+			table.AddRow([]string{p.ID[0:5] + "*", p.IP, fmt.Sprintf("%.2f GF", p.Processor), providersInRDS[p.ID].GetMeanHistory(),
+				fmt.Sprintf("%.2f Mbps", p.Bandwidth), fmt.Sprintf("%.2f ms", p.Latency), strconv.FormatBool(p.IsContainGPU),
+				fmt.Sprintf("%d", providersInRDS[p.ID].GetAbnormalHistoryTimes())})
 		}
 	}
 	log.Info("服务提供节点性能表现：")
@@ -215,13 +217,16 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 	for _, f := range filestoreList {
+		fileStoresOut = append(fileStoresOut, f)
 		if f.GetAbnormalHistoryTimes() == 0 {
-			fileStoresOut = append(fileStoresOut, f)
 			table.AddRow([]string{f.ID[0:5], f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency), strconv.FormatBool(f.IsContainFastNetspeed),
 				fmt.Sprintf("%d", f.GetAbnormalHistoryTimes())})
 		} else {
-			log.Infof("剔除异常内容存储节点：%s，异常次数：%d，历史信息：%s", f.ID, f.GetAbnormalHistoryTimes(), f.InstHistory)
+			//log.Infof("剔除异常内容存储节点：%s，异常次数：%d，历史信息：%s", f.ID, f.GetAbnormalHistoryTimes(), f.InstHistory)
+			table.AddRow([]string{f.ID[0:5] + "*", f.IP, fmt.Sprintf("%.2f GB", f.Mem), f.GetMeanHistory(),
+				fmt.Sprintf("%.2f Mbps", f.Bandwidth), fmt.Sprintf("%.2f ms", f.Latency), strconv.FormatBool(f.IsContainFastNetspeed),
+				fmt.Sprintf("%d", f.GetAbnormalHistoryTimes())})
 		}
 	}
 	log.Info("内容存储节点性能表现：")
@@ -233,13 +238,16 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 	for _, d := range depositoryList {
+		depositoryOut = append(depositoryOut, d)
 		if d.GetAbnormalHistoryTimes() == 0 {
-			depositoryOut = append(depositoryOut, d)
 			table.AddRow([]string{d.ID[0:5], d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(),
 				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
 				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
 		} else {
-			log.Infof("剔除异常镜像仓库节点：%s，异常次数：%d，历史信息：%s", d.ID, d.GetAbnormalHistoryTimes(), d.InstHistory)
+			//log.Infof("剔除异常镜像仓库节点：%s，异常次数：%d，历史信息：%s", d.ID, d.GetAbnormalHistoryTimes(), d.InstHistory)
+			table.AddRow([]string{d.ID[0:5] + "*", d.IP, fmt.Sprintf("%.2f GB", d.Mem), d.GetMeanHistory(),
+				fmt.Sprintf("%.2f Mbps", d.Bandwidth), fmt.Sprintf("%.2f ms", d.Latency), strconv.FormatBool(d.IsContainFastNetspeed),
+				fmt.Sprintf("%d", d.GetAbnormalHistoryTimes())})
 		}
 	}
 	log.Info("镜像仓库节点性能表现：")
@@ -293,35 +301,91 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 
 	// 4. 特殊处理 (支撑模型更新)
 	// 4.1 选择模型
-	if usedMem*2 >= totalMem || usedGf*2 >= totalGf {
-		log.Infof("资源紧缺，使用尽力服务策略")
-		if time.Now().Sub(consumer.T0) <= time.Minute && (appInfo.IsProviderReqGPU || appInfo.IsFileStoreReqFastNetspeed) {
-			log.Infof("用户 %s 创建应用时间间隔过短，对其性能进行限制", consumer.ClientID)
-			if (usedGf/totalGf > usedMem/totalMem || !appInfo.IsFileStoreReqFastNetspeed) && appInfo.IsProviderReqGPU {
-				log.Infof("对服务提供节点性能进行限制，将高性能限制为低性能")
-				appInfo.IsProviderReqGPU = false
-				tmp := make([]*model.Provider, 0)
-				for _, p := range providersOut {
-					if !p.IsContainGPU {
-						tmp = append(tmp, p)
+	if !sc.ConsumerDAL.IsUserOverTime(consumer.UserName) {
+		// 如果申请的次数小于等于2，或者距离上上次申请的时间间隔相差30min以上，则尽可能按需分配
+		log.Infof("用户 %s 小于等于2或者距离上上次申请的时间间隔相差30min以上，尽可能按需分配", consumer.UserName)
+		if !appInfo.IsProviderReqGPU {
+			// 去掉高性能的，如果有低性能且正常能分配的话
+			tmp := make([]*model.Provider, 0)
+			flag := false
+			for _, p := range providersOut {
+				if !p.IsContainGPU && providersRemained[p.ID] >= 2.0 {
+					tmp = append(tmp, p)
+					if providersInRDS[p.ID].GetAbnormalHistoryTimes() == 0 {
+						flag = true
 					}
 				}
+			}
+			if len(tmp) >= 0 && flag {
 				providersOut = tmp
-			} else {
-				log.Infof("对内容存储节点性能进行限制，将高性能限制为低性能")
-				appInfo.IsFileStoreReqFastNetspeed = false
-				newFilestoreList := make([]model.FileStoreCoreWithInst, 0)
-				for _, f := range fileStoresOut {
-					if !f.IsContainFastNetspeed {
-						newFilestoreList = append(newFilestoreList, f)
+			}
+		}
+		if !appInfo.IsFileStoreReqFastNetspeed {
+			// 去掉高性能的，如果有低性能且正常能分配的话
+			tmp := make([]model.FileStoreCoreWithInst, 0)
+			flag := false
+			for _, f := range fileStoresOut {
+				if !f.IsContainFastNetspeed && fileStoresRemained[f.ID] >= 1.0 {
+					tmp = append(tmp, f)
+					if f.GetAbnormalHistoryTimes() == 0 {
+						flag = true
 					}
 				}
-				fileStoresOut = newFilestoreList
+			}
+			if len(tmp) >= 0 && flag {
+				fileStoresOut = tmp
+			}
+		}
+		if !appInfo.IsDepositoryReqFastNetspeed {
+			// 去掉高性能的，如果有低性能且正常能分配的话
+			tmp := make([]model.DepositoryCoreWithInst, 0)
+			flag := false
+			for _, d := range depositoryOut {
+				if !d.IsContainFastNetspeed {
+					tmp = append(tmp, d)
+					if d.GetAbnormalHistoryTimes() == 0 {
+						flag = true
+					}
+				}
+			}
+			if len(tmp) >= 0 && flag {
+				depositoryOut = tmp
 			}
 		}
 	} else {
-		log.Infof("资源充足，使用性能最佳策略")
+		log.Infof("用户 %s 大于2且距离上上次申请的时间间隔相差30min以内，更换为根据资源使用情况进行服务的策略", consumer.UserName)
+		if usedMem*2 >= totalMem || usedGf*2 >= totalGf {
+			log.Infof("资源紧缺，使用尽力服务策略")
+			if time.Now().Sub(consumer.T0) <= time.Minute && (appInfo.IsProviderReqGPU || appInfo.IsFileStoreReqFastNetspeed) {
+				log.Infof("用户 %s 创建应用时间间隔过短，对其性能进行限制", consumer.ClientID)
+				if (usedGf/totalGf > usedMem/totalMem || !appInfo.IsFileStoreReqFastNetspeed) && appInfo.IsProviderReqGPU {
+					log.Infof("对服务提供节点性能进行限制，将高性能限制为低性能")
+					appInfo.IsProviderReqGPU = false
+					tmp := make([]*model.Provider, 0)
+					for _, p := range providersOut {
+						if !p.IsContainGPU {
+							tmp = append(tmp, p)
+						}
+					}
+					providersOut = tmp
+				} else {
+					log.Infof("对内容存储节点性能进行限制，将高性能限制为低性能")
+					appInfo.IsFileStoreReqFastNetspeed = false
+					newFilestoreList := make([]model.FileStoreCoreWithInst, 0)
+					for _, f := range fileStoresOut {
+						if !f.IsContainFastNetspeed {
+							newFilestoreList = append(newFilestoreList, f)
+						}
+					}
+					fileStoresOut = newFilestoreList
+				}
+			}
+		} else {
+			log.Infof("资源充足，使用性能最佳策略")
+		}
 	}
+
+	sc.ConsumerDAL.UserUpdateTime(consumer.UserName, consumer.T0)
 
 	// 4.2 正常筛选
 	tmp := make([]*model.Provider, 0)
@@ -384,6 +448,26 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	sort.Ints(f_randomNumbers)
 	sort.Ints(d_randomNumbers)
 	// !!!【结束】测试时间用代码
+
+	// 找到第一个不异常的节点，如果全为异常节点则选择第一个
+	for i := 0; i < len(providersOut); i++ {
+		if providersInRDS[providersOut[i].ID].GetAbnormalHistoryTimes() == 0 {
+			providersOut[0] = providersOut[i]
+			break
+		}
+	}
+	for i := 0; i < len(depositoryOut); i++ {
+		if depositoryOut[i].GetAbnormalHistoryTimes() == 0 {
+			depositoryOut[0] = depositoryOut[i]
+			break
+		}
+	}
+	for i := 0; i < len(fileStoresOut); i++ {
+		if fileStoresOut[i].GetAbnormalHistoryTimes() == 0 {
+			fileStoresOut[0] = fileStoresOut[i]
+			break
+		}
+	}
 
 	log.Infof("【业务能力动态组合方案】")
 	fmt.Printf("1. 计算 (Computation) 原子服务:\n%s", providersInRDS[providersOut[0].ID].DetailedInfo())
@@ -493,5 +577,4 @@ func (sc *ScheduleServiceCore) Clear() {
 	sc.FileStoreDAL.Clear()
 	sc.InstanceRoomDAL.Clear()
 	sc.ApplicationDAL.Clear()
-	sc.Counter = 0
 }

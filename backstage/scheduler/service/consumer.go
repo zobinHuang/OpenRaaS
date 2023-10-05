@@ -149,6 +149,9 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		// config consumer type
 		consumer.ConsumerType = reqPacketData.ConsumerType
 		consumer.UserName = reqPacketData.UserName
+		if !s.ConsumerDAL.HasUser(consumer.UserName) {
+			s.ConsumerDAL.AddUser(consumer.UserName)
+		}
 		log.WithFields(log.Fields{
 			"ConsumerID":    consumer.ClientID,
 			"Consumer Type": reqPacketData.ConsumerType,

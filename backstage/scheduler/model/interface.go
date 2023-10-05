@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"github.com/gorilla/websocket"
+	"time"
 )
 
 // --------- Service Layer Interface ---------
@@ -113,6 +114,10 @@ type ConsumerDAL interface {
 	GetConsumerByID(ctx context.Context, consumerID string) (*Consumer, error)
 	GetConsumers() map[string]*Consumer
 	Clear()
+	AddUser(name string)
+	HasUser(name string) bool
+	IsUserOverTime(name string) bool
+	UserUpdateTime(name string, t time.Time)
 }
 
 /*
