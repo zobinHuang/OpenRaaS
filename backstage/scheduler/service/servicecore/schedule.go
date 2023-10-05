@@ -88,6 +88,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		providers[i].Port = pInfo.Port
 		providers[i].Processor = pInfo.Processor
 		providers[i].IsContainGPU = pInfo.IsContainGPU
+		providers[i].Bandwidth = pInfo.Bandwidth
+		providers[i].Latency = pInfo.Latency
 		providersIDList = append(providersIDList, p.ClientID[0:5])
 		providersInRDS[p.ID] = pInfo
 	}
@@ -270,8 +272,10 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	}
 
 	consumers := sc.ConsumerDAL.GetConsumers()
+	log.Infof("consumers 数量：%d", len(consumers))
 	for _, c := range consumers {
 		if c.Provider == nil {
+			log.Infof("c.Provider is nil, c: %+v", c)
 			continue
 		}
 		if _, ok := providersRemained[c.Provider.ID]; ok {
@@ -468,6 +472,22 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 			break
 		}
 	}
+
+	table, err = gotable.Create("节点类型", "已使用资源量", "总资源量")
+	if err != nil {
+		fmt.Println("Create table failed: ", err.Error())
+		return nil, nil, nil, fmt.Errorf("scheduler gotable.Create err: %s, streamInstance: %+v", err.Error(), streamInstance)
+	}
+	if providersOut[0].IsContainGPU {
+		usedGf += 5.0
+	} else {
+		usedGf += 2.0
+	}
+	usedMem += 1.0
+	table.AddRow([]string{"服务提供节点", fmt.Sprintf("%.2f GF", usedGf), fmt.Sprintf("%.2f GF", totalGf)})
+	table.AddRow([]string{"内容存储节点", fmt.Sprintf("%.2f GB", usedMem), fmt.Sprintf("%.2f GB", totalMem)})
+	log.Info("组合后节点资源使用情况：")
+	fmt.Println("\n", table, "\n")
 
 	log.Infof("【业务能力动态组合方案】")
 	fmt.Printf("1. 计算 (Computation) 原子服务:\n%s", providersInRDS[providersOut[0].ID].DetailedInfo())
