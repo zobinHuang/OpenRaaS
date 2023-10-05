@@ -494,6 +494,11 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	fmt.Printf("2. 运行时文件 (Runtime Files) 原子服务:\n%s", fileStoresOut[0].DetailedInfo())
 	fmt.Printf("3. 运行时环境 (Runtime Environment) 原子服务:\n%s", depositoryOut[0].DetailedInfo())
 
+	consumer.Provider = providersOut[0]
+	consumer.Filestore = &model.FileStore{
+		FileStoreCore: model.FileStoreCore{ID: fileStoresOut[0].ID},
+	}
+
 	return providersOut[0], depositoryOut, fileStoresOut, nil
 }
 

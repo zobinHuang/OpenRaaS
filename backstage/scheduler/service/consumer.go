@@ -563,19 +563,6 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			}).Warn("%s, abandoned", err.Error())
 			return model.EmptyPacket
 		}
-		streamInstanceRoom, err := s.InstanceRoomDAL.GetInstanceRoomByInstanceID(nil, reqPacketData.InstanceID)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"Warn Type":        "Recv Callback Error",
-				"Recv Packet Type": "consumer_ice_candidate",
-				"error":            err,
-				"StreamInstanceID": reqPacketData.InstanceID,
-			}).Warn("Failed to GetInstanceRoomByInstanceID during consumer_ice_candidate")
-			return
-		}
-		consumer.Provider = provider
-		consumer.Depository = streamInstanceRoom.SelectedDepository
-		consumer.Filestore = streamInstanceRoom.SelectedFileStore
 
 		// construct websocket packet to provider
 		respToProvider := &struct {
