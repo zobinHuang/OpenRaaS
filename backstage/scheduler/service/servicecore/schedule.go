@@ -442,6 +442,8 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 			for _, d := range depositoryOut {
 				if d.GetAbnormalHistoryTimes() == 0 {
 					tmp = append(tmp, d)
+				} else {
+					log.Infof("剔除异常镜像仓库节点：%s，异常次数：%d，历史信息：%s", d.ID, d.GetAbnormalHistoryTimes(), d.InstHistory)
 				}
 			}
 			depositoryOut = tmp
@@ -452,7 +454,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		if fileStoresOut[i].GetAbnormalHistoryTimes() == 0 {
 			tmp := make([]model.FileStoreCoreWithInst, 0)
 			for _, f := range fileStoresOut {
-				if fileStoresOut[i].GetAbnormalHistoryTimes() == 0 {
+				if f.GetAbnormalHistoryTimes() == 0 {
 					tmp = append(tmp, f)
 				} else {
 					log.Infof("剔除异常内容存储节点：%s，异常次数：%d，历史信息：%s", f.ID, f.GetAbnormalHistoryTimes(), f.InstHistory)
@@ -464,7 +466,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	}
 
 	// 4.3 排序
-	log.Info("节点排序：")
+	log.Info("硬件资源编排：")
 	sc.ProviderDAL.ShowInfoFromClient(providersOut, providersInRDS)
 	sc.FileStoreDAL.ShowInfoFromRDS(fileStoresOut)
 	sc.DepositoryDAL.ShowInfoFromRDS(depositoryOut)
