@@ -421,9 +421,51 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	}
 	fileStoresOut = newFilestoreList
 
+	// 剔除异常节点，如果有正常节点的话
+	for i := 0; i < len(providersOut); i++ {
+		if providersInRDS[providersOut[i].ID].GetAbnormalHistoryTimes() == 0 {
+			tmp := make([]*model.Provider, 0)
+			for _, p := range providersOut {
+				if providersInRDS[p.ID].GetAbnormalHistoryTimes() == 0 {
+					tmp = append(tmp, p)
+				} else {
+					log.Infof("剔除异常服务提供节点：%s，异常次数：%d，历史信息：%s", p.ID, providersInRDS[p.ID].GetAbnormalHistoryTimes(), providersInRDS[p.ID].InstHistory)
+				}
+			}
+			providersOut = tmp
+			break
+		}
+	}
+	for i := 0; i < len(depositoryOut); i++ {
+		if depositoryOut[i].GetAbnormalHistoryTimes() == 0 {
+			tmp := make([]model.DepositoryCoreWithInst, 0)
+			for _, d := range depositoryOut {
+				if d.GetAbnormalHistoryTimes() == 0 {
+					tmp = append(tmp, d)
+				}
+			}
+			depositoryOut = tmp
+			break
+		}
+	}
+	for i := 0; i < len(fileStoresOut); i++ {
+		if fileStoresOut[i].GetAbnormalHistoryTimes() == 0 {
+			tmp := make([]model.FileStoreCoreWithInst, 0)
+			for _, f := range fileStoresOut {
+				if fileStoresOut[i].GetAbnormalHistoryTimes() == 0 {
+					tmp = append(tmp, f)
+				} else {
+					log.Infof("剔除异常内容存储节点：%s，异常次数：%d，历史信息：%s", f.ID, f.GetAbnormalHistoryTimes(), f.InstHistory)
+				}
+			}
+			fileStoresOut = tmp
+			break
+		}
+	}
+
 	// 4.3 排序
 	log.Info("节点排序：")
-	sc.ProviderDAL.ShowInfoFromClient(providers, providersInRDS)
+	sc.ProviderDAL.ShowInfoFromClient(providersOut, providersInRDS)
 	sc.FileStoreDAL.ShowInfoFromRDS(fileStoresOut)
 	sc.DepositoryDAL.ShowInfoFromRDS(depositoryOut)
 
