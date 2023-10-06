@@ -151,7 +151,6 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		consumer.UserName = reqPacketData.UserName
 		if !s.ConsumerDAL.HasUser(consumer.UserName) {
 			s.ConsumerDAL.AddUser(consumer.UserName)
-			fmt.Printf("%+v", consumer)
 		}
 		log.WithFields(log.Fields{
 			"ConsumerID":    consumer.ClientID,

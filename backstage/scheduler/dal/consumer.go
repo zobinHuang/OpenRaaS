@@ -105,14 +105,12 @@ func (d *ConsumerDAL) HasUser(name string) bool {
 
 func (d *ConsumerDAL) IsUserOverTime(name string) bool {
 	user := d.UserRecord[name]
-	fmt.Printf("%+v", user)
 	return !user.T0.IsZero() && !user.T1.IsZero() && time.Now().Sub(user.T0) <= time.Minute*30
 }
 
 func (d *ConsumerDAL) UserUpdateTime(name string, t time.Time) {
 	user := d.UserRecord[name]
 	if user.T0.IsZero() {
-		// fmt.Printf("%+v", user)
 		user.T0 = t
 	} else if user.T1.IsZero() {
 		user.T1 = t
@@ -120,5 +118,4 @@ func (d *ConsumerDAL) UserUpdateTime(name string, t time.Time) {
 		user.T0 = user.T1
 		user.T1 = t
 	}
-	fmt.Printf("%+v", user)
 }
