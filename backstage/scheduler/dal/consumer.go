@@ -19,7 +19,7 @@ type Timer struct {
 */
 type ConsumerDAL struct {
 	ConsumerList map[string]*model.Consumer
-	UserRecord   map[string]Timer
+	UserRecord   map[string]*Timer
 }
 
 /*
@@ -39,7 +39,7 @@ func NewConsumerDAL(c *ConsumerDALConfig) model.ConsumerDAL {
 
 	cdal.ConsumerList = make(map[string]*model.Consumer)
 
-	cdal.UserRecord = make(map[string]Timer)
+	cdal.UserRecord = make(map[string]*Timer)
 
 	return cdal
 }
@@ -81,7 +81,7 @@ func (d *ConsumerDAL) GetConsumerByID(ctx context.Context, consumerID string) (*
 // Clear delete all
 func (d *ConsumerDAL) Clear() {
 	d.ConsumerList = make(map[string]*model.Consumer)
-	d.UserRecord = make(map[string]Timer)
+	d.UserRecord = make(map[string]*Timer)
 }
 
 /*
@@ -95,7 +95,7 @@ func (d *ConsumerDAL) GetConsumers() map[string]*model.Consumer {
 }
 
 func (d *ConsumerDAL) AddUser(name string) {
-	d.UserRecord[name] = Timer{}
+	d.UserRecord[name] = &Timer{}
 }
 
 func (d *ConsumerDAL) HasUser(name string) bool {
@@ -105,12 +105,14 @@ func (d *ConsumerDAL) HasUser(name string) bool {
 
 func (d *ConsumerDAL) IsUserOverTime(name string) bool {
 	user := d.UserRecord[name]
+	fmt.Printf("%+v", user)
 	return !user.T0.IsZero() && !user.T1.IsZero() && time.Now().Sub(user.T0) <= time.Minute*30
 }
 
 func (d *ConsumerDAL) UserUpdateTime(name string, t time.Time) {
 	user := d.UserRecord[name]
 	if user.T0.IsZero() {
+		// fmt.Printf("%+v", user)
 		user.T0 = t
 	} else if user.T1.IsZero() {
 		user.T1 = t
@@ -118,4 +120,5 @@ func (d *ConsumerDAL) UserUpdateTime(name string, t time.Time) {
 		user.T0 = user.T1
 		user.T1 = t
 	}
+	fmt.Printf("%+v", user)
 }

@@ -359,38 +359,39 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 		}
 	} else {
 		log.Infof("用户 %s 申请应用数量大于2且距离上上次申请的时间间隔相差30min以内，更换为根据资源使用情况进行服务的策略", consumer.UserName)
-		if usedMem*2 >= totalMem || usedGf*2 >= totalGf {
-			log.Infof("资源紧缺，使用尽力服务策略")
-			if time.Now().Sub(consumer.T0) <= time.Minute && (appInfo.IsProviderReqGPU || appInfo.IsFileStoreReqFastNetspeed) {
-				log.Infof("用户 %s 创建应用时间间隔过短，对其性能进行限制", consumer.ClientID)
-				if (usedGf/totalGf > usedMem/totalMem || !appInfo.IsFileStoreReqFastNetspeed) && appInfo.IsProviderReqGPU {
-					log.Infof("对服务提供节点性能进行限制，将高性能限制为低性能")
-					appInfo.IsProviderReqGPU = false
-					tmp := make([]*model.Provider, 0)
-					for _, p := range providersOut {
-						if !p.IsContainGPU {
-							tmp = append(tmp, p)
-						}
+		// if usedMem*2 >= totalMem || usedGf*2 >= totalGf {
+		// 	log.Infof("资源紧缺，使用尽力服务策略")
+		if time.Now().Sub(consumer.T0) <= time.Minute && (appInfo.IsProviderReqGPU || appInfo.IsFileStoreReqFastNetspeed) {
+			log.Infof("用户 %s 创建应用时间间隔过短，对其性能进行限制", consumer.ClientID)
+			if (usedGf/totalGf > usedMem/totalMem || !appInfo.IsFileStoreReqFastNetspeed) && appInfo.IsProviderReqGPU {
+				log.Infof("对服务提供节点性能进行限制，将高性能限制为低性能")
+				appInfo.IsProviderReqGPU = false
+				tmp := make([]*model.Provider, 0)
+				for _, p := range providersOut {
+					if !p.IsContainGPU {
+						tmp = append(tmp, p)
 					}
-					providersOut = tmp
-				} else {
-					log.Infof("对内容存储节点性能进行限制，将高性能限制为低性能")
-					appInfo.IsFileStoreReqFastNetspeed = false
-					newFilestoreList := make([]model.FileStoreCoreWithInst, 0)
-					for _, f := range fileStoresOut {
-						if !f.IsContainFastNetspeed {
-							newFilestoreList = append(newFilestoreList, f)
-						}
-					}
-					fileStoresOut = newFilestoreList
 				}
+				providersOut = tmp
+			} else {
+				log.Infof("对内容存储节点性能进行限制，将高性能限制为低性能")
+				appInfo.IsFileStoreReqFastNetspeed = false
+				newFilestoreList := make([]model.FileStoreCoreWithInst, 0)
+				for _, f := range fileStoresOut {
+					if !f.IsContainFastNetspeed {
+						newFilestoreList = append(newFilestoreList, f)
+					}
+				}
+				fileStoresOut = newFilestoreList
 			}
-		} else {
-			log.Infof("资源充足，使用性能最佳策略")
 		}
+		// } else {
+		// 	log.Infof("资源充足，使用性能最佳策略")
+		// }
 	}
 
 	sc.ConsumerDAL.UserUpdateTime(consumer.UserName, consumer.T0)
+	fmt.Printf("%+v", consumer)
 
 	// 4.2 正常筛选
 	tmp := make([]*model.Provider, 0)
@@ -477,9 +478,10 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	}
 
 	// !!!【开始】测试时间用代码
-	p_num := 10
-	f_num := 10
-	d_num := 10
+	work_node_num := 1
+	p_num := work_node_num
+	f_num := work_node_num
+	d_num := work_node_num
 	rand.Seed(time.Now().UnixNano())
 	p_randomNumbers := make([]int, p_num)
 	f_randomNumbers := make([]int, f_num)
