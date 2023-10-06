@@ -308,6 +308,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	if !sc.ConsumerDAL.IsUserOverTime(consumer.UserName) {
 		// 如果申请的次数小于等于2，或者距离上上次申请的时间间隔相差30min以上，则尽可能按需分配
 		log.Infof("用户 %s 小于等于2或者距离上上次申请的时间间隔相差30min以上，尽可能按需分配", consumer.UserName)
+		log.Infof("appinfo: %+v", appInfo)
 		if !appInfo.IsProviderReqGPU {
 			// 去掉高性能的，如果有低性能且正常能分配的话
 			tmp := make([]*model.Provider, 0)
@@ -320,7 +321,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 					}
 				}
 			}
-			if len(tmp) >= 0 && flag {
+			if len(tmp) > 0 && flag {
 				providersOut = tmp
 			}
 		}
@@ -336,7 +337,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 					}
 				}
 			}
-			if len(tmp) >= 0 && flag {
+			if len(tmp) > 0 && flag {
 				fileStoresOut = tmp
 			}
 		}
@@ -352,7 +353,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 					}
 				}
 			}
-			if len(tmp) >= 0 && flag {
+			if len(tmp) > 0 && flag {
 				depositoryOut = tmp
 			}
 		}
