@@ -307,7 +307,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	// 4.1 选择模型
 	if !sc.ConsumerDAL.IsUserOverTime(consumer.UserName) {
 		// 如果申请的次数小于等于2，或者距离上上次申请的时间间隔相差30min以上，则尽可能按需分配
-		log.Infof("用户 %s 小于等于2或者距离上上次申请的时间间隔相差30min以上，尽可能按需分配", consumer.UserName)
+		log.Infof("用户 %s 申请应用小于等于2或者距离上上次申请的时间间隔相差30min以上，尽可能按需分配", consumer.UserName)
 		log.Infof("appinfo: %+v", appInfo)
 		if !appInfo.IsProviderReqGPU {
 			// 去掉高性能的，如果有低性能且正常能分配的话
@@ -358,7 +358,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 			}
 		}
 	} else {
-		log.Infof("用户 %s 大于2且距离上上次申请的时间间隔相差30min以内，更换为根据资源使用情况进行服务的策略", consumer.UserName)
+		log.Infof("用户 %s 申请应用数量大于2，或距离上上次申请的时间间隔相差30min以内，更换为根据资源使用情况进行服务的策略", consumer.UserName)
 		if usedMem*2 >= totalMem || usedGf*2 >= totalGf {
 			log.Infof("资源紧缺，使用尽力服务策略")
 			if time.Now().Sub(consumer.T0) <= time.Minute && (appInfo.IsProviderReqGPU || appInfo.IsFileStoreReqFastNetspeed) {
