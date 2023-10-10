@@ -9,7 +9,7 @@ if __name__ == "__main__":
     s_conf = read_config("scheduler_config.yaml")
 
     # 2. send notificatioin to scheduler
-    for i in range(config['app_num']):
+    for i in range(1, config['app_num']):
         print(time.ctime(time.time()), "Start to update the No.", i+1, "(of", config['app_num'], ") APP.")
         tag = "app"+str(i+1)+"_"
         dict_data = {

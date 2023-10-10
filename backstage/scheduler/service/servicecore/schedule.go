@@ -73,6 +73,9 @@ func NewScheduleServiceCore(c *ScheduleServiceCoreConfig) model.ScheduleServiceC
 */
 func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *model.Consumer, streamInstance *model.StreamInstance) (
 	*model.Provider, []model.DepositoryCoreWithInst, []model.FileStoreCoreWithInst, error) {
+	// 加入虚拟节点, 测试调度响应生成时间
+	work_node_num := 1
+
 	// 1. 粗选节点 (所有满足 APP 基本需求的节点), 并等待获取数字资产
 
 	providersIDList := make([]string, 0)
@@ -81,6 +84,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	for i, p := range providers {
 		pInfo, err := sc.ProviderDAL.GetProviderInRDSByID(ctx, p.ClientID)
 		if err != nil {
+			fmt.Println("读取服务提供节点失败: ", err.Error())
 			return nil, nil, nil, fmt.Errorf("scheduler GetProviderInRDSByID err: %s, streamInstance: %+v", err.Error(), streamInstance)
 		}
 		providers[i].ID = p.ClientID
@@ -96,20 +100,24 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 
 	appInfo, err := sc.ApplicationDAL.GetStreamApplicationByID(ctx, streamInstance.ApplicationID)
 	if err != nil {
+		fmt.Println("没有找到 app: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler GetStreamApplicationByID err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
 	if appInfo.FileStoreList == "" {
+		fmt.Println("没有内容存储节点列表: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler FileStoreList is none streamInstance: %+v", streamInstance)
 	}
 	var fileStoreIDList []string
 	if err := json.Unmarshal([]byte(appInfo.FileStoreList), &fileStoreIDList); err != nil {
+		fmt.Println("解析内容存储节点列表失败: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler unmarshal FileStoreList fail, err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 
 	// todo: get depositoryList from image id
 	depositoryList, err := sc.DepositoryDAL.GetDepositoryInRDS(ctx)
 	if err != nil {
+		fmt.Println("读取镜像仓库储节点失败: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler GetDepositoryInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 	depositoryIDList := make([]string, 0)
@@ -119,6 +127,7 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 
 	filestoreList, err := sc.FileStoreDAL.GetFileStoreInRDSBetweenID(ctx, fileStoreIDList)
 	if err != nil {
+		fmt.Println("读取内容存储节点失败: ", err.Error())
 		return nil, nil, nil, fmt.Errorf("scheduler GetFileStoreInRDS err: %s, streamInstance: %+v", err.Error(), streamInstance)
 	}
 	for i := 0; i < len(fileStoreIDList); i++ {
@@ -479,7 +488,6 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	}
 
 	// !!!【开始】测试时间用代码
-	work_node_num := 1
 	p_num := work_node_num
 	f_num := work_node_num
 	d_num := work_node_num
@@ -501,6 +509,11 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	sort.Ints(d_randomNumbers)
 	// !!!【结束】测试时间用代码
 
+	log.Infof("【业务能力动态组合方案】")
+	fmt.Printf("1. 计算 (Computation) 原子服务:\n%s", providersInRDS[providersOut[0].ID].DetailedInfo())
+	fmt.Printf("2. 运行时文件 (Runtime Files) 原子服务:\n%s", fileStoresOut[0].DetailedInfo())
+	fmt.Printf("3. 运行时环境 (Runtime Environment) 原子服务:\n%s", depositoryOut[0].DetailedInfo())
+
 	table, err = gotable.Create("节点类型", "已使用资源量", "总资源量")
 	if err != nil {
 		fmt.Println("Create table failed: ", err.Error())
@@ -516,11 +529,6 @@ func (sc *ScheduleServiceCore) ScheduleStream(ctx context.Context, consumer *mod
 	table.AddRow([]string{"内容存储节点", fmt.Sprintf("%.2f GB", usedMem), fmt.Sprintf("%.2f GB", totalMem)})
 	log.Info("组合后节点资源使用情况：")
 	fmt.Println("\n", table, "\n")
-
-	log.Infof("【业务能力动态组合方案】")
-	fmt.Printf("1. 计算 (Computation) 原子服务:\n%s", providersInRDS[providersOut[0].ID].DetailedInfo())
-	fmt.Printf("2. 运行时文件 (Runtime Files) 原子服务:\n%s", fileStoresOut[0].DetailedInfo())
-	fmt.Printf("3. 运行时环境 (Runtime Environment) 原子服务:\n%s", depositoryOut[0].DetailedInfo())
 
 	consumer.Provider = providersOut[0]
 	consumer.Filestore = &model.FileStore{

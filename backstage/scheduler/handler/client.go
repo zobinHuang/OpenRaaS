@@ -352,13 +352,18 @@ func (h *Handler) LearnNetWork(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "need app_id"})
 		return
 	}
-	provider, depositoryList, filestoreList, err := scheduleServiceCore.ScheduleStream(ctx, &model.Consumer{}, &model.StreamInstance{
+
+	var consumer = &model.Consumer{}
+	consumer.ConsumerType = "terminal"
+	consumer.UserName = "python3"
+	provider, depositoryList, filestoreList, err := scheduleServiceCore.ScheduleStream(ctx, consumer, &model.StreamInstance{
 		StreamApplication: &model.StreamApplication{
 			ApplicationCore: model.ApplicationCore{
 				ApplicationID: appID,
 			},
 		},
 	})
+	log.Printf("%+v\n", provider)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"Client Address": c.Request.Host,
@@ -469,8 +474,8 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-			log.Infof("【服务提供节点】数字资产更新, 资产索引: %s, 资产内容: %s", p.ID, s)
 			log.Infof("【服务提供节点】数字资产更新 (解析后):\n%s", p.DetailedInfo())
+			log.Infof("【服务提供节点】数字资产更新, 资产索引: %s, 资产内容: %s", p.ID, s)
 			err = h.ProviderService.UpdateProviderInRDS(context.TODO(), &p)
 			if err != nil {
 				log.Infof("RecordHistory h.ProviderService.UpdateProviderInRDS error: %s", err.Error())
@@ -523,8 +528,8 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-			log.Infof("【镜像仓库节点】数字资产更新, 资产索引: %s, 资产内容: %s", d.ID, s)
 			log.Infof("【镜像仓库节点】数字资产更新 (解析后):\n%s", d.DetailedInfo())
+			log.Infof("【镜像仓库节点】数字资产更新, 资产索引: %s, 资产内容: %s", d.ID, s)
 			err = h.DepositoryService.UpdateFileStoreInRDS(context.TODO(), &d)
 			if err != nil {
 				log.Infof("RecordHistory h.DepositoryService.UpdateFileStoreInRDS error: %s", err.Error())
@@ -577,8 +582,8 @@ func (h *Handler) RecordHistory(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-			log.Infof("【内容存储节点】数字资产更新, 资产索引: %s, 资产内容: %s", f.ID, s)
 			log.Infof("【内容存储节点】数字资产更新 (解析后):\n%s", f.DetailedInfo())
+			log.Infof("【内容存储节点】数字资产更新, 资产索引: %s, 资产内容: %s", f.ID, s)
 			err = h.FileStoreService.UpdateFileStoreInRDS(context.TODO(), &f)
 			if err != nil {
 				log.Infof("RecordHistory h.FileStoreService.UpdateFileStoreInRDS error: %s", err.Error())
