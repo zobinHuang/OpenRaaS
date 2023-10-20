@@ -7,7 +7,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/zobinHuang/BrosCloud/provider/streamer/model"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/model"
 
 	"github.com/gorilla/websocket"
 )
@@ -156,9 +156,9 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 	s.DaemonWSConnection.Receive("state_selected_storage", func(req model.WSPacket) (resp model.WSPacket) {
 		// define request format
 		var reqPacketData struct {
-			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepository model.DepositaryCore `json:"selected_depository"`
-			SelectedFilestore  model.FilestoreCore  `json:"selected_filestore"`
+			StreamInstanceID   string                       `json:"stream_instance_id"`
+			SelectedDepository model.DepositoryCoreWithInst `json:"selected_depository"`
+			SelectedFilestore  model.FilestoreCoreWithInst  `json:"selected_filestore"`
 		}
 
 		// parse request
@@ -172,6 +172,8 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 			return model.EmptyPacket
 		}
 
+		fmt.Printf("Got selected storage:\n%s\n", string(req.Data))
+
 		log.WithFields(log.Fields{
 			"Stream Instance ID":  reqPacketData.StreamInstanceID,
 			"Selected Depository": fmt.Sprintf("%s:%s", reqPacketData.SelectedDepository.HostAddress, reqPacketData.SelectedDepository.Port),
@@ -180,9 +182,9 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 
 		// construct websocket packet to scheduler
 		reqToScheduler := struct {
-			StreamInstanceID   string               `json:"stream_instance_id"`
-			SelectedDepository model.DepositaryCore `json:"selected_depository"`
-			SelectedFilestore  model.FilestoreCore  `json:"selected_filestore"`
+			StreamInstanceID   string                       `json:"stream_instance_id"`
+			SelectedDepository model.DepositoryCoreWithInst `json:"selected_depository"`
+			SelectedFilestore  model.FilestoreCoreWithInst  `json:"selected_filestore"`
 		}{
 			StreamInstanceID:   reqPacketData.StreamInstanceID,
 			SelectedDepository: reqPacketData.SelectedDepository,
@@ -201,6 +203,8 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 			PacketType: "state_selected_storage",
 			Data:       string(reqToSchedulerPacketString),
 		}, nil)
+
+		fmt.Printf("Sent selected storage:\n%s\n", string(reqToSchedulerPacketString))
 
 		return model.EmptyPacket
 	})
@@ -274,7 +278,7 @@ func (s *WebsocketCommunicator) InitDaemonRecvRoute(ctx context.Context) {
 			return model.EmptyPacket
 		}
 
-		fmt.Printf("%v", reqPacketData)
+		// fmt.Printf("%v", reqPacketData)
 
 		// store to instance dal
 		s.InstanceDAL.AddNewStreamInstance(ctx, reqPacketData)

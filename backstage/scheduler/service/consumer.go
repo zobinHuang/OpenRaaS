@@ -5,16 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
+
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/utils"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
 )
 
 /*
-	@struct: ConsumerService
-	@description: service layer
+@struct: ConsumerService
+@description: service layer
 */
 type ConsumerService struct {
 	ICEServers          string
@@ -25,8 +28,8 @@ type ConsumerService struct {
 }
 
 /*
-	@struct: ConsumerServiceConfig
-	@description: used for config instance of struct ConsumerService
+@struct: ConsumerServiceConfig
+@description: used for config instance of struct ConsumerService
 */
 type ConsumerServiceConfig struct {
 	ICEServers          string
@@ -37,9 +40,10 @@ type ConsumerServiceConfig struct {
 }
 
 /*
-	@func: NewConsumerService
-	@description:
-		create, config and return an instance of struct ConsumerService
+@func: NewConsumerService
+@description:
+
+	create, config and return an instance of struct ConsumerService
 */
 func NewConsumerService(c *ConsumerServiceConfig) model.ConsumerService {
 	return &ConsumerService{
@@ -52,9 +56,10 @@ func NewConsumerService(c *ConsumerServiceConfig) model.ConsumerService {
 }
 
 /*
-	@func: CreateConsumer
-	@description:
-		create a new consumer instance and start to serve it
+@func: CreateConsumer
+@description:
+
+	create a new consumer instance and start to serve it
 */
 func (s *ConsumerService) CreateConsumer(ctx context.Context, ws *websocket.Conn) (*model.Consumer, error) {
 	// initialize client instance
@@ -97,9 +102,10 @@ func (s *ConsumerService) CreateConsumer(ctx context.Context, ws *websocket.Conn
 }
 
 /*
-	@func: InitRecvRoute
-	@description:
-		initialize receiving callback for consumer instance
+@func: InitRecvRoute
+@description:
+
+	initialize receiving callback for consumer instance
 */
 func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Consumer) {
 	/*
@@ -108,9 +114,13 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			config consumer type
 	*/
 	consumer.Receive("init_consumer_metadata", func(req model.WSPacket) (resp model.WSPacket) {
+		consumer.T0 = time.Now()
+		log.Infof("%s, 收到用户请求, ID: %s", consumer.T0.Format(utils.TIME_LAYOUT), consumer.ClientID)
+
 		// define request format
 		var reqPacketData struct {
 			ConsumerType string `json:"consumer_type"`
+			UserName     string `json:"username"`
 		}
 
 		// parse request
@@ -138,6 +148,10 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 
 		// config consumer type
 		consumer.ConsumerType = reqPacketData.ConsumerType
+		consumer.UserName = reqPacketData.UserName
+		if !s.ConsumerDAL.HasUser(consumer.UserName) {
+			s.ConsumerDAL.AddUser(consumer.UserName)
+		}
 		log.WithFields(log.Fields{
 			"ConsumerID":    consumer.ClientID,
 			"Consumer Type": reqPacketData.ConsumerType,
@@ -193,6 +207,19 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			select stream application
 	*/
 	consumer.Receive("select_stream_application", func(req model.WSPacket) (resp model.WSPacket) {
+		consumer.T1 = time.Now()
+		log.Infof("%s, 开始下载数字资产, ID: %s", consumer.T1.Format(utils.TIME_LAYOUT), consumer.ClientID)
+		log.Infof("T1 = %s", consumer.T1.Sub(consumer.T0))
+
+		// // 初始化随机数生成器
+		// rand.Seed(time.Now().UnixNano())
+
+		// // 生成随机延迟的毫秒数（范围可根据需求调整）
+		// minDelay := 10 // 最小延迟毫秒数
+		// maxDelay := 50 // 最大延迟毫秒数
+		// randomDelay := rand.Intn(maxDelay-minDelay+1) + minDelay
+		// time.Sleep(time.Duration(randomDelay) * time.Millisecond)
+
 		// define request format
 		var reqPacketData struct {
 			ApplicationID  string `json:"application_id"`
@@ -249,7 +276,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 		}
 
 		// schedule
-		provider, depositaryList, filestoreList, err := s.ScheduleServiceCore.ScheduleStream(ctx, streamInstance)
+		provider, depositoryList, filestoreList, err := s.ScheduleServiceCore.ScheduleStream(ctx, consumer, streamInstance)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"Warn Type":            "Recv Callback Error",
@@ -272,18 +299,23 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			}
 		}
 
+		consumer.T3 = time.Now()
+		log.Infof("%s, 调度完成, ID: %s", consumer.T3.Format(utils.TIME_LAYOUT), consumer.ClientID)
+		log.Infof("T3 = %s", consumer.T3.Sub(consumer.T2))
+		log.Infof("%s, 调配响应生成时间 = %s", consumer.T3.Format(utils.TIME_LAYOUT), consumer.T3.Sub(consumer.T2))
+
 		// generate instance index
 		streamInstance.InstanceID = uuid.Must(uuid.NewV4()).String()
 
 		// generate request websocket to provider to start instance
 		reqToProvider := struct {
-			StreamInstance model.StreamInstance   `json:"stream_instance"`
-			DepositaryList []model.DepositaryCore `json:"depositary_list"`
-			FilestoreList  []model.FilestoreCore  `json:"filestore_list"`
+			StreamInstance model.StreamInstance           `json:"stream_instance"`
+			DepositoryList []model.DepositoryCoreWithInst `json:"depository_list"`
+			FileStoreList  []model.FileStoreCoreWithInst  `json:"filestore_list"`
 		}{
 			StreamInstance: *streamInstance, // metadata of application instance
-			DepositaryList: depositaryList,  // metadata of depositary nodes
-			FilestoreList:  filestoreList,   // metadata of filestore nodes
+			DepositoryList: depositoryList,  // metadata of depository nodes
+			FileStoreList:  filestoreList,   // metadata of filestore nodes
 		}
 
 		// register instance room
@@ -321,9 +353,13 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 
 		// construct ws packet to consumer
 		respToConsumer := struct {
-			ProviderID string `json:"provider_id"`
+			ProviderID   string `json:"provider_id"`
+			ProviderIP   string `json:"provider_ip"`
+			IsContainGPU bool   `json:"provider_is_powerful"`
 		}{
-			ProviderID: provider.ClientID,
+			ProviderID:   provider.ClientID,
+			ProviderIP:   provider.IP,
+			IsContainGPU: provider.IsContainGPU,
 		}
 		respToConsumerString, err := json.Marshal(respToConsumer)
 		if err != nil {
@@ -403,7 +439,7 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 			}).Warn("Failed to marshal response to consumer, abandoned")
 			return model.WSPacket{
 				PacketType: "failed_start_streaming",
-				Data:       fmt.Errorf("Server internal error: scheduler failed to send start_streaming to provider").Error(),
+				Data:       fmt.Errorf("server internal error: scheduler failed to send start_streaming to provider").Error(),
 			}
 		}
 
@@ -561,4 +597,14 @@ func (s *ConsumerService) InitRecvRoute(ctx context.Context, consumer *model.Con
 
 		return model.EmptyPacket
 	})
+}
+
+// Clear
+func (s *ConsumerService) Clear() {
+	s.ScheduleServiceCore.Clear()
+}
+
+// GetScheduleServiceCore
+func (s *ConsumerService) GetScheduleServiceCore() *model.ScheduleServiceCore {
+	return &s.ScheduleServiceCore
 }

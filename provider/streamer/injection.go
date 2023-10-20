@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/zobinHuang/BrosCloud/provider/streamer/dal"
-	"github.com/zobinHuang/BrosCloud/provider/streamer/handler"
-	"github.com/zobinHuang/BrosCloud/provider/streamer/service"
-	"github.com/zobinHuang/BrosCloud/provider/streamer/service/communicator"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/dal"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/handler"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/service"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/service/communicator"
 
 	log "github.com/sirupsen/logrus"
 

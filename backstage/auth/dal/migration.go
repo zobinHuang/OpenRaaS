@@ -1,7 +1,7 @@
 package dal
 
 import (
-	"github.com/zobinHuang/BrosCloud/backstage/auth/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/model"
 	"gorm.io/gorm"
 )
 

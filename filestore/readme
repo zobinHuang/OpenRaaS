@@ -1,0 +1,9 @@
+# Filestore daemon usage
+
+1. Create a new directory named `storage` under the root of the `filestore` dir.
+
+2. Put your APP files into the `storage` dir.
+
+3. Run `sudo docker-compose up` to build & open the filestore daemon container, which will be mounted the `storage` dir into its `/daemon/storage` dir.
+
+- If you want to edit the file-sharing port, you should edit the `./docker-compose.yaml` and `./daemon/config.yaml` files together.

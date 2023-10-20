@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -24,6 +28,33 @@ func main() {
 		Addr:    ":8080",
 		Handler: router,
 	}
+
+	// provider worker node online
+	addr := "http://" + os.Getenv("SCHEDULER_WS_HOSTNAME") + ":" + os.Getenv("SCHEDULER_WS_PORT") + "/api/scheduler/node_online" + "?type=provider"
+	log.Println("The provider worker node's info is sent to the scheduler's HTTP interface: " + addr)
+	client := &http.Client{}
+	data := make(map[string]interface{})
+	data["id"] = os.Getenv("SERVER_ID")
+	data["ip"] = os.Getenv("SERVER_IP")
+	data["is_contain_gpu"], _ = strconv.ParseBool(os.Getenv("SERVER_PERFORMANCE"))
+	data["processor"], _ = strconv.ParseFloat(os.Getenv("SERVER_PROCESSOR"), 64)
+	data["bandwidth"], _ = strconv.ParseFloat(os.Getenv("SERVER_BW"), 64)
+	data["latency"], _ = strconv.ParseFloat(os.Getenv("SERVER_LATENCY"), 64)
+	// history
+	// data["inst_history"] = os.Getenv("SERVER_HISTORY")
+
+	bytesData, _ := json.Marshal(data)
+	trimmedBytesData := bytesData[:len(bytesData)-1]
+	hisData, _ := json.Marshal(os.Getenv("SERVER_HISTORY"))
+	trimmedHisData := hisData[1 : len(hisData)-1]
+	trimmedHisData = bytes.ReplaceAll(trimmedHisData, []byte("\\"), []byte(""))
+	bytesData = []byte(string(trimmedBytesData) + ",\"inst_history\":" + string(trimmedHisData) + "}")
+
+	req, _ := http.NewRequest("POST", addr, bytes.NewReader(bytesData))
+	resp, _ := client.Do(req)
+	log.Println("Sent provider worker node online with info:", string(bytesData))
+	body, _ := ioutil.ReadAll(resp.Body)
+	log.Println("Get answer from the scheduler:", string(body))
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

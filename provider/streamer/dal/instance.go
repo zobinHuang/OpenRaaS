@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zobinHuang/BrosCloud/provider/streamer/model"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/model"
 )
 
 /*

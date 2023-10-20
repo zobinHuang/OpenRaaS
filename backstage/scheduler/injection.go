@@ -1,17 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/dal"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/handler"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/service"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/service/servicecore"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/dal"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/handler"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/service"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/service/servicecore"
 
 	log "github.com/sirupsen/logrus"
 
@@ -19,8 +21,8 @@ import (
 )
 
 /*
-	func: inject
-	description: build layer architecture
+func: inject
+description: build layer architecture
 */
 func inject(ds *dal.DataSource) (*gin.Engine, error) {
 	log.Info("Injecting data sources")
@@ -28,9 +30,15 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 	// --------------------- DAL Layer --------------------------
 	rdbDAL := dal.NewRDbDAL(ds.DB)
 	comsumerDAL := dal.NewConsumerDAL(&dal.ConsumerDALConfig{})
-	providerDAL := dal.NewProviderDAL(&dal.ProviderDALConfig{})
-	depositaryDAL := dal.NewDepositaryDAL(&dal.DepositaryDALConfig{})
-	filestoreDAL := dal.NewFilestoreDAL(&dal.FilestoreDALConfig{})
+	providerDAL := dal.NewProviderDAL(&dal.ProviderDALConfig{
+		DB: ds.DB,
+	})
+	depositoryDAL := dal.NewDepositoryDAL(&dal.DepositoryDALConfig{
+		DB: ds.DB,
+	})
+	filestoreDAL := dal.NewFileStoreDAL(&dal.FileStoreDALConfig{
+		DB: ds.DB,
+	})
 	instanceRoomDAL := dal.NewInstanceRoomDAL(&dal.InstanceRoomDALConfig{})
 	applicationDAL := dal.NewApplicationDAL(&dal.ApplicationDALConfig{
 		DB: ds.DB,
@@ -40,9 +48,10 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 	scheduleServiceCore := servicecore.NewScheduleServiceCore(&servicecore.ScheduleServiceCoreConfig{
 		ConsumerDAL:     comsumerDAL,
 		ProviderDAL:     providerDAL,
-		DepositaryDAL:   depositaryDAL,
-		FilestoreDAL:    filestoreDAL,
+		DepositoryDAL:   depositoryDAL,
+		FileStoreDAL:    filestoreDAL,
 		InstanceRoomDAL: instanceRoomDAL,
+		ApplicationDAL:  applicationDAL,
 	})
 
 	// --------------------- Service Layer --------------------------
@@ -65,8 +74,18 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 		ConsumerDAL:     comsumerDAL,
 	})
 
+	depositoryService := service.NewDepositoryService(&service.DepositoryServiceConfig{
+		DepositoryDAL: depositoryDAL,
+	})
+
+	fileStoreService := service.NewFileStoreService(&service.FileStoreServiceConfig{
+		FileStoreDAL: filestoreDAL,
+	})
+
 	applicationService := service.NewApplicationService(&service.ApplicationServiceConfig{
 		ApplicationDAL: applicationDAL,
+		DepositoryDAL:  depositoryDAL,
+		FileStoreDAL:   filestoreDAL,
 	})
 
 	// load RSA Private key
@@ -97,6 +116,23 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 	// initialize gin router
 	router := gin.Default()
 
+	router.Use(func(timeout time.Duration) gin.HandlerFunc {
+		return func(c *gin.Context) {
+			ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
+			defer cancel()
+
+			c.Request = c.Request.WithContext(ctx)
+			c.Next()
+
+			// 检查是否超时
+			if ctx.Err() == context.DeadlineExceeded {
+				c.AbortWithStatusJSON(http.StatusGatewayTimeout, gin.H{
+					"error": "context deadline exceeded",
+				})
+			}
+		}
+	}(100 * time.Second))
+
 	// obtain base url
 	baseURL := os.Getenv("SCHEDULER_API_URL")
 
@@ -114,6 +150,8 @@ func inject(ds *dal.DataSource) (*gin.Engine, error) {
 		TokenService:       tokenService,
 		ConsumerService:    consumerService,
 		ProviderService:    providerService,
+		DepositoryService:  depositoryService,
+		FileStoreService:   fileStoreService,
 		ApplicationService: applicationService,
 		BaseURL:            baseURL,
 		TimeoutDuration:    time.Duration(time.Duration(ht) * time.Second),

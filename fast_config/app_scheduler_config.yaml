@@ -1,0 +1,3 @@
+ip: kb109.dynv6.net
+port: 52109
+handler: /api/scheduler/application_online

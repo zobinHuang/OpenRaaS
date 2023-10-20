@@ -5,26 +5,28 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/handler/middleware"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model"
-	"github.com/zobinHuang/BrosCloud/backstage/scheduler/model/apperrors"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/handler/middleware"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/scheduler/model/apperrors"
 )
 
 /*
-	struct: Handler
-	description: handler layer
+struct: Handler
+description: handler layer
 */
 type Handler struct {
 	RDbService         model.RDbService
 	TokenService       model.TokenService
 	ConsumerService    model.ConsumerService
 	ProviderService    model.ProviderService
+	DepositoryService  model.DepositoryService
+	FileStoreService   model.FileStoreService
 	ApplicationService model.ApplicationService
 }
 
 /*
-	struct: Config
-	description: used for config instance of struct Handler
+struct: Config
+description: used for config instance of struct Handler
 */
 type Config struct {
 	R                  *gin.Engine
@@ -32,14 +34,16 @@ type Config struct {
 	TokenService       model.TokenService
 	ConsumerService    model.ConsumerService
 	ProviderService    model.ProviderService
+	DepositoryService  model.DepositoryService
+	FileStoreService   model.FileStoreService
 	ApplicationService model.ApplicationService
 	BaseURL            string
 	TimeoutDuration    time.Duration
 }
 
 /*
-	func: NewHandler
-	description: define endpoints for handler, and map each endpoint to handler func
+func: NewHandler
+description: define endpoints for handler, and map each endpoint to handler func
 */
 func NewHandler(c *Config) {
 	h := &Handler{
@@ -47,6 +51,8 @@ func NewHandler(c *Config) {
 		TokenService:       c.TokenService,
 		ConsumerService:    c.ConsumerService,
 		ProviderService:    c.ProviderService,
+		DepositoryService:  c.DepositoryService,
+		FileStoreService:   c.FileStoreService,
 		ApplicationService: c.ApplicationService,
 	}
 
@@ -65,6 +71,25 @@ func NewHandler(c *Config) {
 
 	// add timeout middleware
 	g.Use(middleware.Timeout(c.TimeoutDuration, apperrors.NewServiceUnavailable()))
+
+	// disable authentication for debug
+	// g.GET("/record_history", middleware.AuthUser(h.TokenService), h.RecordHistory)
+	g.POST("record_history", h.RecordHistory)
+
+	// disable authentication for debug
+	// g.GET("/network_learn", middleware.AuthUser(h.TokenService), h.LearnNetWork)
+	g.GET("network_learn", h.LearnNetWork)
+
+	// disable authentication for debug
+	// g.GET("/clear", middleware.AuthUser(h.TokenService), h.Clear)
+	g.POST("clear", h.Clear)
+
+	// disable authentication for debug
+	// g.GET("/node_online", middleware.AuthUser(h.TokenService), h.NodeOnline)
+	g.POST("node_online", h.NodeOnline)
+
+	// g.GET("/application_online", middleware.AuthUser(h.TokenService), h.ApplicationOnline)
+	g.POST("application_online", h.ApplicationOnline)
 
 	// disable authentication for debug
 	// g.GET("/wsconnect", middleware.AuthUser(h.TokenService), h.WSConnect)

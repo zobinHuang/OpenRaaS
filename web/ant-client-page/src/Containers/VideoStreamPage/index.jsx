@@ -30,7 +30,7 @@ const MOUSE_RIGHT = 1
 
 const VideoStreamPage = (props) => {
     // get props
-    const {terminalRtcPeerMap, setTerminalRtcPeerMap} = props;
+    const {terminalRtcPeerMap, setTerminalRtcPeerMap, terminalDynamicState} = props;
 
     // create ref hook for stream
     const streamRef = useRef(null)
@@ -39,14 +39,92 @@ const VideoStreamPage = (props) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const terminalKey = searchParams.get("key")
     let RtcPeer = terminalRtcPeerMap.get(terminalKey)
+    let instanceDynamicState = terminalDynamicState.get(terminalKey)
 
     // get global state
     const StateTerminals = useSelector(state => state.terminal.StateTerminals)
     const CurrentSelectedTerminal = StateTerminals.terminalsMap[terminalKey]
-
+    let StateAPI = useSelector(state => state.api.StateAPI)
+    
     // add track
     useEffect(() => {
         streamRef.current.srcObject = RtcPeer.mediaStream[0]
+        
+        // console.log('test')
+        console.log(RtcPeer.PeerConnection)
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${StateAPI.ScheduleProtocol}://${StateAPI.ScheduleHostAddr}:${StateAPI.SchedulePort}${StateAPI.ScheduleBaseURL}/${StateAPI.ScheduleAPI.RecordApplicationHistory}`, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        const latencies = [];
+
+        const handleRTCStats = async () => {
+            try {
+                if (RtcPeer.PeerConnection) {
+                    const stats = await RtcPeer.PeerConnection.getStats();
+
+                    stats.forEach(report => {
+                        // console.log(report.type,report)
+                        if (report.type === "candidate-pair" && report.lastPacketReceivedTimestamp != undefined && report.lastPacketSentTimestamp != undefined) {
+                            console.log(report.type,report)
+                            const latency = report.totalRoundTripTime / report.responsesReceived * 1000
+                            // const latency = report.lastPacketReceivedTimestamp - report.lastPacketSentTimestamp
+                            // const jitter = report.jitter * 1000;
+
+                            if (!isNaN(latency)) {
+                                latencies.push(latency); 
+                            }
+
+
+                        }
+                    });
+
+                }
+            } catch (error) {
+                console.error("RTC Info error:", error);
+            }
+        };
+
+        const sendAverageLatency = () => {
+            if (latencies.length > 0) {
+                console.log(latencies)
+                // Remove minimum and maximum values
+                const sortedLatencies = latencies.sort((a, b) => a - b);
+                const trimmedLatencies = sortedLatencies.slice(2, -2);
+
+                const averageLatency = trimmedLatencies.reduce((sum, latency) => sum + latency, 0) / latencies.length;
+
+                const jsonData = {
+                    instance_id: String(instanceDynamicState.instanceSchedulerID),
+                    latency: String(averageLatency) + 'ms',
+                };
+
+                console.log(jsonData);
+                xhr.send(JSON.stringify(jsonData));
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        console.log(response);
+                    }
+                }
+
+                latencies.length = 0;
+            }
+        };
+
+        const startStatsInterval = () => {
+            const statsInterval = setInterval(handleRTCStats, 1000);
+          
+            setTimeout(() => {
+                clearInterval(statsInterval); // 停止每秒记录
+                sendAverageLatency(); // 计算平均值并发送
+            }, 20000);
+        };
+
+        // 延迟10秒后启动 statsInterval
+        setTimeout(startStatsInterval, 0);
+
+        //console.log('end')
 
         /*
             @callback: keydown
@@ -131,7 +209,8 @@ const VideoStreamPage = (props) => {
             @description: send mousemove event and corresponding metadata to remote peer
         */
         document.addEventListener("mousemove", (event) => {
-            console.log(event.button)
+            // the log will interfere the user experience
+            // console.log(event.button)
 
             let boundRect = streamRef.current.getBoundingClientRect()
 

@@ -6,13 +6,13 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zobinHuang/BrosCloud/backstage/auth/model"
-	"github.com/zobinHuang/BrosCloud/backstage/auth/model/apperrors"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/model"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/model/apperrors"
 )
 
 /*
 	struct: rdmReq
-	description: format of html body (json) in http request that sent to endpoint "/api/github.com/zobinHuang/BrosCloud/backstage/auth/test"
+	description: format of html body (json) in http request that sent to endpoint "/api/github.com/zobinHuang/OpenRaaS/backstage/auth/test"
 */
 type signupReq struct {
 	Email    string `json:"email" binding:"required"`

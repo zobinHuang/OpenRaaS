@@ -1,12 +1,20 @@
 package model
 
 /*
-	@model: DepositaryCore
-	@description: metadata for depositary client
+	@model: DepositoryCore
+	@description: metadata for depository client
 */
-type DepositaryCore struct {
-	HostAddress string `json:"host_address"`
-	Port        string `json:"port"`
+type DepositoryCore struct {
+	ID                    string `gorm:"unique,not null" json:"id"`
+	HostAddress           string `json:"IP"`
+	Port                  string `json:"port"`
+	Tag                   string `json:"tag"`
+	IsContainFastNetspeed bool   `json:"is_contain_fast_netspeed"`
+}
+
+type DepositoryCoreWithInst struct {
+	DepositoryCore
+	InstHistory map[string]string `json:"inst_history"`
 }
 
 /*
@@ -14,6 +22,17 @@ type DepositaryCore struct {
 	@description: metadata for filestore client
 */
 type FilestoreCore struct {
-	HostAddress string `json:"host_address"`
-	Port        string `json:"port"`
+	ID                    string `gorm:"unique,not null" json:"id"`
+	HostAddress           string `json:"IP"`
+	Port                  string `json:"port"`
+	Protocol              string `json:"protocol"`
+	Username              string `json:"username"`
+	Password              string `json:"password"`
+	Directory             string `json:"directory"`
+	IsContainFastNetspeed bool   `json:"is_contain_fast_netspeed"`
+}
+
+type FilestoreCoreWithInst struct {
+	FilestoreCore
+	InstHistory map[string]string `json:"inst_history"`
 }

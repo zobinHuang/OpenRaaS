@@ -16,7 +16,8 @@
     "ScheduleAPI": {
         "ApplicationList": "application_list",
         "ApplicationAmount": "application_amount",
-        "ApplicationDetails": "application_details"
+        "ApplicationDetails": "application_details",
+        "RecordApplicationHistory": "record_history"
     },
 
     "WSHostAddr": "kb109.dynv6.net",

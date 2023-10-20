@@ -5,26 +5,29 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"github.com/zobinHuang/BrosCloud/provider/streamer/model"
+	"github.com/zobinHuang/OpenRaaS/provider/streamer/model"
 )
 
 /*
-	@func: ConnectToScheduler
-	@description:
-		connect to scheduler node
+@func: ConnectToScheduler
+@description:
+
+	connect to scheduler node
 */
 func (s *WebsocketCommunicator) ConnectToScheduler(ctx context.Context, scheme string, hostname string, port string, path string) error {
 	// construct host name
 	completeHostname := fmt.Sprintf("%s:%s", hostname, port)
+	uuid := os.Getenv("SERVER_ID")
 	schedulerURL := url.URL{
 		Scheme:   scheme,
 		Host:     completeHostname,
 		Path:     path,
-		RawQuery: "type=provider",
+		RawQuery: "type=provider&uuid=" + uuid,
 	}
 
 	if s.SchedulerWSConnection != nil {
@@ -70,9 +73,10 @@ func (s *WebsocketCommunicator) ConnectToScheduler(ctx context.Context, scheme s
 }
 
 /*
-	@func: KeepSchedulerConnAlive
-	@description:
-		keep alive routine
+@func: KeepSchedulerConnAlive
+@description:
+
+	keep alive routine
 */
 func (s *WebsocketCommunicator) KeepSchedulerConnAlive(ctx context.Context) {
 	go func() {
@@ -89,9 +93,10 @@ func (s *WebsocketCommunicator) KeepSchedulerConnAlive(ctx context.Context) {
 }
 
 /*
-	@func: InitSchedulerRecvRoute
-	@description:
-		initialize receiving callback
+@func: InitSchedulerRecvRoute
+@description:
+
+	initialize receiving callback
 */
 func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 	/*
@@ -150,12 +155,14 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 		// define request format
 		var reqPacketData struct {
 			StreamInstance model.StreamInstance   `json:"stream_instance"`
-			DepositaryList []model.DepositaryCore `json:"depositary_list"`
+			DepositoryList []model.DepositoryCore `json:"depository_list"`
 			FilestoreList  []model.FilestoreCore  `json:"filestore_list"`
 		}
 
 		fmt.Printf("start schedule vcodec\n")
 		fmt.Printf("%s\n", reqPacketData.StreamInstance.VCodec)
+
+		fmt.Printf("%s", req.Data)
 
 		// parse request
 		err := json.Unmarshal([]byte(req.Data), &reqPacketData)
@@ -184,7 +191,7 @@ func (s *WebsocketCommunicator) InitSchedulerRecvRoute(ctx context.Context) {
 			FPS:            reqPacketData.StreamInstance.FPS,
 			VCodec:         reqPacketData.StreamInstance.VCodec,
 			FilestoreList:  reqPacketData.FilestoreList,
-			DepositaryList: reqPacketData.DepositaryList,
+			DepositoryList: reqPacketData.DepositoryList,
 			InstanceCore: model.InstanceCore{
 				Instanceid: reqPacketData.StreamInstance.InstanceID,
 			},

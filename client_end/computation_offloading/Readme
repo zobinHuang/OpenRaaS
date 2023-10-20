@@ -1,0 +1,10 @@
+# Use OpenRaaS platform to offload AI training process
+
+## How to use
+
+1. Get your database and packaged into `./train` and `./val` in the form of darknet training data.
+
+2. Configure your darknet data structure in `./data`, `./names`, `./train.txt`, and `val.txt`.
+
+3. Specify your neuro network into a config file like `yolov4.cfg`.
+

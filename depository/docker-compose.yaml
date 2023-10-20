@@ -1,0 +1,31 @@
+# Docker Version
+# version: "3.8"
+
+services:
+  registry:
+    image: registry:2
+    ports:
+    - "10960:5000"
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+    volumes:
+      - ./storage:/data
+  
+  depository:
+    build:
+      context: ./daemon
+    image: depository
+    volumes:
+      - ./daemon/main.py:/daemon/main.py
+      - ./daemon/config_reader.py:/daemon/config_reader.py
+      - ./daemon/config.yaml:/daemon/config.yaml
+      - ./daemon/scheduler_config.yaml:/daemon/scheduler_config.yaml
+    environment:
+      - TZ=Asia/Shanghai
+    entrypoint: python main.py
+
+  iperf:
+    image: networkstatic/iperf3
+    ports:
+      - "5201:5201"
+    command: -s

@@ -97,15 +97,23 @@ const WebsocketCallback = (props) => {
                 "terminal_key": `${terminalKey}`,
                 "current_step_index": TERMINAL_STEP_SCHEDULE_COMPUTE_NODE
             }))
+            
+            
+            const paragraph = document.querySelector('p[name="user_name"]');
+            const username = paragraph.textContent;
 
             // send consummer metadata to scheduler
             let reqWSPacket = JSON.stringify({
                 packet_type: "init_consumer_metadata",
                 data: JSON.stringify({ 
-                    consumer_type: stateTerminals.terminalsMap[terminalKey].applicationMeta.currentSelectedApplicationType,
+                    "consumer_type": stateTerminals.terminalsMap[terminalKey].applicationMeta.currentSelectedApplicationType,
+                    "username": username,
                 }),
             })
             ws.send(reqWSPacket)
+
+            // console.log(reqWSPacket)
+            // console.log("Sent username to server in init_consumer_metadata.");
 
             // append terminal log
             dispatch(TerminalActions.updateTerminal({
@@ -352,6 +360,14 @@ const WebsocketCallback = (props) => {
             "log_content": `obtain client id: ${payload.WSPacket.data.client_id}`,
         }))
 
+        // dispatch(TerminalActions.updateTerminal({
+        //     "type": "APPEND_LOG_CONTENT",
+        //     "terminal_key": `${payload.TerminalKey}`,
+        //     "log_priority": "SUCCESS",
+        //     "log_time": GetTimestamp(),
+        //     "log_content": `User service has been successfully decomposed into three microservices: (1) normal computing power (2) app files for winmine (3) image layers for dcwine`,
+        // }))
+
         // store iceserver
         instanceDynamicState.iceServers = payload.WSPacket.data.iceservers
 
@@ -419,7 +435,7 @@ const WebsocketCallback = (props) => {
             "terminal_key": `${payload.TerminalKey}`,
             "log_priority": "SUCCESS",
             "log_time": GetTimestamp(),
-            "log_content": `scheduler has found one provider to serve, provider id: ${payload.WSPacket.data.provider_id}`,
+            "log_content": `scheduler has found one provider to serve, provider id: ${payload.WSPacket.data.provider_id}, ip: ${payload.WSPacket.data.provider_ip}, is powerfull: ${payload.WSPacket.data.provider_is_powerful}`,
         }))
 
         // change current step
@@ -474,8 +490,17 @@ const WebsocketCallback = (props) => {
             "terminal_key": `${payload.TerminalKey}`,
             "log_priority": "SUCCESS",
             "log_time": GetTimestamp(),
-            "log_content": `provider has found proper storage nodes: depository address ${payload.WSPacket.data.target_depository}, filestore address ${payload.WSPacket.data.target_filestore}`,
+            "log_content": `provider has found proper depository worker node: address ${payload.WSPacket.data.depository_address}, is fast-speed: ${payload.WSPacket.data.depository_is_powerful}`,
         }))
+
+        dispatch(TerminalActions.updateTerminal({
+            "type": "APPEND_LOG_CONTENT",
+            "terminal_key": `${payload.TerminalKey}`,
+            "log_priority": "SUCCESS",
+            "log_time": GetTimestamp(),
+            "log_content": `provider has found proper filestore worker node: address ${payload.WSPacket.data.filestore_address}, is fast-speed: ${payload.WSPacket.data.filestore_is_powerful}`,
+        }))
+
 
         // change current step
         dispatch(TerminalActions.updateTerminal({

@@ -10,7 +10,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/zobinHuang/BrosCloud/backstage/auth/dal"
+	"github.com/zobinHuang/OpenRaaS/backstage/auth/dal"
 )
 
 func main() {
